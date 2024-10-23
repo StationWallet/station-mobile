@@ -62,6 +62,22 @@ const params = {
 ### Android
 
 - Android Studio 4.1.1 or later
+- Ensure Android 12 build tools installed. You'll need `Android SDK Platform 31`, `Sources for Android 31` and architecture specific System Image, e.g. `ARM 64 v8a System Image` for Apple Silicon.
+
+#### Gradle
+
+Install gradle globally for your os
+
+```bash
+brew install gradle
+```
+
+Set the gradle wrapper version
+
+```bash
+cd android
+gradle wrapper --gradle-version 6.7.1 --distribution-type bin
+```
 
 ### iOS
 
@@ -71,14 +87,6 @@ const params = {
 ### React Native
 
 - Node.js v14.15.3 or later
-
-### Gradle
-
-```bash
-cd android
-brew install gradle
-gradle wrapper --gradle-version 6.7.1 --distribution-type bin
-```
 
 ## Instructions
 
