@@ -64,6 +64,12 @@ const params = {
 - Android Studio 4.1.1 or later
 - Ensure Android 12 build tools installed. You'll need `Android SDK Platform 31`, `Sources for Android 31` and architecture specific System Image, e.g. `ARM 64 v8a System Image` for Apple Silicon.
 
+Run the following hack to fix the build tools
+
+```
+./fix-android-build-tools.sh
+```
+
 #### Gradle
 
 Install gradle globally for your os
