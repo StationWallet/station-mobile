@@ -4,7 +4,7 @@
   "private": true,
   "license": "Apache-2.0",
   "scripts": {
-    "android": "react-native run-android",
+    "android": "react-native run-android --verbose",
     "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "jest __test__",
@@ -50,6 +50,7 @@
     "dns.js": "^1.0.1",
     "events": "^1.0.0",
     "expo-local-authentication": "^11.1.1",
+    "expo-modules-autolinking": "0.0.3",
     "graphql": "^15.5.0",
     "html-parse-stringify2": "^2.0.1",
     "https-browserify": "~0.0.0",

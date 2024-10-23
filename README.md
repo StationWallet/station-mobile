@@ -14,6 +14,7 @@ Terra Station Mobile allows users to:
 ## App Scheme
 
 ### Send ( terrastation://send/?payload=${base64 json} )
+
 ```
 // payload json
 {
@@ -25,6 +26,7 @@ Terra Station Mobile allows users to:
 ```
 
 ### WalletConnect - Connect ( terrastation://walletconnect_connect/?payload=${base64 json} )
+
 ```
 // payload json
 {
@@ -33,6 +35,7 @@ Terra Station Mobile allows users to:
 ```
 
 ### WalletConnect - Confirm ( terrastation://walletconnect_confirm/?payload=${base64 json} )
+
 ```
 // tx: CreateTxOptions in terra.js
 const params = {
@@ -69,31 +72,39 @@ const params = {
 
 - Node.js v14.15.3 or later
 
+### Gradle
+
+```bash
+cd android
+brew install gradle
+gradle wrapper --gradle-version 6.7.1 --distribution-type bin
+```
+
 ## Instructions
 
 1. Install submodule
 
 ```bash
-$ git submodule init
-$ git submodule update
+git submodule init
+git submodule update
 ```
 
 2. Install dependencies
 
 ```bash
-$ npm install
+npm install
 ```
 
 3. Install pod (iOS)
 
 ```bash
-$ cd ios && pod install && cd ..
+cd ios && pod install && cd ..
 ```
 
 4. Launch app
 
 ```bash
-$ npm run [ios|android]
+npm run [ios|android]
 ```
 
 ## License
