@@ -13,7 +13,7 @@ target 'TerraStation' do
   pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
   pod 'Permission-FaceID', :path => "#{permissions_path}/FaceID"
 
-  pod 'TrezorCrypto'
+  pod 'TrezorCrypto', :git => 'https://github.com/StationWallet/trezor-crypto-ios'
   pod 'IOSSecuritySuite'
 
   config = use_native_modules!
