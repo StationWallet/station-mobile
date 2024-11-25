@@ -6,8 +6,8 @@ const yogaFilePath = path.resolve(
   '../node_modules/react-native/ReactCommon/yoga/yoga/Yoga.cpp'
 )
 
-const targetLine = 'node->getLayout().hadOverflow() |'
-const replacementLine = 'node->getLayout().hadOverflow() ||'
+const targetLine = 'node->getLayout().hadOverflow() |\n'
+const replacementLine = 'node->getLayout().hadOverflow() ||\n'
 
 fs.readFile(yogaFilePath, 'utf8', (err, data) => {
   if (err) {
