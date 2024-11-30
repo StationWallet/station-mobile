@@ -33,10 +33,8 @@ const IBCUnit = ({
   path?: string
   hash?: string
 }): ReactElement => {
-  const [
-    isVisibleSpreadTooltip,
-    setisVisibleSpreadTooltip,
-  ] = useState(false)
+  const [isVisibleSpreadTooltip, setisVisibleSpreadTooltip] =
+    useState(false)
 
   if (!hash) return <Text>{UTIL.truncate(hash)}</Text>
 
@@ -96,24 +94,23 @@ const AssetItem = ({
   item: AvailableItem
   toAddress?: string
 }): ReactElement => {
-  const { navigate } = useNavigation<
-    NavigationProp<RootStackParams>
-  >()
+  const { navigate } =
+    useNavigation<NavigationProp<RootStackParams>>()
   const { getSwapAmount } = useSwapRate()
   const { currency } = useConfig()
   const { display } = item
   const isIbcDenom = UTIL.isIbcDenom(item.denom)
   const ibcDenom = useDenomTrace(item.denom)
   const isClassic = useIsClassic()
-  const ASSET = 'https://assets.terra.money/icon'
+  const ASSET =
+    'https://station-assets-production.up.railway.app/icon'
 
   const icon =
     item.denom && UTIL.isNativeDenom(item.denom)
-      ? (
-        (!isClassic && item.display.unit === 'Luna')
+      ? !isClassic && item.display.unit === 'Luna'
         ? `${ASSET}/svg/LUNA.png`
         : `${ASSET}/60/${item.display.unit}.png`
-      ) : item.icon
+      : item.icon
 
   const { data: swapValue = '' } = useQuery(
     [QueryKeyEnum.swapAmount, item, currency.current],
@@ -145,7 +142,7 @@ const AssetItem = ({
       >
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={styles.iconBox}>
-            {(isIbcDenom && !icon) ? (
+            {isIbcDenom && !icon ? (
               <Image
                 source={images.IBC}
                 style={{ width: 18, height: 18 }}

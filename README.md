@@ -14,6 +14,7 @@ Terra Station Mobile allows users to:
 ## App Scheme
 
 ### Send ( terrastation://send/?payload=${base64 json} )
+
 ```
 // payload json
 {
@@ -25,6 +26,7 @@ Terra Station Mobile allows users to:
 ```
 
 ### WalletConnect - Connect ( terrastation://walletconnect_connect/?payload=${base64 json} )
+
 ```
 // payload json
 {
@@ -33,6 +35,7 @@ Terra Station Mobile allows users to:
 ```
 
 ### WalletConnect - Confirm ( terrastation://walletconnect_confirm/?payload=${base64 json} )
+
 ```
 // tx: CreateTxOptions in terra.js
 const params = {
@@ -71,29 +74,28 @@ const params = {
 
 ## Instructions
 
-1. Install submodule
-
-```bash
-$ git submodule init
-$ git submodule update
-```
-
 2. Install dependencies
 
 ```bash
-$ npm install
+npm install
 ```
 
 3. Install pod (iOS)
 
+Install iOS simulator
+
 ```bash
-$ cd ios && pod install && cd ..
+npm run ios-install-sim
+```
+
+```bash
+cd ios && pod install && cd ..
 ```
 
 4. Launch app
 
 ```bash
-$ npm run [ios|android]
+npm run [ios|android]
 ```
 
 ## License

@@ -46,11 +46,8 @@ import { UTIL } from 'consts'
 import BigNumber from 'bignumber.js'
 
 const { findPairDex, getRouteMessage } = routeswap
-const {
-  isRouteAvailable,
-  isMarketAvailable,
-  simulateRoute,
-} = routeswap
+const { isRouteAvailable, isMarketAvailable, simulateRoute } =
+  routeswap
 
 const assertLimitOrderContracts: Dictionary = {
   mainnet: 'terra1vs9jr7pxuqwct3j29lez3pfetuu8xmq7tk3lzk',
@@ -100,7 +97,7 @@ export default (user: User, actives: string[]): PostPage<SwapUI> => {
     value: denom,
     children: format.denom(denom),
     balance: find(`${denom}:available`, bank.data?.balance) ?? '0',
-    icon: `https://assets.terra.money/icon/60/${format.denom(
+    icon: `https://station-assets-production.up.railway.app/icon/60/${format.denom(
       denom
     )}.png`,
   }))
@@ -182,24 +179,22 @@ export default (user: User, actives: string[]): PostPage<SwapUI> => {
     : '0.01'
 
   const pairTerraswap = useMemo(() => {
-      if (pairs) {
-        return findPairDex({ from, to }, pairs, DexType.TERRASWAP)?.address
-      } else {
-        return ''
-      }
-    },
-    [from, to, pairs]
-  )
+    if (pairs) {
+      return findPairDex({ from, to }, pairs, DexType.TERRASWAP)
+        ?.address
+    } else {
+      return ''
+    }
+  }, [from, to, pairs])
 
   const pairAstroport = useMemo(() => {
-      if (pairs) {
-        return findPairDex({ from, to }, pairs, DexType.ASTROPORT)?.address
-      } else {
-        return ''
-      }
-    },
-    [from, to, pairs]
-  )
+    if (pairs) {
+      return findPairDex({ from, to }, pairs, DexType.ASTROPORT)
+        ?.address
+    } else {
+      return ''
+    }
+  }, [from, to, pairs])
 
   type PairParams = { from: string; to: string }
 
@@ -207,9 +202,19 @@ export default (user: User, actives: string[]): PostPage<SwapUI> => {
     ({ from, to }: PairParams): Mode[] => {
       if (from && to && pairs) {
         const available = ([] as Mode[])
-          .concat(isMarketAvailable({ from, to }) ? SwapMode.ONCHAIN : [])
-          .concat(!!findPairDex({ from, to }, pairs, DexType.TERRASWAP) ? SwapMode.TERRASWAP : [])
-          .concat(!!findPairDex({ from, to }, pairs, DexType.ASTROPORT) ? SwapMode.ASTROPORT : [])
+          .concat(
+            isMarketAvailable({ from, to }) ? SwapMode.ONCHAIN : []
+          )
+          .concat(
+            !!findPairDex({ from, to }, pairs, DexType.TERRASWAP)
+              ? SwapMode.TERRASWAP
+              : []
+          )
+          .concat(
+            !!findPairDex({ from, to }, pairs, DexType.ASTROPORT)
+              ? SwapMode.ASTROPORT
+              : []
+          )
 
         return available.length
           ? available
@@ -330,15 +335,21 @@ export default (user: User, actives: string[]): PostPage<SwapUI> => {
       : calculatedMaxAmount
 
   // simulate
-  const terraswapParams = useMemo(() => ({
-    pair: pairTerraswap, token: from, offer: { amount, from } }
-  ),
+  const terraswapParams = useMemo(
+    () => ({
+      pair: pairTerraswap,
+      token: from,
+      offer: { amount, from },
+    }),
     [from, amount, pairTerraswap]
   )
 
-  const astroportParams = useMemo(() => ({
-    pair: pairAstroport, token: from, offer: { amount, from } }
-  ),
+  const astroportParams = useMemo(
+    () => ({
+      pair: pairAstroport,
+      token: from,
+      offer: { amount, from },
+    }),
     [from, amount, pairAstroport]
   )
 
@@ -457,18 +468,19 @@ export default (user: User, actives: string[]): PostPage<SwapUI> => {
         }
 
         // Set mode after simulation
-        const simulateResults:  [Mode, string][] = [
+        const simulateResults: [Mode, string][] = [
           [SwapMode.ONCHAIN, resultMarket],
           [SwapMode.TERRASWAP, resultTerraswap],
           [SwapMode.ASTROPORT, resultAstroport],
         ]
 
-        const valid: [Mode, string][] = simulateResults
-          .filter(([, modeResult]) => modeResult !== '0')
+        const valid: [Mode, string][] = simulateResults.filter(
+          ([, modeResult]) => modeResult !== '0'
+        )
 
         if (valid.length > 1) {
-          const sortResults: [Mode, string][] = valid.sort(
-            (a, b) => (gte(b[1], a[1]) ? 1 : -1)
+          const sortResults: [Mode, string][] = valid.sort((a, b) =>
+            gte(b[1], a[1]) ? 1 : -1
           )
           const mode = sortResults[0][0]
 
@@ -773,25 +785,21 @@ export default (user: User, actives: string[]): PostPage<SwapUI> => {
         name: 'Slippage Tolerance',
         text: slippage + '%',
       },
-    ]
-      .concat({
-        name: t('Post:Swap:Receive'),
-        displays: [
-          format.display(
-            { amount: simulated, denom: to },
-            whitelist?.[to]?.decimals,
-            undefined,
-            whitelist
-          ),
-        ],
-      }),
+    ].concat({
+      name: t('Post:Swap:Receive'),
+      displays: [
+        format.display(
+          { amount: simulated, denom: to },
+          whitelist?.[to]?.decimals,
+          undefined,
+          whitelist
+        ),
+      ],
+    }),
     feeDenom: { list: getFeeDenomList(bank.balance) },
     validate: (fee: StationCoin): boolean =>
       UTIL.isNativeDenom(from)
-        ? isAvailable(
-            { amount, denom: from, fee },
-            bank.balance
-          )
+        ? isAvailable({ amount, denom: from, fee }, bank.balance)
         : isFeeAvailable(fee, bank.balance),
     submitLabels: [t('Post:Swap:Swap'), t('Post:Swap:Swapping...')],
     message: '',
@@ -907,8 +915,9 @@ const getContent = (params: Params, t: TFunction): string => {
     t('Post:Swap:min.'),
   ].join(': ')} ${min}`
 
-  const tobinTax = whitelist?.find((list) => list.name === denom)
-    ?.tobin_tax
+  const tobinTax = whitelist?.find(
+    (list) => list.name === denom
+  )?.tobin_tax
 
   const tobinText = `Terra ${t('Post:Swap:tobin tax')}: ${percent(
     tobinTax ?? 0

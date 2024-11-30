@@ -10,7 +10,7 @@ export type AssetIconProps = {
   name?: string
 }
 
-const ASSET = 'https://assets.terra.money/icon'
+const ASSET = 'https://station-assets-production.up.railway.app/icon'
 
 const AssetIcon = (props: AssetIconProps): ReactElement => {
   const isClassic = useIsClassic()
@@ -18,21 +18,16 @@ const AssetIcon = (props: AssetIconProps): ReactElement => {
   const src =
     uri ||
     (name
-      ? (
-        (!isClassic && name === 'Luna')
+      ? !isClassic && name === 'Luna'
         ? `${ASSET}/svg/LUNA.png`
         : `${ASSET}/60/${name}.png`
-      ) : undefined)
+      : undefined)
 
   return (
     <>
       {src ? (
         src.includes('.svg') ? (
-          <SvgUri
-            uri={src}
-            width={size}
-            height={size}
-          />
+          <SvgUri uri={src} width={size} height={size} />
         ) : (
           <Image
             source={{ uri: src }}
