@@ -78,6 +78,7 @@ interface DeviceInterface {
 }
 
 const uri = 'https://station-web.pages.dev'
+//const uri = 'http://localhost:3000'
 
 export const WebViewContainer = ({
   user,
