@@ -405,7 +405,6 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = U5D98K4YPD;
 						LastSwiftMigration = 1150;
 					};
 				};
@@ -793,7 +792,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = TerraStation/TerraStation.entitlements;
 				CURRENT_PROJECT_VERSION = 20000001;
-				DEVELOPMENT_TEAM = U5D98K4YPD;
+				DEVELOPMENT_TEAM = K5VQ28FFP2;
 				ENABLE_BITCODE = NO;
 				EXCLUDED_ARCHS = "";
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -806,7 +805,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.0.3;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -829,7 +828,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = TerraStation/TerraStation.entitlements;
 				CURRENT_PROJECT_VERSION = 20000001;
-				DEVELOPMENT_TEAM = U5D98K4YPD;
+				DEVELOPMENT_TEAM = K5VQ28FFP2;
 				EXCLUDED_ARCHS = "";
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				INFOPLIST_FILE = TerraStation/Info.plist;
@@ -838,7 +837,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.0.3;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
