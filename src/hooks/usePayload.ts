@@ -87,7 +87,9 @@ const usePayload = (): {
 
     try {
       const fetchList = await (
-        await fetch('https://assets.terra.money/cw20/tokens.json')
+        await fetch(
+          'https://station-assets-production.up.railway.app/cw20/tokens.json'
+        )
       ).json()
       const whitelist = fetchList[chain.current.name]
       const token = params?.token || ''
@@ -169,9 +171,8 @@ const usePayload = (): {
   ): Promise<
     ValidationResultType<RootStackParams['WalletConnectConfirm']>
   > => {
-    const params = parsePayload<WalletConnectConfirmPayloadType>(
-      payload
-    )
+    const params =
+      parsePayload<WalletConnectConfirmPayloadType>(payload)
 
     let errorMessage = ''
 

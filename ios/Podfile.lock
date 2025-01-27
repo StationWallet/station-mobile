@@ -93,17 +93,20 @@ PODS:
   - fmt (6.2.1)
   - glog (0.3.5)
   - hermes-engine (0.9.0)
-  - IOSSecuritySuite (1.9.4)
+  - IOSSecuritySuite (1.9.11)
   - libevent (2.1.12)
-  - libwebp (1.2.1):
-    - libwebp/demux (= 1.2.1)
-    - libwebp/mux (= 1.2.1)
-    - libwebp/webp (= 1.2.1)
-  - libwebp/demux (1.2.1):
+  - libwebp (1.3.2):
+    - libwebp/demux (= 1.3.2)
+    - libwebp/mux (= 1.3.2)
+    - libwebp/sharpyuv (= 1.3.2)
+    - libwebp/webp (= 1.3.2)
+  - libwebp/demux (1.3.2):
     - libwebp/webp
-  - libwebp/mux (1.2.1):
+  - libwebp/mux (1.3.2):
     - libwebp/demux
-  - libwebp/webp (1.2.1)
+  - libwebp/sharpyuv (1.3.2)
+  - libwebp/webp (1.3.2):
+    - libwebp/sharpyuv
   - MultiplatformBleAdapter (0.1.9)
   - OpenSSL-Universal (1.1.180)
   - Permission-Camera (3.5.0):
@@ -474,7 +477,7 @@ PODS:
   - SDWebImage (5.11.1):
     - SDWebImage/Core (= 5.11.1)
   - SDWebImage/Core (5.11.1)
-  - SDWebImageWebPCoder (0.8.4):
+  - SDWebImageWebPCoder (0.8.5):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
   - TrezorCrypto (0.0.9)
@@ -578,7 +581,7 @@ DEPENDENCIES:
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
-  - TrezorCrypto
+  - TrezorCrypto (from `https://github.com/StationWallet/trezor-crypto-ios`)
   - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - "UMCore (from `../node_modules/@unimodules/core/ios`)"
   - "UMReactNativeAdapter (from `../node_modules/@unimodules/react-native-adapter/ios`)"
@@ -607,7 +610,6 @@ SPEC REPOS:
     - OpenSSL-Universal
     - SDWebImage
     - SDWebImageWebPCoder
-    - TrezorCrypto
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -731,6 +733,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-svg"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
+  TrezorCrypto:
+    :git: https://github.com/StationWallet/trezor-crypto-ios
   UMAppLoader:
     :path: "../node_modules/unimodules-app-loader/ios"
   UMCore:
@@ -742,16 +746,21 @@ EXTERNAL SOURCES:
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
+CHECKOUT OPTIONS:
+  TrezorCrypto:
+    :commit: e7963e22127b78d684bd256d8f436571deb4f4cc
+    :git: https://github.com/StationWallet/trezor-crypto-ios
+
 SPEC CHECKSUMS:
   boost: a7c83b31436843459a1961bfd74b96033dc77234
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
-  BVLinearGradient: 34a999fda29036898a09c6a6b728b0b4189e1a44
+  BVLinearGradient: 7815a70ab485b7b155186dd0cc836363e0288cad
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
-  EXConstants: 4cb52b6d8f636c767104a44bf7db3873e9c01a6f
-  EXImageLoader: d3531a3fe530b22925c19977cb53bb43e3821fe6
-  EXLocalAuthentication: 88a1a69ea66c4934387d1eb503628170c853caef
-  ExpoModulesCore: 2734852616127a6c1fc23012197890a6f3763dc7
+  EXConstants: 23c99fd130cc300f68058b459ea42a809ef74cd0
+  EXImageLoader: 6dcc8e05adc447b4fdb38fcb4c19c4ea3be545ac
+  EXLocalAuthentication: 0f958d80a2389479dbf6830ba468a1e198b52e44
+  ExpoModulesCore: d150dfae1b2a1757034981dc9e54c516c4f0d780
   FBLazyVector: f7b0632c6437e312acf6349288d9aa4cb6d59030
   FBReactNativeSpec: 0f4e1f4cfeace095694436e7c7fcc5bf4b03a0ff
   Flipper: 1bd2db48dcc31e4b167b9a33ec1df01c2ded4893
@@ -766,34 +775,34 @@ SPEC CHECKSUMS:
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 85ecdd10ee8d8ec362ef519a6a45ff9aa27b2e85
   hermes-engine: bf7577d12ac6ccf53ab8b5af3c6ccf0dd8458c5c
-  IOSSecuritySuite: ab601f530890dedf88a46f9cb5007bce511e737d
+  IOSSecuritySuite: b51056d5411aee567153ca86ce7f6edfdc5d2654
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
-  libwebp: 98a37e597e40bfdb4c911fc98f2c53d0b12d05fc
+  libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   MultiplatformBleAdapter: 5a6a897b006764392f9cef785e4360f54fb9477d
   OpenSSL-Universal: 1aa4f6a6ee7256b83db99ec1ccdaa80d10f9af9b
-  Permission-Camera: 4f113f7e3f02d2e65030de8284dfc17f1d237a9a
-  Permission-FaceID: 443c2d49642c6685e5dada5d14d936ee7ebb3d5d
+  Permission-Camera: d116e9bd46fbb91af4462000c38d92e4e7488ffb
+  Permission-FaceID: ec2e48840e364e3c7d05468b05aca4499e14126f
   RCT-Folly: 803a9cfd78114b2ec0f140cfa6fa2a6bafb2d685
   RCTRequired: 0aa6c1c27e1d65920df35ceea5341a5fe76bdb79
   RCTTypeSafety: d76a59d00632891e11ed7522dba3fd1a995e573a
   React: ab8c09da2e7704f4b3ebad4baa6cfdfcc852dcb5
   React-callinvoker: 216fb96b482da516b8aba4142b145938f6ea92f0
-  React-Core: af99b93aff83599485e0e0879879aafa35ceae32
+  React-Core: 1201cd1482caf0e099a87899fd77d6b7081d2ae4
   React-CoreModules: 137a054ce8c547e81dc3502933b1bc0fd08df05d
-  React-cxxreact: ec5ee6b08664f5b8ac71d8ad912f54d540c4f817
-  React-hermes: 644e034cf9eb99c2f867c325c589c85b5c918ef7
-  React-jsi: 3e084c80fd364cee64668d5df46d40c39f7973e1
-  React-jsiexecutor: cbdf37cebdc4f5d8b3d0bf5ccaa6147fd9de9f3d
+  React-cxxreact: afd9f4ef8b090f1c221bb732e5775952050aadac
+  React-hermes: 155f5fce341b7c6f65fb3f3fa7319f3bc8a6fe32
+  React-jsi: 3fa16ea27d6156192e5212a0af7d02bd14f2ca91
+  React-jsiexecutor: 44e84dbadebb7de442e81e5dddff14a54dd2535a
   React-jsinspector: f4775ea9118cbe1f72b834f0f842baa7a99508d8
-  React-logger: a1f028f6d8639a3f364ef80419e5e862e1115250
-  react-native-ble-plx: f10240444452dfb2d2a13a0e4f58d7783e92d76e
-  react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
-  react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
-  react-native-netinfo: 3d3769f0d65de15c83a9bf1346f8be71de5a24bf
-  react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
-  react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
-  react-native-splash-screen: 4312f786b13a81b5169ef346d76d33bc0c6dc457
-  react-native-webview: 227ba9205abb8579116b69ea5774d9744267c65a
+  React-logger: 1101c1334ca91bab566a28d1c72d7de5d242381a
+  react-native-ble-plx: 2dd8780ee8d34c60399aaa897249ed1860ebef10
+  react-native-camera: 1e6fefa515d3af8b4aeaca3a8bffa2925252c4ea
+  react-native-get-random-values: 0fd2b6a3129988d701d10e30f0622d5f039531bc
+  react-native-netinfo: 9f09b27271b5c2ea60c0c4fbe62fdf92d2116234
+  react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
+  react-native-safe-area-context: 667324e20fb3dd9c39c12d6036675ed90099bcd5
+  react-native-splash-screen: 95994222cc95c236bd3cdc59fe45ed5f27969594
+  react-native-webview: e3667cc36c478c4ba9d6f2470dd419873ff9a272
   React-perflogger: 0afaf2f01a47fd0fc368a93bfbb5bd3b26db6e7f
   React-RCTActionSheet: 59f35c4029e0b532fc42114241a06e170b7431a2
   React-RCTAnimation: aae4f4bed122e78bdab72f7118d291d70a932ce2
@@ -805,32 +814,32 @@ SPEC CHECKSUMS:
   React-RCTText: cc5315df8458cfa7b537e621271ef43273955a97
   React-RCTVibration: 3b52a7dced19cdb025b4f88ab26ceb2d85f30ba2
   React-runtimeexecutor: a9d3c82ddf7ffdad9fbe6a81c6d6f8c06385464d
-  ReactCommon: 07d0c460b9ba9af3eaf1b8f5abe7daaad28c9c4e
-  ReactNativeART: 78edc68dd4a1e675338cd0cd113319cf3a65f2ab
-  RNCCheckbox: ed1b4ca295475b41e7251ebae046360a703b6eb5
-  RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
-  RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
-  RNCPicker: 0991c56da7815c0cf946d6f63cf920b25296e5f6
-  RNDeviceInfo: 9538a884f862fe4aa0d7cead9f34e292d41ba8f6
-  RNExitApp: c4e052df2568b43bec8a37c7cd61194d4cfee2c3
-  RNFastImage: 1f2cab428712a4baaf78d6169eaec7f622556dd7
-  RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
-  RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
-  RNPermissions: e5b6373c08831dc4b6b13a2b798143fac20bb100
-  RNReanimated: b5b17149593e7c05e4ec5c0efea1f21e05829510
-  RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
-  RNSVG: 8ba35cbeb385a52fd960fd28db9d7d18b4c2974f
-  RNVectorIcons: bc69e6a278b14842063605de32bec61f0b251a59
+  ReactCommon: 2c62988c905d2663cba7f9ffcc76b5aaf5e1aab0
+  ReactNativeART: b0ebceda8689ce026fff56b2f820664029480a4e
+  RNCCheckbox: 0880a4f06343dfc13522c77931d6c55b1782c5fd
+  RNCClipboard: b0541df1bb88935d40bdc93b41b7d8e3334c998a
+  RNCMaskedView: 4c5ee1c8667d56077246cc6d1977f77393923560
+  RNCPicker: 9b4bdd8e1da5c51295122b05555d1d890f4e61f0
+  RNDeviceInfo: 8565578f521003c17f34d9a903572c9c2e80e3a9
+  RNExitApp: 890cce29b4e01372c84b3b775f9a63f90d77de19
+  RNFastImage: dc2b8ac381af7da9c0690f4ae80335019635718e
+  RNGestureHandler: 6572a5f44759900730562b418da289c373de8d06
+  RNOS: d07e5090b5060c6f2b83116d740a32cfdb33afe3
+  RNPermissions: edb4ebc9e87b26bd3ebf3267fb53f2562f1c1841
+  RNReanimated: dfc7b5736d2a0c6827a0d7d888969e4f98d1716c
+  RNScreens: 3c581ebc42ad074c9be97825081d1ad9a004dd2d
+  RNSVG: af004514150de2bd928e11d215bca33a5d1c19ce
+  RNVectorIcons: 7159ba77d44e14808dcc50fbc03eb5666b1034fc
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
-  SDWebImageWebPCoder: f93010f3f6c031e2f8fb3081ca4ee6966c539815
-  TrezorCrypto: bfeea47a052dca2c77d4a39e1e183865e52de14d
+  SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
+  TrezorCrypto: dd12a1cdb828f7c0887d2da700d8e9f814998590
   UMAppLoader: 21af63390e55c82e037fb9752d93114a80ecf16e
   UMCore: ce3a4faa010239063b8343895b29a6d97b01069d
-  UMReactNativeAdapter: d03cefd0e4e4179ab8c490408589f1c8a6c8b785
-  UMTaskManagerInterface: 2be431101b73604e64fbfffcf759336f9d8fccbb
+  UMReactNativeAdapter: d6697be72a4d722814ee15c35f77d1946ad66ed7
+  UMTaskManagerInterface: de4ad3ff4adad293a1a55a3ceae9de1be009850d
   Yoga: d6b6a80659aa3e91aaba01d0012e7edcbedcbecd
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 7fd348c11ad7d22f305308a1d7b351ddbf0153c3
+PODFILE CHECKSUM: 92d36d5f54354f1b66fb3b60bc2743f200860f3c
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2
