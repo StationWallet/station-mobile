@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 
 import { useMemo } from 'react'
 import { QueryKeyEnum } from 'types/reactQuery'
@@ -18,15 +18,15 @@ const useTokens = (): {
 } => {
   const chainName = useCurrentChainName()
 
-  const { data: allNetworkTokens = {}, refetch } = useQuery(
-    [QueryKeyEnum.tokens, chainName],
-    async () => {
+  const { data: allNetworkTokens = {}, refetch } = useQuery({
+    queryKey: [QueryKeyEnum.tokens, chainName],
+    queryFn: async () => {
       const strData = await preferences.getString(
-        PreferencesEnum.tokens
+          PreferencesEnum.tokens
       )
       return UTIL.jsonTryParse<Dictionary<Whitelist>>(strData || '{}')
     }
-  )
+  })
 
   const addToken = (params: Whitelist): void => {
     const next = {

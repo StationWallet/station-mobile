@@ -22,7 +22,7 @@ import {
   MsgUndelegate,
   AccAddress,
 } from '@terra-money/terra.js'
-import { QueryObserverBaseResult } from 'react-query'
+import { QueryObserverBaseResult } from '@tanstack/react-query'
 import { useIsClassic } from 'lib'
 import { getFindMoniker } from '../../qureys/staking'
 

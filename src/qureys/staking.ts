@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { flatten, path, uniqBy } from 'ramda'
 import BigNumber from 'bignumber.js'
 import {
@@ -19,111 +19,111 @@ import useLCDClient from 'lib/api/useLCD'
 import { useAuth } from 'lib/contexts/AuthContext'
 
 export const useValidators = () => {
-  const lcd = useLCDClient()
-  return useQuery(
-    [queryKey.staking.validators],
-    async () => {
+  const lcd = useLCDClient();
+  return useQuery({
+    queryKey: [queryKey.staking.validators],
+    queryFn: async () => {
       // TODO: Pagination
       // Required when the number of results exceed LAZY_LIMIT
 
       const [v1] = await lcd.staking.validators({
         status: BondStatus[BondStatus.BOND_STATUS_UNBONDED],
         ...Pagination,
-      })
+      });
 
       const [v2] = await lcd.staking.validators({
         status: BondStatus[BondStatus.BOND_STATUS_UNBONDING],
         ...Pagination,
-      })
+      });
 
       const [v3] = await lcd.staking.validators({
         status: BondStatus[BondStatus.BOND_STATUS_BONDED],
         ...Pagination,
-      })
+      });
 
-      return uniqBy(path(['operator_address']), [...v1, ...v2, ...v3])
+      return uniqBy(path(['operator_address']), [...v1, ...v2, ...v3]);
     },
-    { ...RefetchOptions.INFINITY }
-  )
-}
+    ...RefetchOptions.INFINITY,
+  });
+};
 
 export const useValidator = (operatorAddress: ValAddress) => {
-  const lcd = useLCDClient()
-  return useQuery(
-    [queryKey.staking.validator, operatorAddress],
-    () => lcd.staking.validator(operatorAddress),
-    { ...RefetchOptions.INFINITY }
-  )
+    const lcd = useLCDClient()
+    return useQuery({
+        queryKey: [queryKey.staking.validator, operatorAddress],
+        queryFn: () => lcd.staking.validator(operatorAddress),
+        ...RefetchOptions.INFINITY
+    })
 }
 
 export const useDelegations = () => {
-  const { user } = useAuth()
+  const {user} = useAuth();
 
-  const lcd = useLCDClient()
+  const lcd = useLCDClient();
 
-  return useQuery(
-    [queryKey.staking.delegations, user?.address],
-    async () => {
-      if (!user?.address) return []
+  return useQuery({
+    queryKey: [queryKey.staking.delegations, user?.address],
+    queryFn: async () => {
+      if (!user?.address) return [];
       // TODO: Pagination
       // Required when the number of results exceed LAZY_LIMIT
       const [delegations] = await lcd.staking.delegations(
         user?.address,
         undefined,
-        Pagination
-      )
+        Pagination,
+      );
 
-      return delegations.filter(({ balance }) =>
-        has(balance.amount.toString())
-      )
+      return delegations.filter(({balance}) => has(balance.amount.toString()));
     },
-    { ...RefetchOptions.INFINITY }
-  )
-}
+    ...RefetchOptions.INFINITY,
+  });
+};
 
 export const useDelegation = (validatorAddress: ValAddress) => {
-  const { user } = useAuth()
-  const lcd = useLCDClient()
+    const { user } = useAuth()
+    const lcd = useLCDClient()
 
-  return useQuery(
-    [queryKey.staking.delegation, user?.address, validatorAddress],
-    async () => {
-      if (!user?.address) return
-      try {
-        const delegation = await lcd.staking.delegation(
-          user?.address,
-          validatorAddress
-        )
-        return delegation
-      } catch {
-        return
-      }
-    },
-    { ...RefetchOptions.INFINITY }
-  )
+    return useQuery({
+        queryKey: [queryKey.staking.delegation, user?.address, validatorAddress],
+        queryFn: async () => {
+            if (!user?.address) return
+            try {
+                const delegation = await lcd.staking.delegation(
+                    user?.address,
+                    validatorAddress
+                )
+                return delegation
+            } catch {
+                return
+            }
+        },
+        ...RefetchOptions.INFINITY
+    })
 }
 
 export const useUnbondings = () => {
-  const { user } = useAuth()
-  const lcd = useLCDClient()
+    const { user } = useAuth()
+    const lcd = useLCDClient()
 
-  return useQuery(
-    [queryKey.staking.unbondings, user?.address],
-    async () => {
-      if (!user?.address) return []
-      // Pagination is not required because it is already limited
-      const [unbondings] = await lcd.staking.unbondingDelegations(user?.address)
-      return unbondings
-    },
-    { ...RefetchOptions.INFINITY }
-  )
+    return useQuery({
+        queryKey: [queryKey.staking.unbondings, user?.address],
+        queryFn: async () => {
+            if (!user?.address) return []
+            // Pagination is not required because it is already limited
+            const [unbondings] = await lcd.staking.unbondingDelegations(user?.address)
+            return unbondings
+        },
+        ...RefetchOptions.INFINITY
+    })
 }
 
 export const useStakingPool = () => {
-  const lcd = useLCDClient()
-  return useQuery([queryKey.staking.pool], () => lcd.staking.pool(), {
-    ...RefetchOptions.INFINITY,
-  })
+    const lcd = useLCDClient()
+    return useQuery({
+        queryKey: [queryKey.staking.pool],
+        queryFn: () => lcd.staking.pool(),
+        ...RefetchOptions.INFINITY
+    })
 }
 
 /* helpers */

@@ -1,27 +1,26 @@
-import { QueryObserverResult, useQuery } from 'react-query'
-import { DenomTrace } from '@terra-money/terra.js/dist/core/ibc-transfer/DenomTrace'
+import {QueryObserverResult, useQuery} from '@tanstack/react-query';
 
-import { UTIL } from 'consts'
+import {UTIL} from 'consts';
 
-import { QueryKeyEnum } from 'types'
-import useLCD from './useLCD'
-import { LCDClient } from '@terra-money/terra.js'
+import {QueryKeyEnum} from 'types';
+import useLCD from './useLCD';
+import {DenomTrace, LCDClient} from '@terra-money/terra.js';
 
 export const useDenomTrace = (
-  denom = ''
+  denom = '',
 ): QueryObserverResult<DenomTrace, unknown> => {
-  const lcd = useLCD()
-  const hash = denom.replace('ibc/', '')
+  const lcd = useLCD();
+  const hash = denom.replace('ibc/', '');
 
-  return useQuery(
-    [QueryKeyEnum.denomTrace, hash],
-    async () => {
-      const denom_trace = await lcd.ibcTransfer.denomTrace(hash)
-      return denom_trace
+  return useQuery({
+    queryKey: [QueryKeyEnum.denomTrace, hash],
+    queryFn: async () => {
+      const denom_trace = await lcd.ibcTransfer.denomTrace(hash);
+      return denom_trace;
     },
-    { enabled: UTIL.isIbcDenom(denom) }
-  )
-}
+    enabled: UTIL.isIbcDenom(denom),
+  });
+};
 
 export const getTraceDenom = async (
   lcd: LCDClient,

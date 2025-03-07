@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import axios, { AxiosError } from 'axios'
 import BigNumber from 'bignumber.js'
 import { OracleParams, ValAddress } from '@terra-money/terra.js'
@@ -43,15 +43,16 @@ export const useTerraAPI = <T>(path: string, params?: object, fallback?: T) => {
   const available = useIsTerraAPIAvailable()
   const shouldFallback = !available && fallback
 
-  return useQuery<T, AxiosError>(
-    [queryKey.TerraAPI, baseURL, path, params],
-    async () => {
+  return useQuery<T, AxiosError>({
+    queryKey: [queryKey.TerraAPI, baseURL, path, params],
+    queryFn: async () => {
       if (shouldFallback) return fallback
       const { data } = await axios.get(path, { baseURL, params })
       return data
     },
-    { ...RefetchOptions.INFINITY, enabled: !!(baseURL || shouldFallback) }
-  )
+    ...RefetchOptions.INFINITY,
+    enabled: !!(baseURL || shouldFallback)
+  })
 }
 
 /* fee */
@@ -63,14 +64,15 @@ export const useGasPrices = () => {
   const baseURL = current ?? mainnet
   const path = '/gas-prices'
 
-  return useQuery(
-    [queryKey.TerraAPI, baseURL, path],
-    async () => {
+  return useQuery({
+    queryKey: [queryKey.TerraAPI, baseURL, path],
+    queryFn: async () => {
       const { data } = await axios.get<GasPrices>(path, { baseURL })
       return data
     },
-    { ...RefetchOptions.INFINITY, enabled: !!baseURL }
-  )
+    ...RefetchOptions.INFINITY,
+    enabled: !!baseURL
+  })
 }
 
 /* charts */

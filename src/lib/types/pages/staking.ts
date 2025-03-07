@@ -1,5 +1,5 @@
 import { Validator, UnbondingDelegation, Delegation, Rewards } from '@terra-money/terra.js'
-import { QueryObserverBaseResult } from 'react-query'
+import { QueryObserverBaseResult } from '@tanstack/react-query'
 
 import {
   DisplayCoin,

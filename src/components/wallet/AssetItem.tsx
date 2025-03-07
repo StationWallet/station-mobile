@@ -10,7 +10,7 @@ import {
   useNavigation,
 } from '@react-navigation/native'
 import { Coin } from '@terra-money/terra.js'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import Tooltip from 'react-native-walkthrough-tooltip'
 
 import { AvailableItem, format, useConfig, useIsClassic } from 'lib'
@@ -21,7 +21,7 @@ import { Text, Icon, Number, AssetIcon, Row } from 'components'
 import { COLOR } from 'consts'
 import { QueryKeyEnum, RootStackParams, Token } from 'types'
 import { useSwapRate } from 'hooks/useSwapRate'
-import images from 'assets/images'
+import imgIBC from 'assets/images/IBC.png'
 import { useDenomTrace } from 'hooks/useDenomTrace'
 
 const IBCUnit = ({
@@ -33,10 +33,8 @@ const IBCUnit = ({
   path?: string
   hash?: string
 }): ReactElement => {
-  const [
-    isVisibleSpreadTooltip,
-    setisVisibleSpreadTooltip,
-  ] = useState(false)
+  const [isVisibleSpreadTooltip, setisVisibleSpreadTooltip] =
+    useState(false)
 
   if (!hash) return <Text>{UTIL.truncate(hash)}</Text>
 
@@ -96,41 +94,40 @@ const AssetItem = ({
   item: AvailableItem
   toAddress?: string
 }): ReactElement => {
-  const { navigate } = useNavigation<
-    NavigationProp<RootStackParams>
-  >()
+  const { navigate } =
+    useNavigation<NavigationProp<RootStackParams>>()
   const { getSwapAmount } = useSwapRate()
   const { currency } = useConfig()
   const { display } = item
   const isIbcDenom = UTIL.isIbcDenom(item.denom)
   const ibcDenom = useDenomTrace(item.denom)
   const isClassic = useIsClassic()
-  const ASSET = 'https://assets.terra.money/icon'
+  const ASSET =
+    'https://station-assets-production.up.railway.app/icon'
 
   const icon =
     item.denom && UTIL.isNativeDenom(item.denom)
-      ? (
-        (!isClassic && item.display.unit === 'Luna')
+      ? !isClassic && item.display.unit === 'Luna'
         ? `${ASSET}/svg/LUNA.png`
         : `${ASSET}/60/${item.display.unit}.png`
-      ) : item.icon
+      : item.icon
 
-  const { data: swapValue = '' } = useQuery(
-    [QueryKeyEnum.swapAmount, item, currency.current],
-    async () => {
+  const { data: swapValue = '' } = useQuery({
+    queryKey: [QueryKeyEnum.swapAmount, item, currency.current],
+    queryFn: async () => {
       return (
-        currency.current &&
-        item.denom &&
-        getSwapAmount(
-          new Coin(
-            item.denom,
-            UTIL.microfy(UTIL.delComma(display.value) as Token)
-          ),
-          currency.current.key
-        )
+          currency.current &&
+          item.denom &&
+          getSwapAmount(
+              new Coin(
+                  item.denom,
+                  UTIL.microfy(UTIL.delComma(display.value) as Token)
+              ),
+              currency.current.key
+          )
       )
     }
-  )
+  })
 
   return (
     <View style={styles.container}>
@@ -145,9 +142,9 @@ const AssetItem = ({
       >
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={styles.iconBox}>
-            {(isIbcDenom && !icon) ? (
+            {isIbcDenom && !icon ? (
               <Image
-                source={images.IBC}
+                source={imgIBC}
                 style={{ width: 18, height: 18 }}
               />
             ) : (

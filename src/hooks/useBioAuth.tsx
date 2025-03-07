@@ -21,7 +21,8 @@ import {
   BiometricType,
   authenticateBiometric,
 } from 'utils/bio'
-import images from 'assets/images'
+import imgBioFace from 'assets/images/bio_face.png'
+import imgFingerPrint from 'assets/images/finger_print.png'
 import { checkFaceIdPermission } from 'utils/permission'
 
 type BioAuthType = {
@@ -31,8 +32,8 @@ type BioAuthType = {
 const BioAuth = ({ close, bioType }: BioAuthType): ReactElement => {
   const getBiometricImage = (): ImageSourcePropType => {
     return bioType === BiometricType.FACE
-      ? images.bio_face
-      : images.finger_print
+      ? imgBioFace
+      : imgFingerPrint
   }
   const getBiometricName = (): string => {
     return bioType === BiometricType.FACE

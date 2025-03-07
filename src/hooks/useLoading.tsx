@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useRecoilState, useSetRecoilState } from 'recoil'
+import { useAtom, useSetAtom } from 'jotai'
 import { StackNavigationProp } from '@react-navigation/stack'
 
 import AppStore from 'stores/AppStore'
@@ -16,11 +16,11 @@ export const useLoading = ({
   showLoading: ({ txhash, title }: { txhash?: string, title?: string }) => void
   hideLoading: () => Promise<void>
 } => {
-  const setShowLoading = useSetRecoilState(AppStore.showLoading)
-  const [loadingTxHash, setLoadingTxHash] = useRecoilState(
+  const setShowLoading = useSetAtom(AppStore.showLoading)
+  const [loadingTxHash, setLoadingTxHash] = useAtom(
     AppStore.loadingTxHash
   )
-  const [, setLoadingTitle] = useRecoilState(
+  const [, setLoadingTitle] = useAtom(
     AppStore.loadingTitle
   )
 

@@ -1,4 +1,4 @@
-import { QueryObserverBaseResult } from 'react-query'
+import { QueryObserverBaseResult } from '@tanstack/react-query'
 
 export const LAZY_LIMIT = 999
 
@@ -15,9 +15,8 @@ export const Pagination = {
 
 /* helpers */
 export const combineState = (
-  ...results: QueryObserverBaseResult[]
+    ...results: QueryObserverBaseResult<unknown, unknown>[]
 ) => ({
-  isIdle: results.some((result) => result.isIdle),
   isLoading: results.some((result) => result.isLoading),
   isFetching: results.some((result) => result.isFetching),
   isSuccess: results.every((result) => result.isSuccess),
@@ -26,14 +25,14 @@ export const combineState = (
 })
 
 /* queryKey */
-const mirror = <T>(obj: T, parentKey?: string): T =>
-  Object.entries(obj).reduce((acc, [key, value]) => {
-    const next = value
-      ? mirror(value, key)
-      : [parentKey, key].filter(Boolean).join(".")
+const mirror = <T extends Record<string, any>>(obj: T, parentKey?: string): T =>
+    Object.entries(obj).reduce((acc, [key, value]) => {
+      const next = value && typeof value === 'object'
+          ? mirror(value as any, key)
+          : [parentKey, key].filter(Boolean).join(".")
 
-    return { ...acc, [key]: next }
-  }, {} as T)
+      return { ...acc, [key]: next }
+    }, {} as T)
 
 export const queryKey = mirror({
   /* assets */

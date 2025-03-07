@@ -1,10 +1,6 @@
-import { atom } from 'recoil'
-import { TxsUI } from 'lib'
-import { StoreKeyEnum } from './StoreKeyEnum'
+import { atom } from 'jotai';
+import { TxsUI } from 'lib';
 
-const walletTabUi = atom<TxsUI | undefined>({
-  key: StoreKeyEnum.walletTabUi,
-  default: undefined,
-})
+const walletTabUi = atom<TxsUI | undefined>(undefined);
 
-export default { walletTabUi }
+export default { walletTabUi };

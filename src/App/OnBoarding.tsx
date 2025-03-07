@@ -7,14 +7,16 @@ import {
   StyleSheet,
 } from 'react-native'
 import Swiper from 'react-native-swiper'
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 
 import { COLOR } from 'consts'
 
 import { setSkipOnboarding } from '../utils/storage'
 
-import { Text } from 'components'
-import images from 'assets/images'
+import {Icon, Text} from 'components'
+import imgOnboarding0 from 'assets/images/on_boarding_0.png'
+import imgOnboarding1 from 'assets/images/on_boarding_1.png'
+import imgOnboarding2 from 'assets/images/on_boarding_2.png'
+import imgOnboarding4 from 'assets/images/on_boarding_4.png'
 
 LogBox.ignoreLogs([
   // https://reactjs.org/blog/2020/02/26/react-v16.13.0.html#warnings-for-some-updates-during-render
@@ -25,25 +27,25 @@ LogBox.ignoreLogs([
 
 const PagerContents = [
   {
-    image: images.on_boarding_0,
+    image: imgOnboarding0,
     title: 'Welcome Aboard',
     description:
       'Terra Station is your gateway\nto the Terra ecosystem.',
   },
   {
-    image: images.on_boarding_1,
+    image: imgOnboarding1,
     title: 'Manage Assets',
     description:
       'Transact, and stake assets\non the Terra blockchain.',
   },
   {
-    image: images.on_boarding_2,
+    image: imgOnboarding2,
     title: 'Get Rewards',
     description:
       'Delegate LUNA and earn yield from\ntransactions on the Terra network.',
   },
   {
-    image: images.on_boarding_4,
+    image: imgOnboarding4,
     title: 'Start Exploring',
     description: '',
   },

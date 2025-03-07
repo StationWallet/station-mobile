@@ -2,7 +2,7 @@ import {
   NavigationProp,
   useNavigation,
 } from '@react-navigation/native'
-import { useSetRecoilState } from 'recoil'
+import { useSetAtom } from 'jotai'
 import _ from 'lodash'
 import { RawKey, Key } from '@terra-money/terra.js'
 
@@ -38,8 +38,8 @@ export const useConfirm = (): {
   const { navigate } =
     useNavigation<NavigationProp<RootStackParams>>()
 
-  // ConfirmProps couldn't be serialized, so it have to transfer on recoil
-  const setConfirm = useSetRecoilState(ConfirmStore.confirm)
+  // ConfirmProps couldn't be serialized, so it have to transfer on jotai
+  const setConfirm = useSetAtom(ConfirmStore.confirm)
 
   const navigateToConfirm = ({
     confirm,

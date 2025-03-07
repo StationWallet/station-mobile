@@ -7,20 +7,21 @@ import React, {
 import { Image, View, StyleSheet } from 'react-native'
 import { intervalToDuration } from 'date-fns'
 import _ from 'lodash'
-import { useRecoilValue } from 'recoil'
+import { useAtomValue } from 'jotai'
 
 import { COLOR } from 'consts'
 
 import { ExtLink, Icon, Row, Text } from 'components'
-import images from 'assets/images'
+import imgLoading from 'assets/images/loading_image.gif'
+import imgQueued from 'assets/images/queued.png'
 import AppStore from 'stores/AppStore'
 import useFinder from 'lib/hooks/useFinder'
 import { truncate } from 'lib/utils/format'
 
 const LoadingView = (): ReactElement => {
-  const showLoading = useRecoilValue(AppStore.showLoading)
-  const txhash = useRecoilValue(AppStore.loadingTxHash)
-  const title = useRecoilValue(AppStore.loadingTitle)
+  const showLoading = useAtomValue(AppStore.showLoading)
+  const txhash = useAtomValue(AppStore.loadingTxHash)
+  const title = useAtomValue(AppStore.loadingTitle)
   const [displayTxhash, setDisplayTxhash] = useState<string | undefined>(txhash)
   const start = useMemo(() => new Date(), [txhash])
 
@@ -52,7 +53,7 @@ const LoadingView = (): ReactElement => {
     return (
       <View style={styles.container}>
         <Image
-          source={images.loading_image}
+          source={imgLoading}
           style={{ width: 160, height: 160, marginBottom: 5 }}
         />
         <Text style={styles.title} fontType={'bold'}>
@@ -69,7 +70,7 @@ const LoadingView = (): ReactElement => {
                 QUEUED
               </Text>
               <Image
-                source={images.queued}
+                source={imgQueued}
                 style={{ width: 20, height: 12 }}
               />
             </Row>

@@ -1,36 +1,24 @@
-import { atom } from 'recoil'
-import { createRef, RefObject } from 'react'
-import { StoreKeyEnum } from './StoreKeyEnum'
+import { atom } from 'jotai';
 
-const showLoading = atom<boolean>({
-  key: StoreKeyEnum.showLoading,
-  default: false,
-})
+const showLoading = atom(false);
 
-const loadingTxHash = atom<string>({
-  key: StoreKeyEnum.loadingTxHash,
-  default: '',
-})
+const loadingTxHash = atom<string>('');
 
-const loadingTitle = atom<string>({
-  key: StoreKeyEnum.loadingTitle,
-  default: '',
-})
+const loadingTitle = atom<string>('');
 
-const webviewInstance = atom<RefObject<ReactNativeWebView>>({
-  key: StoreKeyEnum.webviewInstance,
-  default: createRef(),
-})
+type NullableRefObject<T> = {
+  current: T | null;
+};
 
-const webviewLoadEnd = atom<boolean>({
-  key: StoreKeyEnum.webviewLoadEnd,
-  default: false,
-})
+const initialRef: NullableRefObject<ReactNativeWebView> = {
+  current: null
+};
 
-const webviewComponentLoaded = atom<boolean>({
-  key: StoreKeyEnum.webviewComponentLoaded,
-  default: false,
-})
+const webviewInstance = atom<NullableRefObject<ReactNativeWebView>>(initialRef);
+
+const webviewLoadEnd = atom<boolean>(false);
+
+const webviewComponentLoaded = atom<boolean>(false);
 
 export default {
   showLoading,

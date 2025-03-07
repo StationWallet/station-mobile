@@ -5,10 +5,19 @@ import React, {
   useState,
 } from 'react'
 import _ from 'lodash'
-import { AppState, BackHandler, ToastAndroid, Linking, View, Image, StyleSheet, Platform } from 'react-native'
+import {
+  AppState,
+  BackHandler,
+  ToastAndroid,
+  Linking,
+  View,
+  Image,
+  StyleSheet,
+  Platform,
+} from 'react-native'
 import { WebView } from 'react-native-webview'
 import { getVersion } from 'react-native-device-info'
-import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import WalletConnect from '@walletconnect/client'
@@ -33,9 +42,13 @@ import {
 import { settings } from 'utils/storage'
 import { useConfig, useIsClassic } from 'lib'
 import useNetworks from 'hooks/useNetworks'
-import { checkCameraPermission, requestPermission, requestPermissionBLE} from 'utils/permission'
+import {
+  checkCameraPermission,
+  requestPermission,
+  requestPermissionBLE,
+} from 'utils/permission'
 import { UTIL } from 'consts'
-import images from 'assets/images'
+import imgTerraStation from 'assets/images/terraStation.png'
 
 export const RN_APIS = {
   APP_VERSION: 'APP_VERSION',
@@ -64,7 +77,8 @@ interface DeviceInterface {
   id: string
 }
 
-const uri = 'https://mobile.station.terra.money'
+const uri = 'https://station-web.pages.dev'
+//const uri = 'http://localhost:3000'
 
 export const WebViewContainer = ({
   user,
@@ -87,12 +101,14 @@ export const WebViewContainer = ({
     disconnectWalletConnect,
     disconnectAllWalletConnect,
   } = useWalletConnect()
-  const webviewInstance = useRecoilValue(AppStore.webviewInstance)
-  const walletConnectors = useRecoilValue(
+  const webviewInstance = useAtomValue(AppStore.webviewInstance)
+  const walletConnectors = useAtomValue(
     WalletConnectStore.walletConnectors
   )
-  const setWebviewLoadEnd = useSetRecoilState(AppStore.webviewLoadEnd)
-  const setWebviewComponentLoaded = useSetRecoilState(AppStore.webviewComponentLoaded)
+  const setWebviewLoadEnd = useSetAtom(AppStore.webviewLoadEnd)
+  const setWebviewComponentLoaded = useSetAtom(
+    AppStore.webviewComponentLoaded
+  )
 
   const [localWalletConnector, setLocalWalletConnector] =
     useState<WalletConnect | null>(null)
@@ -143,20 +159,27 @@ export const WebViewContainer = ({
     }
   }
 
-  const parseTx = (request: PrimitiveTxRequest, isClassic: boolean): TxRequest['tx'] => {
+  const parseTx = (
+    request: PrimitiveTxRequest,
+    isClassic: boolean
+  ): TxRequest['tx'] => {
     const { msgs, fee, memo } = request
-    const isProto = "@type" in JSON.parse(msgs[0])
+    const isProto = '@type' in JSON.parse(msgs[0])
     return isProto
       ? {
-        msgs: msgs.map((msg) => Msg.fromData(JSON.parse(msg), isClassic)),
-        fee: fee ? Fee.fromData(JSON.parse(fee)) : undefined,
-        memo,
-      }
+          msgs: msgs.map((msg) =>
+            Msg.fromData(JSON.parse(msg), isClassic)
+          ),
+          fee: fee ? Fee.fromData(JSON.parse(fee)) : undefined,
+          memo,
+        }
       : {
-        msgs: msgs.map((msg) => Msg.fromAmino(JSON.parse(msg), isClassic)),
-        fee: fee ? Fee.fromAmino(JSON.parse(fee)) : undefined,
-        memo,
-      }
+          msgs: msgs.map((msg) =>
+            Msg.fromAmino(JSON.parse(msg), isClassic)
+          ),
+          fee: fee ? Fee.fromAmino(JSON.parse(fee)) : undefined,
+          memo,
+        }
   }
 
   const getCircularReplacer = () => {
@@ -317,7 +340,8 @@ export const WebViewContainer = ({
           }
 
           case RN_APIS.CHECK_BIO: {
-            const isSuccess = await isSupportedBiometricAuthentication()
+            const isSuccess =
+              await isSupportedBiometricAuthentication()
             webviewInstance.current?.postMessage(
               JSON.stringify({
                 reqId,
@@ -391,7 +415,8 @@ export const WebViewContainer = ({
 
           case RN_APIS.GET_LEDGER_KEY: {
             const ledgerId = await TransportBLE.open(data.id)
-            const disconnectLedger = () => TransportBLE.disconnect(data.id)
+            const disconnectLedger = () =>
+              TransportBLE.disconnect(data.id)
             try {
               const key = await LedgerKey.create(
                 ledgerId,
@@ -432,7 +457,8 @@ export const WebViewContainer = ({
                 chainID: data?.lcdConfigs.chainID,
                 accountNumber: account_number,
                 sequence,
-                signMode: SignatureV2.SignMode.SIGN_MODE_LEGACY_AMINO_JSON
+                signMode:
+                  SignatureV2.SignMode.SIGN_MODE_LEGACY_AMINO_JSON,
               }
 
               const signed = await key.signTx(
@@ -469,7 +495,8 @@ export const WebViewContainer = ({
 
           case RN_APIS.GET_LEDGER_DOC: {
             const ledgerId = await TransportBLE.open(data.id)
-            const disconnectLedger = () => TransportBLE.disconnect(data.id)
+            const disconnectLedger = () =>
+              TransportBLE.disconnect(data.id)
             try {
               const key = await LedgerKey.create(
                 ledgerId,
@@ -477,7 +504,9 @@ export const WebViewContainer = ({
               )
 
               const lcd = new LCDClient(data?.lcdConfigs)
-              const accountInfo = await lcd.auth.accountInfo(data.address)
+              const accountInfo = await lcd.auth.accountInfo(
+                data.address
+              )
               const decoded = lcd.tx.decode(data.signTx)
 
               const doc = new SignDoc(
@@ -493,7 +522,8 @@ export const WebViewContainer = ({
                 isClassic
               )
               const string = JSON.stringify(signature.toData())
-              const base64sign = Buffer.from(string).toString("base64")
+              const base64sign =
+                Buffer.from(string).toString('base64')
 
               webviewInstance.current?.postMessage(
                 JSON.stringify({
@@ -699,7 +729,7 @@ export const WebViewContainer = ({
                 }
 
                 !ledgers.some((d) => d.id === device.id) &&
-                ledgers.push(device)
+                  ledgers.push(device)
                 setLedgers([...ledgers])
               }
             },
@@ -748,7 +778,7 @@ export const WebViewContainer = ({
           const id = req.id
           const method = req.method
           const params = req.params[0]
-          
+
           if (method === 'post' || method === 'signBytes') {
             webviewInstance.current?.postMessage(
               JSON.stringify({
@@ -756,12 +786,14 @@ export const WebViewContainer = ({
                 type: RN_APIS.DEEPLINK,
                 data: {
                   action: 'wallet_confirm',
-                  payload: UTIL.toBase64(UTIL.jsonTryStringify({
-                    id,
-                    params,
-                    handshakeTopic,
-                    method
-                  }))
+                  payload: UTIL.toBase64(
+                    UTIL.jsonTryStringify({
+                      id,
+                      params,
+                      handshakeTopic,
+                      method,
+                    })
+                  ),
                 },
               })
             )
@@ -784,27 +816,29 @@ export const WebViewContainer = ({
   }, [walletConnectors])
 
   useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', onBackPress)
-    return (): void => {
-      BackHandler.removeEventListener(
+    const backHandlerSubscription = BackHandler.addEventListener(
         'hardwareBackPress',
         onBackPress
-      )
-    }
+    )
+
+    return () => backHandlerSubscription.remove()
   }, [onBackPress])
 
+// Updated AppState code
   useEffect(() => {
-    AppState.addEventListener('change', handleAppStateChange)
-    return (): void => {
-      AppState.removeEventListener('change', handleAppStateChange)
-    }
+    const appStateSubscription = AppState.addEventListener(
+        'change',
+        handleAppStateChange
+    )
+
+    return () => appStateSubscription.remove()
   }, [handleAppStateChange])
 
   return (
     <WebView
       ref={webviewInstance}
       source={{
-        uri
+        uri,
       }}
       onShouldStartLoadWithRequest={(request) => {
         if (!request.url.includes(uri)) {
@@ -818,7 +852,7 @@ export const WebViewContainer = ({
       renderLoading={() => (
         <View style={styles.splashContainer}>
           <Image
-            source={images.terraStation}
+            source={imgTerraStation}
             style={{
               resizeMode: 'contain',
               alignSelf: 'center',

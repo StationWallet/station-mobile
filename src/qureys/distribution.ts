@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import BigNumber from 'bignumber.js'
 import { Coins, Rewards, ValAddress } from '@terra-money/terra.js'
 import { has } from 'utils/num'
@@ -13,24 +13,24 @@ export const useRewards = () => {
   const { user } = useAuth()
   const lcd = useLCDClient()
 
-  return useQuery(
-    [queryKey.distribution.rewards, user?.address],
-    async () => {
+  return useQuery({
+    queryKey: [queryKey.distribution.rewards, user?.address],
+    queryFn: async () => {
       if (!user?.address) return { total: new Coins(), rewards: {} }
       return await lcd.distribution.rewards(user?.address)
     },
-    { ...RefetchOptions.INFINITY }
-  )
+    ...RefetchOptions.INFINITY
+  })
 }
 
 export const useCommunityPool = () => {
   const lcd = useLCDClient()
 
-  return useQuery(
-    [queryKey.distribution.communityPool],
-    () => lcd.distribution.communityPool(),
-    { ...RefetchOptions.INFINITY }
-  )
+  return useQuery({
+    queryKey: [queryKey.distribution.communityPool],
+    queryFn: () => lcd.distribution.communityPool(),
+    ...RefetchOptions.INFINITY
+  })
 }
 
 /* commission */
@@ -38,29 +38,29 @@ export const useValidatorCommission = () => {
   const lcd = useLCDClient()
   const { user } = useAuth()
 
-  return useQuery(
-    [queryKey.distribution.validatorCommission],
-    async () => {
+  return useQuery({
+    queryKey: [queryKey.distribution.validatorCommission],
+    queryFn: async () => {
       if (!user?.address) return new Coins()
       const validatorAddress = ValAddress.fromAccAddress(user?.address)
       return await lcd.distribution.validatorCommission(validatorAddress)
     },
-    { ...RefetchOptions.DEFAULT }
-  )
+    ...RefetchOptions.DEFAULT
+  })
 }
 
 export const useWithdrawAddress = () => {
   const lcd = useLCDClient()
   const { user } = useAuth()
 
-  return useQuery(
-    [queryKey.distribution.withdrawAddress],
-    async () => {
+  return useQuery({
+    queryKey: [queryKey.distribution.withdrawAddress],
+    queryFn: async () => {
       if (!user?.address) return
       return await lcd.distribution.withdrawAddress(user?.address)
     },
-    { ...RefetchOptions.DEFAULT }
-  )
+    ...RefetchOptions.DEFAULT
+  })
 }
 
 /* hooks */
@@ -72,6 +72,7 @@ export const useConnectedMoniker = () => {
 
   const validatorAddress = ValAddress.fromAccAddress(user?.address)
   const validator = validators.find(
+  // @ts-ignore
     ({ operator_address }) => operator_address === validatorAddress
   )
 

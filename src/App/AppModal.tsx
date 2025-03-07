@@ -1,13 +1,13 @@
 import React, { ReactElement } from 'react'
 import { Modal, View } from 'react-native'
-import { useRecoilState, useRecoilValue } from 'recoil'
+import { useAtom, useAtomValue } from 'jotai'
 import ModalStore from 'stores/ModalStore'
 
 const AppModal = (): ReactElement => {
-  const [isVisible, setIsVisible] = useRecoilState(
+  const [isVisible, setIsVisible] = useAtom(
     ModalStore.isVisible
   )
-  const children = useRecoilValue(ModalStore.children)
+  const children = useAtomValue(ModalStore.children)
 
   return (
     <Modal

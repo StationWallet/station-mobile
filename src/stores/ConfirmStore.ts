@@ -1,10 +1,6 @@
-import { atom } from 'recoil'
+import { atom } from 'jotai'
 import { ConfirmProps } from 'lib'
-import { StoreKeyEnum } from './StoreKeyEnum'
 
-const confirm = atom<ConfirmProps | undefined>({
-  key: StoreKeyEnum.confirm,
-  default: undefined,
-})
+const confirm = atom<ConfirmProps | undefined>(undefined)
 
 export default { confirm }

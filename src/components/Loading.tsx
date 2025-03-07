@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react'
 import { View, Image, StyleProp, ViewStyle } from 'react-native'
-import images from 'assets/images'
+import imgLoadingCircle from 'assets/images/loading_circle.gif'
 
 const Loading = (props: {
   size?: number
@@ -15,7 +15,7 @@ const Loading = (props: {
       ]}
     >
       <Image
-        source={images.loading_circle}
+        source={imgLoadingCircle}
         style={{ width: size, height: size }}
       />
     </View>

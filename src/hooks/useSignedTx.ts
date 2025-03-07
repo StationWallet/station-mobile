@@ -7,7 +7,7 @@ import {
   Wallet,
 } from '@terra-money/terra.js'
 import { SignMode } from '@terra-money/terra.proto/cosmos/tx/signing/v1beta1/signing'
-import { useRecoilValue } from 'recoil'
+import { useAtomValue } from 'jotai'
 import { StackNavigationProp } from '@react-navigation/stack'
 
 import TopupStore from 'stores/TopupStore'
@@ -56,7 +56,7 @@ const useSignedTx = (
   const { showLoading, hideLoading } = useLoading({ navigation })
   const isClassic = useIsClassic()
 
-  const unsignedTx = useRecoilValue(TopupStore.unsignedTx)
+  const unsignedTx = useAtomValue(TopupStore.unsignedTx)
 
   const createSignedTx = async (
     password: string

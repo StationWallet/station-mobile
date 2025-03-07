@@ -1,4 +1,6 @@
-import { NativeModules } from 'react-native'
+import * as Keychain from 'react-native-keychain';
+
+const SERVICE_NAME = 'app.keystore';
 
 // Warning. To avoid making duplicate key with wallet name,
 // enum string length should NOT be in 5 ~ 20
@@ -11,39 +13,43 @@ export type KeystoreType = {
   write(key: string, value: string): void
   read(key: string): Promise<string>
   remove(key: string): void
-  migratePreferences(key: string): Promise<void>
 }
 
-const Keystore: KeystoreType = NativeModules.Keystore
-
-// Prevent Crashing App from native exception
 export default {
   write: (key: string, value: string): boolean => {
     try {
-      Keystore.write(key, value)
-      return true
+      Keychain.setGenericPassword('keystore', value, {
+        service: `${SERVICE_NAME}-${key}`
+      });
+      return true;
     } catch {
-      return false
+      return false;
     }
   },
+
   read: async (key: string): Promise<string> => {
     try {
-      return await Keystore.read(key)
+      const result = await Keychain.getGenericPassword({
+        service: `${SERVICE_NAME}-${key}`
+      });
+
+      if (result) {
+        return result.password;
+      }
+      return '';
     } catch {
-      return ''
+      return '';
     }
   },
+
   remove: (key: string): boolean => {
     try {
-      Keystore.remove(key)
-      return true
+      Keychain.resetGenericPassword({
+        service: `${SERVICE_NAME}-${key}`
+      });
+      return true;
     } catch {
-      return false
+      return false;
     }
   },
-  migratePreferences: async (key: string): Promise<void> => {
-    try {
-      await Keystore.migratePreferences(key)
-    } catch {}
-  },
-}
+};

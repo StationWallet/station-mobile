@@ -28,6 +28,7 @@ build/
 .gradle
 local.properties
 *.iml
+android/app/.cxx/
 
 # node.js
 #
@@ -67,3 +68,5 @@ android/*.hprof
 android/app/src/main/java/money/terra/station/generated/BasePackageList.java
 
 .scannerwork
+
+/vendor/

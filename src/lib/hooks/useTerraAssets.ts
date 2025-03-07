@@ -1,27 +1,29 @@
-import axios from 'axios'
-import { useQuery } from 'react-query'
-import { QueryKeyEnum } from 'types'
+import axios from 'axios';
+import {useQuery} from '@tanstack/react-query';
+import {QueryKeyEnum} from 'types';
 
-const config = { baseURL: 'https://assets.terra.money' }
+const config = {
+  baseURL: 'https://station-assets-production.up.railway.app',
+};
 
 const useTerraAssets = <T = any>(
-  path: string
+  path: string,
 ): {
-  data?: T
-  loading: boolean
-  error: unknown
+  data?: T;
+  loading: boolean;
+  error: unknown;
 } => {
-  const { data, isLoading, error } = useQuery<T>(
-    [QueryKeyEnum.terraAssets, path],
-    async () => {
+  const {data, isLoading, error} = useQuery<T>({
+    queryKey: [QueryKeyEnum.terraAssets, path],
+    queryFn: async () => {
       try {
-        const { data } = await axios.get(path, config)
-        return data
+        const {data} = await axios.get(path, config);
+        return data;
       } catch {}
-    }
-  )
+    },
+  });
 
-  return { data, loading: isLoading, error }
-}
+  return {data, loading: isLoading, error};
+};
 
-export default useTerraAssets
+export default useTerraAssets;

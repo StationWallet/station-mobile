@@ -1,25 +1,13 @@
-import { atom } from 'recoil'
-import { StoreKeyEnum } from './StoreKeyEnum'
+import { atom } from 'jotai'
 
-const name = atom<string>({
-  key: StoreKeyEnum.recoverWalletName,
-  default: '',
-})
+const name = atom<string>('')
 
-const password = atom<string>({
-  key: StoreKeyEnum.recoverWalletPassword,
-  default: '',
-})
+const password = atom<string>('')
 
-const seed = atom<string[]>({
-  key: StoreKeyEnum.recoverWalletSeed,
-  default: [],
-})
+const seed = atom<string[]>([])
 
-const qrData = atom<RecoverWalletSchemeDataType | undefined>({
-  key: StoreKeyEnum.recoverQRData,
-  default: undefined,
-})
+const qrData = atom<RecoverWalletSchemeDataType | undefined>(undefined)
+
 export default {
   name,
   password,

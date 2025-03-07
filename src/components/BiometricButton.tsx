@@ -7,14 +7,14 @@ import { authenticateBiometric } from 'utils/bio'
 import Text from './Text'
 import Button from './Button'
 
-import images from 'assets/images'
+import imgBioFace from 'assets/images/bio_face.png'
 import { getBioAuthPassword } from 'utils/storage'
 
 const BiometricButtonTitle = (): ReactElement => {
   return (
     <View style={{ flexDirection: 'row' }}>
       <Image
-        source={images.bio_face}
+        source={imgBioFace}
         style={{ width: 20, height: 20, marginRight: 10 }}
       />
       <Text

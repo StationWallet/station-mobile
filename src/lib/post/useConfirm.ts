@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query';
 import {
   Coins,
   LCDClient,
@@ -354,14 +354,12 @@ export const usePollTxHash = (txhash: string): undefined | TxInfo => {
   >(false)
   const lcd = useLCDClient()
 
-  const { data } = useQuery(
-    txhash,
-    () => lcd.tx.txInfo(txhash),
-    {
-      refetchInterval,
-      enabled: !!txhash,
-    }
-  )
+  const { data } = useQuery({
+    queryKey: [txhash],
+    queryFn: () => lcd.tx.txInfo(txhash),
+    refetchInterval: refetchInterval,
+    enabled: !!txhash
+  })
 
   const height = data && data.height
 

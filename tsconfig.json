@@ -1,14 +1,6 @@
 {
+  "extends": "@react-native/typescript-config/tsconfig.json",
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "jsx": "react-native",
-    "lib": ["dom", "esnext"],
-    "moduleResolution": "node",
-    "noEmit": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "strict": true,
-    "noUnusedLocals": true,
     "baseUrl": "./src",
     "paths": {
       "components": ["./components"],
@@ -22,5 +14,8 @@
       "nativeModules/*": ["./nativeModules/*"],
       "lib/*": ["./lib/*"]
     }
-  }
+  },
+  "include": [
+    "src/**/*"
+  ]
 }

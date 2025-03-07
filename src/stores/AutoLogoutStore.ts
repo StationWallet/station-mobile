@@ -1,9 +1,5 @@
-import { atom } from 'recoil'
-import { StoreKeyEnum } from './StoreKeyEnum'
+import { atom } from 'jotai'
 
-const isFromAutoLogout = atom<boolean>({
-  key: StoreKeyEnum.isFromAutoLogout,
-  default: false,
-})
+const isFromAutoLogout = atom<boolean>(false)
 
 export default { isFromAutoLogout }

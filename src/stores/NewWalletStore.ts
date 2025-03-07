@@ -1,20 +1,10 @@
-import { atom } from 'recoil'
-import { StoreKeyEnum } from './StoreKeyEnum'
+import { atom } from 'jotai';
 
-const name = atom<string>({
-  key: StoreKeyEnum.newWalletName,
-  default: '',
-})
+const name = atom<string>('');
 
-const password = atom<string>({
-  key: StoreKeyEnum.newWalletPassword,
-  default: '',
-})
+const password = atom<string>('');
 
-const seed = atom<string[]>({
-  key: StoreKeyEnum.newWalletSeed,
-  default: [],
-})
+const seed = atom<string[]>([]);
 
 export default {
   name,

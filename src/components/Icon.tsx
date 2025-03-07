@@ -1,10 +1,10 @@
-import React, { ReactElement } from 'react'
-import { IconProps } from 'react-native-vector-icons/Icon'
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons'
+import React, { ReactElement } from 'react';
+import MaterialIcons from '@react-native-vector-icons/material-design-icons';
 
-// https://material.io/resources/icons/?icon=open_in_new&style=baseline
-const Icon = (props: IconProps): ReactElement => (
-  <MaterialIcon {...props} />
-)
+// Updated version using the latest modular @react-native-vector-icons structure
+// This uses the modern namespaced package structure
+const Icon = (props: any): ReactElement => (
+    <MaterialIcons {...props} />
+);
 
-export default Icon
+export default Icon;

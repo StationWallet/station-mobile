@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import _ from 'lodash'
 import { TokenBalance, Tokens } from '../types'
 import { QueryKeyEnum } from 'types'
@@ -20,15 +20,15 @@ export default (address: string): TokenBalanceQuery => {
   const { chain } = useConfig()
   const lcd = useLCD()
 
-  const { data: list = [], isLoading, refetch } = useQuery(
-    [
+  const { data: list = [], isLoading, refetch } = useQuery({
+    queryKey: [
       QueryKeyEnum.tokenBalances,
       address,
       chain.current.mantle,
       tokens,
       whitelist,
     ],
-    async () => {
+    queryFn: async () => {
       if (_.some(tokens)) {
         const data = []
         for (const token in tokens) {
@@ -47,7 +47,7 @@ export default (address: string): TokenBalanceQuery => {
       }
       return []
     }
-  )
+  })
 
   return {
     refetch,

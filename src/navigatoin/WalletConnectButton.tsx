@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { useRecoilState } from 'recoil'
+import { useAtom } from 'jotai'
 import { NavigationContainerRef } from '@react-navigation/native'
 import _ from 'lodash'
 
@@ -19,7 +19,7 @@ import { COLOR } from 'consts'
 
 import WalletConnectStore from 'stores/WalletConnectStore'
 import { Text } from 'components'
-import images from 'assets/images'
+import imgWcWhite from 'assets/images/walletconnect_white.png'
 import useWalletConnect from 'hooks/useWalletConnect'
 
 const WalletConnectButton = ({
@@ -29,7 +29,7 @@ const WalletConnectButton = ({
 }): ReactElement => {
   const appState = useRef<string>(AppState.currentState)
 
-  const [walletConnectors] = useRecoilState(
+  const [walletConnectors] = useAtom(
     WalletConnectStore.walletConnectors
   )
   const [showButton, setShowButton] = useState(true)
@@ -116,7 +116,7 @@ const WalletConnectButton = ({
           }}
         >
           <Image
-            source={images.walletconnect_white}
+            source={imgWcWhite}
             style={{ width: 18, height: 18 }}
           />
           <Text

@@ -1,8 +1,7 @@
 import React, { ReactElement, useRef } from 'react'
 import { View, StyleSheet, TouchableOpacity } from 'react-native'
 import _ from 'lodash'
-import { BarCodeReadEvent } from 'react-native-camera'
-import QRCodeScanner from 'react-native-qrcode-scanner'
+import { Camera } from 'react-native-camera-kit';
 import LocalFlashMessage from 'react-native-flash-message'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import TopNotification from 'components/TopNotification'
@@ -39,91 +38,105 @@ type QrScanType = {
 }
 
 const QRScan = ({
-  closeModal,
-  onRead,
-  stepNo,
-  onlyIfScan,
-  dataParser,
-}: QrScanType): ReactElement => {
+                  closeModal,
+                  onRead,
+                  stepNo,
+                  onlyIfScan,
+                  dataParser,
+                }: QrScanType): ReactElement => {
   const flashMessage = useRef<LocalFlashMessage>(null)
   const insets = useSafeAreaInsets()
-  const onSuccess = ({ data }: BarCodeReadEvent): void => {
+
+  type CameraKitReadEvent = {
+    nativeEvent: {
+      codeStringValue: string;
+      // Include other properties that might be in the event
+      type?: string;
+      rawValue?: string;
+    };
+  };
+
+  const onSuccess = (event: CameraKitReadEvent): void => {
+    const data = event.nativeEvent.codeStringValue;
+
     const parsedData =
-      (dataParser ? dataParser({ data }) : data) || ''
+        (dataParser ? dataParser({ data }) : data) || '';
 
     if (onlyIfScan) {
-      const errorMessage = onlyIfScan({ data: parsedData })
+      const errorMessage = onlyIfScan({ data: parsedData });
       if (errorMessage) {
-        flashMessage.current?.showMessage({ message: errorMessage })
+        flashMessage.current?.showMessage({ message: errorMessage });
       } else {
-        onRead({ data: parsedData })
-        closeModal()
+        onRead({ data: parsedData });
+        closeModal();
       }
     } else {
-      onRead({ data: parsedData })
-      closeModal()
+      onRead({ data: parsedData });
+      closeModal();
     }
-  }
+  };
 
   const hideMessage = (): void => {
     flashMessage.current?.hideMessage()
   }
 
   const Vertical = (): ReactElement => (
-    <View style={style.verticalFrameContainer}>
-      <View style={style.verticalFrameSubContainer}>
-        <View style={style.verticalFrame} />
-        <View style={style.verticalFrame} />
+      <View style={style.verticalFrameContainer}>
+        <View style={style.verticalFrameSubContainer}>
+          <View style={style.verticalFrame} />
+          <View style={style.verticalFrame} />
+        </View>
       </View>
-    </View>
   )
 
   const Horizontal = (): ReactElement => (
-    <View style={style.horizontalFrameContainer}>
-      <View style={style.horizontalFrame} />
-      <View style={style.horizontalFrame} />
-    </View>
+      <View style={style.horizontalFrameContainer}>
+        <View style={style.horizontalFrame} />
+        <View style={style.horizontalFrame} />
+      </View>
   )
 
   const Header = (): ReactElement => (
-    <View
-      style={{
-        position: 'absolute',
-        width: '100%',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: insets.top,
-      }}
-    >
-      <TouchableOpacity
-        style={style.backContainer}
-        onPress={closeModal}
+      <View
+          style={{
+            position: 'absolute',
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: insets.top,
+          }}
       >
-        <Icon name={'close'} color={COLOR.white} size={28} />
-      </TouchableOpacity>
-      {_.isNumber(stepNo) && (
-        <NumberStep stepSize={2} nowStep={stepNo} />
-      )}
-    </View>
+        <TouchableOpacity
+            style={style.backContainer}
+            onPress={closeModal}
+        >
+          <Icon name={'close'} color={COLOR.white} size={28} />
+        </TouchableOpacity>
+        {_.isNumber(stepNo) && (
+            <NumberStep stepSize={2} nowStep={stepNo} />
+        )}
+      </View>
   )
 
   const Title = (): ReactElement => (
-    <View style={style.titleContainer}>
-      <Text fontType="medium" style={style.titleText}>
-        {'Scan QR code'}
-      </Text>
-    </View>
+      <View style={style.titleContainer}>
+        <Text fontType="medium" style={style.titleText}>
+          {'Scan QR code'}
+        </Text>
+      </View>
   )
 
   return (
-    <QRCodeScanner
-      reactivate
-      reactivateTimeout={2500}
-      onRead={onSuccess}
-      cameraStyle={{ height: '100%' }}
-      showMarker
-      customMarker={
+      <View style={{height: '100%'}}>
+        <Camera
+            style={{height: '100%'}}
+            scanBarcode={true}
+            onReadCode={onSuccess}
+            showFrame={true}
+            laserColor="transparent"
+            frameColor="transparent" />
+
         <View style={style.container}>
           <View style={style.verticalContainer} />
 
@@ -131,24 +144,16 @@ const QRScan = ({
 
           <View style={style.markerContainer}>
             <View
-              style={[
-                style.horizontalContainer,
-                { justifyContent: 'flex-end' },
-              ]}
-            >
+                style={[style.horizontalContainer, {justifyContent: 'flex-end'}]}>
               <Horizontal />
             </View>
 
-            <View style={{ alignItems: 'center' }}>
+            <View style={{alignItems: 'center'}}>
               <View style={style.marker} />
             </View>
 
             <View
-              style={[
-                style.horizontalContainer,
-                { justifyContent: 'flex-start' },
-              ]}
-            >
+                style={[style.horizontalContainer, {justifyContent: 'flex-start'}]}>
               <Horizontal />
             </View>
           </View>
@@ -160,26 +165,20 @@ const QRScan = ({
           <Header />
 
           <LocalFlashMessage
-            position="top"
-            ref={flashMessage}
-            MessageComponent={(props): ReactElement => {
-              const options = {
-                ...props,
-                message: { ...props.message, type: 'danger' },
-              }
+              position="top"
+              ref={flashMessage}
+              MessageComponent={(props: any) => {
+                const options = {
+                  ...props,
+                  message: {...props.message, type: 'danger'},
+                };
 
-              return (
-                <TopNotification
-                  {...options}
-                  hideMessage={hideMessage}
-                />
-              )
-            }}
+                return <TopNotification {...options} hideMessage={hideMessage} />;
+              }}
           />
         </View>
-      }
-    />
-  )
+      </View>
+  );
 }
 
 const style = StyleSheet.create({
@@ -188,6 +187,9 @@ const style = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: 'transparent',
+    position: 'absolute', // Added to overlay on top of the camera
+    top: 0,
+    left: 0,
   },
 
   verticalContainer: { flex: 1, backgroundColor: COLOR.qrBackground },

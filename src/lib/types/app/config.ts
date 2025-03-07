@@ -1,4 +1,5 @@
 import { NetworkEnum } from 'types'
+import {StatusBarStyle} from "react-native/Libraries/Components/StatusBar/StatusBar";
 
 export interface Config {
   lang: LangConfig
@@ -24,7 +25,7 @@ export type ThemeType =
   | 'madness'
 
 export interface Theme {
-  textContent: string
+  textContent: StatusBarStyle
   backgroundColor: string
   cardColor: string
   primaryColor: string

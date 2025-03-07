@@ -9,7 +9,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { COLOR } from 'consts'
-import images from 'assets/images'
+import imgLoadingImage from 'assets/images/loading_image.gif'
 import { Text } from 'components'
 
 interface Props {
@@ -57,7 +57,7 @@ const Update = (props: Props): ReactElement => {
     >
       <SafeAreaView style={styles.container}>
         <Image
-          source={images.loading_image}
+          source={imgLoadingImage}
           style={{ width: 160, height: 160 }}
         />
         <Text fontType="bold" style={styles.progressTitle}>

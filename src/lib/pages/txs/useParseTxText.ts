@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { format } from '../../utils'
 import useLCD from '../../../hooks/useLCD'
 import { truncate } from '../../utils/format'
@@ -20,9 +20,10 @@ const useParseTxText = (): ((text?: string) => Promise<string>) => {
   const { whitelist } = useWhitelist()
   const { contracts } = useContracts(chainName)
   const lcd = useLCD()
-  const { data: validators } = useQuery('validators', () =>
-    lcd.staking.validators()
-  )
+  const { data: validators } = useQuery({
+    queryKey: ['validators'],
+    queryFn: () => lcd.staking.validators()
+  })
 
   /*
   # Terra address

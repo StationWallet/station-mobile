@@ -1,11 +1,11 @@
 import { useNavigation } from '@react-navigation/native'
 import { ReactNode, useEffect } from 'react'
-import { useSetRecoilState } from 'recoil'
+import { useSetAtom } from 'jotai'
 import ModalStore from 'stores/ModalStore'
 
 export const useModal = (): { modal: AppModal } => {
-  const setIsVisible = useSetRecoilState(ModalStore.isVisible)
-  const setModalChildren = useSetRecoilState(ModalStore.children)
+  const setIsVisible = useSetAtom(ModalStore.isVisible)
+  const setModalChildren = useSetAtom(ModalStore.children)
 
   const modal = {
     open: (children: ReactNode): void => {

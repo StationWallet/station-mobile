@@ -19,7 +19,8 @@ import { navigationHeaderOptions as defaultNHO } from 'components/layout/Header'
 import { QrCodeButton, Text } from 'components'
 
 import { useAuth } from 'lib'
-import images from 'assets/images'
+import imgTakeQrcode from 'assets/images/take_qrcode.png'
+import imgWalletSettings from 'assets/images/wallet_settings.png'
 import { RootStackParams } from 'types'
 import { parseDynamicLinkURL } from 'utils/scheme'
 import useLinking from 'hooks/useLinking'
@@ -90,7 +91,7 @@ const HeaderRight = (): ReactElement => {
           >
             <View style={{ marginRight: 15 }}>
               <Image
-                source={images.take_qrcode}
+                source={imgTakeQrcode}
                 style={{ width: 28, height: 28 }}
               />
             </View>
@@ -98,7 +99,7 @@ const HeaderRight = (): ReactElement => {
 
           <TouchableOpacity onPress={(): void => navigate('Setting')}>
             <Image
-              source={images.wallet_settings}
+              source={imgWalletSettings}
               style={{ width: 28, height: 28 }}
             />
           </TouchableOpacity>

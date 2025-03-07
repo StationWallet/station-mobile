@@ -1,4 +1,4 @@
-import { useRecoilState, useSetRecoilState } from 'recoil'
+import { useAtom, useSetAtom } from 'jotai'
 import {
   IWalletConnectOptions,
   IPushServerOptions, IWalletConnectSession
@@ -19,10 +19,10 @@ const useWalletConnect = (): {
   disconnectWalletConnect: (handshakeTopic: string) => void
   disconnectAllWalletConnect: () => void
 } => {
-  const [walletConnectors, setWalletConnectors] = useRecoilState(
+  const [walletConnectors, setWalletConnectors] = useAtom(
     WalletConnectStore.walletConnectors
   )
-  const setWalletConnectRecoverComplete = useSetRecoilState(
+  const setWalletConnectRecoverComplete = useSetAtom(
     WalletConnectStore.walletConnectRecoverComplete
   )
 
