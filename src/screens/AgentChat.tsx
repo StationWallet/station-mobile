@@ -33,7 +33,7 @@ export default function AgentChat({
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onMenu} style={styles.menuBtn}>
+        <TouchableOpacity onPress={onMenu} style={styles.menuBtn} testID="menu-btn" accessibilityLabel="Open menu">
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Station Agent</Text>

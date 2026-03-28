@@ -210,17 +210,6 @@ let App = ({
                             />
                           </View>
                         )}
-                        {drawerOpen && (
-                          <DrawerPanel
-                            onClose={() => setDrawerOpen(false)}
-                            onNavigate={(screen: string) => {
-                              if (screen === 'agent' || screen === 'station') {
-                                setCurrentScreen(screen)
-                              }
-                            }}
-                            currentScreen={currentScreen}
-                          />
-                        )}
                         <AppNavigator />
                         <GlobalTopNotification />
                         <UnderMaintenance />
@@ -252,6 +241,17 @@ let App = ({
             </AuthProvider>
           </ConfigProvider>
         </AppProvider>
+      )}
+      {drawerOpen && (
+        <DrawerPanel
+          onClose={() => setDrawerOpen(false)}
+          onNavigate={(screen: string) => {
+            if (screen === 'agent' || screen === 'station') {
+              setCurrentScreen(screen)
+            }
+          }}
+          currentScreen={currentScreen}
+        />
       )}
     </>
   )
