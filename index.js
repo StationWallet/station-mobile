@@ -1,9 +1,9 @@
-import { AppRegistry } from 'react-native'
-import 'node-libs-react-native/globals'
-import './shim.js'
+// Polyfills must be loaded before everything else
+import { Buffer } from 'buffer'
+global.Buffer = Buffer
 import 'react-native-get-random-values'
-import './polyfill'
+import './shim.js'
+import { registerRootComponent } from 'expo'
 import App from './src/App'
-import { name as appName } from './app.json'
 
-AppRegistry.registerComponent(appName, () => App)
+registerRootComponent(App)

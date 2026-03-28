@@ -1,14 +1,10 @@
 import React, { ReactElement, useState } from 'react'
-import { Platform, StyleProp } from 'react-native'
-import FastImage, {
-  Source,
-  ImageStyle as FastImageStyle,
-} from 'react-native-fast-image'
+import { Image, ImageSourcePropType, StyleProp, ImageStyle } from 'react-native'
 
 type FastImagePlaceholderProps = {
-  source: Source | number
-  style?: StyleProp<FastImageStyle>
-  placeholder: Source | number
+  source: ImageSourcePropType
+  style?: StyleProp<ImageStyle>
+  placeholder: ImageSourcePropType
 }
 
 function FastImagePlaceholder({
@@ -16,17 +12,15 @@ function FastImagePlaceholder({
   style,
   placeholder,
 }: FastImagePlaceholderProps): ReactElement {
-  const isLocalSource = typeof source !== 'number'
-  const [loading, setLoading] = useState(isLocalSource)
+  const [loading, setLoading] = useState(true)
 
   return (
     <>
-      {loading && <FastImage source={placeholder} style={style} />}
-      <FastImage
+      {loading && <Image source={placeholder} style={style} />}
+      <Image
         source={source}
-        style={loading ? { flex: 0 } : style}
+        style={loading ? { width: 0, height: 0 } : style}
         onLoad={(): void => setLoading(false)}
-        fallback={Platform.OS === 'android' && isLocalSource}
       />
     </>
   )

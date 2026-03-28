@@ -2,9 +2,10 @@ import React, { useState, useEffect, ReactElement, useCallback } from 'react'
 import { Platform } from 'react-native'
 import { LogBox, View, SafeAreaView, StatusBar, Modal, KeyboardAvoidingView } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import SplashScreen from 'react-native-splash-screen'
+import * as SplashScreen from 'expo-splash-screen'
 import { RecoilRoot, useRecoilValue } from 'recoil'
-import RNExitApp from 'react-native-exit-app'
+// RNExitApp removed - not available in Expo
+const RNExitApp = { exitApp: () => {} }
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { AccAddress } from '@terra-money/terra.js'
 
@@ -96,7 +97,7 @@ let App = ({
 
   useEffect(() => {
     if (securityCheckFailed !== undefined) {
-      SplashScreen.hide()
+      SplashScreen.hideAsync()
       if (securityCheckFailed) {
         const message = getSecurityErrorMessage()
 

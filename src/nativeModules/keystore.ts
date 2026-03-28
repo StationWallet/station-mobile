@@ -1,4 +1,4 @@
-import { NativeModules } from 'react-native'
+import * as SecureStore from 'expo-secure-store'
 
 // Warning. To avoid making duplicate key with wallet name,
 // enum string length should NOT be in 5 ~ 20
@@ -8,19 +8,17 @@ export enum KeystoreEnum {
 }
 
 export type KeystoreType = {
-  write(key: string, value: string): void
+  write(key: string, value: string): boolean
   read(key: string): Promise<string>
-  remove(key: string): void
+  remove(key: string): boolean
   migratePreferences(key: string): Promise<void>
 }
 
-const Keystore: KeystoreType = NativeModules.Keystore
-
-// Prevent Crashing App from native exception
+// Expo SecureStore replacement for native Keystore
 export default {
   write: (key: string, value: string): boolean => {
     try {
-      Keystore.write(key, value)
+      SecureStore.setItem(key, value)
       return true
     } catch {
       return false
@@ -28,22 +26,21 @@ export default {
   },
   read: async (key: string): Promise<string> => {
     try {
-      return await Keystore.read(key)
+      const value = await SecureStore.getItemAsync(key)
+      return value || ''
     } catch {
       return ''
     }
   },
   remove: (key: string): boolean => {
     try {
-      Keystore.remove(key)
+      SecureStore.deleteItemAsync(key)
       return true
     } catch {
       return false
     }
   },
-  migratePreferences: async (key: string): Promise<void> => {
-    try {
-      await Keystore.migratePreferences(key)
-    } catch {}
+  migratePreferences: async (_key: string): Promise<void> => {
+    // No-op for Expo migration - old native preferences are not accessible
   },
 }

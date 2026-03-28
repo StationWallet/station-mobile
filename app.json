@@ -1,4 +1,31 @@
 {
-  "name": "TerraStation",
-  "displayName": "TerraStation"
+  "expo": {
+    "name": "TerraStation",
+    "slug": "terra-station",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/terraStation.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#1f42b4"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "money.terra.station"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1f42b4"
+      },
+      "package": "money.terra.station"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-camera",
+      "expo-local-authentication"
+    ]
+  }
 }

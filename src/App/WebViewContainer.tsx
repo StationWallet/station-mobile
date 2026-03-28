@@ -7,7 +7,8 @@ import React, {
 import _ from 'lodash'
 import { AppState, BackHandler, ToastAndroid, Linking, View, Image, StyleSheet, Platform } from 'react-native'
 import { WebView } from 'react-native-webview'
-import { getVersion } from 'react-native-device-info'
+import * as Application from 'expo-application'
+const getVersion = () => Application.nativeApplicationVersion || '1.0.0'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -794,9 +795,9 @@ export const WebViewContainer = ({
   }, [onBackPress])
 
   useEffect(() => {
-    AppState.addEventListener('change', handleAppStateChange)
+    const subscription = AppState.addEventListener('change', handleAppStateChange)
     return (): void => {
-      AppState.removeEventListener('change', handleAppStateChange)
+      subscription.remove()
     }
   }, [handleAppStateChange])
 

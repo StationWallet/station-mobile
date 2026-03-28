@@ -67,3 +67,9 @@ android/*.hprof
 android/app/src/main/java/money/terra/station/generated/BasePackageList.java
 
 .scannerwork
+
+# Expo
+.expo/
+ios/
+android/
+*.tsbuildinfo

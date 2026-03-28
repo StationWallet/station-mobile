@@ -7,7 +7,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native'
-import Clipboard from '@react-native-community/clipboard'
+import * as Clipboard from 'expo-clipboard'
 
 import Text from './Text'
 import Icon from './Icon'
@@ -45,7 +45,7 @@ const CopyButton = (props: CopyButtonProps): ReactElement => {
     <TouchableOpacity
       onPress={(): void => {
         showNoti({ message: 'Copied' })
-        Clipboard.setString(props.copyString)
+        Clipboard.setStringAsync(props.copyString)
       }}
       activeOpacity={props.activeOpacity}
     >

@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react'
 import { StyleSheet, TouchableOpacity } from 'react-native'
-import Clipboard from '@react-native-community/clipboard'
+import * as Clipboard from 'expo-clipboard'
 
 import { COLOR } from 'consts'
 
@@ -13,7 +13,7 @@ export type PasteButtonProps = {
 
 const PasteButton = (props: PasteButtonProps): ReactElement => {
   const onPress = async (): Promise<void> => {
-    const copied = await Clipboard.getString()
+    const copied = await Clipboard.getStringAsync()
     props.onPress(copied)
   }
   return (

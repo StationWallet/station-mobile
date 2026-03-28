@@ -6,8 +6,8 @@ import {
   LogBox,
   StyleSheet,
 } from 'react-native'
-import Swiper from 'react-native-swiper'
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
+import { ScrollView } from 'react-native'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { COLOR } from 'consts'
 
@@ -49,28 +49,16 @@ const PagerContents = [
   },
 ]
 
-interface RenderSwiperProps {
-  refSwipe: React.RefObject<Swiper>
-  setLastPage: (b: boolean) => void
-}
-
 const RenderSwiper = ({
-  refSwipe,
   setLastPage,
-}: RenderSwiperProps): ReactElement => (
-  <Swiper
-    ref={refSwipe}
-    onIndexChanged={(index): void =>
-      setLastPage(index + 1 === PagerContents.length)
-    }
-    loop={false}
-    dot={<View style={styles.SwiperDot} />}
-    activeDot={<View style={styles.SwiperDotActive} />}
-    containerStyle={{ marginBottom: '16%' }}
-    paginationStyle={{ marginBottom: '-4%' }}
-  >
-    {PagerContents.map((v, i) => (
-      <View key={i} style={styles.SwiperContent}>
+}: {
+  setLastPage: (b: boolean) => void
+}): ReactElement => {
+  const [currentIndex, setCurrentIndex] = React.useState(0)
+
+  return (
+    <View style={{ flex: 1, marginBottom: 60 }}>
+      <View style={styles.SwiperContent}>
         <View
           style={{
             height: '60%',
@@ -79,7 +67,7 @@ const RenderSwiper = ({
             justifyContent: 'center',
           }}
         >
-          <Image source={v.image} style={styles.SwiperContentImage} />
+          <Image source={PagerContents[currentIndex].image} style={styles.SwiperContentImage} />
         </View>
         <View
           style={{
@@ -88,29 +76,30 @@ const RenderSwiper = ({
           }}
         >
           <Text style={styles.SwiperContentTitle} fontType="bold">
-            {v.title}
+            {PagerContents[currentIndex].title}
           </Text>
           <Text
             style={styles.SwiperContentDesc}
             adjustsFontSizeToFit
             numberOfLines={2}
           >
-            {v.description}
+            {PagerContents[currentIndex].description}
           </Text>
         </View>
       </View>
-    ))}
-  </Swiper>
-)
+      <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+        {PagerContents.map((_, i) => (
+          <View key={i} style={i === currentIndex ? styles.SwiperDotActive : styles.SwiperDot} />
+        ))}
+      </View>
+    </View>
+  )
+}
 
 const RenderButton = ({
-  refSwipe,
   closeOnBoarding,
-  isLastPage,
 }: {
-  refSwipe: React.RefObject<Swiper>
   closeOnBoarding: () => void
-  isLastPage: boolean
 }): ReactElement => {
   const enterTabs = (): void => {
     setSkipOnboarding(true)
@@ -119,50 +108,21 @@ const RenderButton = ({
 
   return (
     <View style={styles.SwiperButtonContainer}>
-      {!isLastPage ? (
-        <>
-          <TouchableOpacity
-            style={styles.SwiperButtonSkip}
-            onPress={enterTabs}
-          >
-            <Text
-              style={styles.SwiperButtonSkipText}
-              fontType={'medium'}
-            >
-              Skip
-            </Text>
-          </TouchableOpacity>
-          <View style={{ width: 15 }} />
-          <TouchableOpacity
-            style={styles.SwiperButtonNext}
-            onPress={(): void => refSwipe.current?.scrollBy(1)}
-          >
-            <Icon
-              name="arrow-right"
-              size={20}
-              color="rgb(255,255,255)"
-            />
-          </TouchableOpacity>
-        </>
-      ) : (
-        <>
-          <TouchableOpacity
-            style={styles.SwiperButtonStart}
-            onPress={enterTabs}
-          >
-            <Text
-              style={{
-                fontSize: 16,
-                lineHeight: 24,
-                color: 'rgb(255,255,255)',
-              }}
-              fontType={'medium'}
-            >
-              Get started
-            </Text>
-          </TouchableOpacity>
-        </>
-      )}
+      <TouchableOpacity
+        style={styles.SwiperButtonStart}
+        onPress={enterTabs}
+      >
+        <Text
+          style={{
+            fontSize: 16,
+            lineHeight: 24,
+            color: 'rgb(255,255,255)',
+          }}
+          fontType={'medium'}
+        >
+          Get started
+        </Text>
+      </TouchableOpacity>
     </View>
   )
 }
@@ -173,15 +133,12 @@ const OnBoarding = ({
   closeOnBoarding: () => void
 }): ReactElement => {
   const [lastPage, setLastPage] = useState(false)
-  const refSwipe = useRef<Swiper>(null)
 
   return (
     <>
-      <RenderSwiper refSwipe={refSwipe} setLastPage={setLastPage} />
+      <RenderSwiper setLastPage={setLastPage} />
       <RenderButton
-        refSwipe={refSwipe}
         closeOnBoarding={closeOnBoarding}
-        isLastPage={lastPage}
       />
     </>
   )
