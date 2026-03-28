@@ -24,6 +24,9 @@ import { AppProvider } from './useApp'
 
 import AppNavigator from '../navigatoin'
 
+import AgentChat from '../screens/AgentChat'
+import DrawerPanel from '../screens/DrawerPanel'
+
 import useSecurity from 'hooks/useSecurity'
 import useNetworks from 'hooks/useNetworks'
 
@@ -83,6 +86,10 @@ let App = ({
     getSecurityErrorMessage,
     securityCheckFailed,
   } = useSecurity()
+
+  /* agent POC navigation */
+  const [currentScreen, setCurrentScreen] = useState<'agent' | 'station'>('agent')
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   /* onboarding */
   const [showOnBoarding, setshowOnBoarding] = useState<boolean>(false)
@@ -155,8 +162,9 @@ let App = ({
                   style={{
                     flex: 0,
                     backgroundColor: showOnBoarding
-                      ? '#fff' : !webviewComponentLoaded
-                        ? '#1f42b4' : themes?.[currentTheme]?.backgroundColor,
+                      ? '#fff' : currentScreen === 'agent'
+                        ? '#02122B' : !webviewComponentLoaded
+                          ? '#1f42b4' : themes?.[currentTheme]?.backgroundColor,
                   }}
                 />
                 <KeyboardAvoidingView
@@ -167,8 +175,9 @@ let App = ({
                     style={{
                       ...defaultViewStyle,
                       backgroundColor: showOnBoarding
-                        ? '#fff' : !webviewComponentLoaded
-                          ? '#1f42b4' : themes?.[currentTheme]?.backgroundColor,
+                        ? '#fff' : currentScreen === 'agent'
+                          ? '#02122B' : !webviewComponentLoaded
+                            ? '#1f42b4' : themes?.[currentTheme]?.backgroundColor,
                     }}
                   >
                     <StatusBar
@@ -191,12 +200,27 @@ let App = ({
                       />
                     ) : (
                       <>
-                        <View style={defaultViewStyle}>
-                          <WebViewContainer
-                            user={user}
-                            setIsVisibleModal={setIsVisibleModal}
+                        {currentScreen === 'agent' ? (
+                          <AgentChat onMenu={() => setDrawerOpen(true)} />
+                        ) : (
+                          <View style={defaultViewStyle}>
+                            <WebViewContainer
+                              user={user}
+                              setIsVisibleModal={setIsVisibleModal}
+                            />
+                          </View>
+                        )}
+                        {drawerOpen && (
+                          <DrawerPanel
+                            onClose={() => setDrawerOpen(false)}
+                            onNavigate={(screen: string) => {
+                              if (screen === 'agent' || screen === 'station') {
+                                setCurrentScreen(screen)
+                              }
+                            }}
+                            currentScreen={currentScreen}
                           />
-                        </View>
+                        )}
                         <AppNavigator />
                         <GlobalTopNotification />
                         <UnderMaintenance />
