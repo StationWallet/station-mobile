@@ -785,12 +785,9 @@ export const WebViewContainer = ({
   }, [walletConnectors])
 
   useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', onBackPress)
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress)
     return (): void => {
-      BackHandler.removeEventListener(
-        'hardwareBackPress',
-        onBackPress
-      )
+      subscription.remove()
     }
   }, [onBackPress])
 

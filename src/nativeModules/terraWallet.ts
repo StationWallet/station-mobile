@@ -14,10 +14,11 @@ export type TerraWalletType = {
 const TerraWallet: TerraWalletType = {
   getNewWallet: async () => {
     const mk = new MnemonicKey()
+    const pubKeyBase64 = (mk.publicKey as any)?.key || ''
     return {
       privateKey: mk.privateKey.toString('hex'),
-      publicKey: mk.publicKey?.toProto()?.toString() || '',
-      publicKey64: mk.publicKey?.toProto()?.toString() || '',
+      publicKey: pubKeyBase64,
+      publicKey64: pubKeyBase64,
       address: mk.accAddress,
       mnemonic: mk.mnemonic,
     }
