@@ -90,6 +90,22 @@ let App = ({
   /* agent POC navigation */
   const [currentScreen, setCurrentScreen] = useState<'agent' | 'station'>('agent')
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [hasWallet, setHasWallet] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    getWallets().then((wallets) => {
+      setHasWallet(wallets.length > 0)
+    })
+  }, [])
+
+  // Re-check wallet existence when switching to station screen
+  useEffect(() => {
+    if (currentScreen === 'station') {
+      getWallets().then((wallets) => {
+        setHasWallet(wallets.length > 0)
+      })
+    }
+  }, [currentScreen])
 
   /* onboarding */
   const [showOnBoarding, setshowOnBoarding] = useState<boolean>(false)
@@ -163,7 +179,7 @@ let App = ({
                     flex: 0,
                     backgroundColor: showOnBoarding
                       ? '#fff' : currentScreen === 'agent'
-                        ? '#02122B' : !webviewComponentLoaded
+                        ? '#02122B' : (currentScreen === 'station' && !hasWallet) ? '#02122B' : !webviewComponentLoaded
                           ? '#1f42b4' : themes?.[currentTheme]?.backgroundColor,
                   }}
                 />
@@ -176,7 +192,7 @@ let App = ({
                       ...defaultViewStyle,
                       backgroundColor: showOnBoarding
                         ? '#fff' : currentScreen === 'agent'
-                          ? '#02122B' : !webviewComponentLoaded
+                          ? '#02122B' : (currentScreen === 'station' && !hasWallet) ? '#02122B' : !webviewComponentLoaded
                             ? '#1f42b4' : themes?.[currentTheme]?.backgroundColor,
                     }}
                   >
@@ -202,6 +218,8 @@ let App = ({
                       <>
                         {currentScreen === 'agent' ? (
                           <AgentChat onMenu={() => setDrawerOpen(true)} />
+                        ) : currentScreen === 'station' && !hasWallet ? (
+                          <AppNavigator />
                         ) : (
                           <View style={defaultViewStyle}>
                             <WebViewContainer
@@ -210,7 +228,6 @@ let App = ({
                             />
                           </View>
                         )}
-                        <AppNavigator />
                         <GlobalTopNotification />
                         <UnderMaintenance />
                         {webviewComponentLoaded && config.chain.current.name !== 'mainnet' && (
