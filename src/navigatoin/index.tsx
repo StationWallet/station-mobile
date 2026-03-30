@@ -15,7 +15,6 @@ import {
 import { UTIL } from 'consts'
 
 import { RN_APIS } from '../App/WebViewContainer'
-import AuthNavigator from './AuthNavigator'
 
 import { useRecoilState, useRecoilValue } from 'recoil'
 import AutoLogoutStore from 'stores/AutoLogoutStore'
@@ -25,14 +24,9 @@ import useLinking from 'hooks/useLinking'
 
 const TerraTheme = {
   ...DefaultTheme,
-  dark: true,
   colors: {
     ...DefaultTheme.colors,
-    background: '#02122B',
-    card: '#02122B',
-    text: '#F0F4FC',
-    border: '#11284A',
-    primary: '#0B4EFF',
+    background: '#F9FAFF',
   },
 }
 
@@ -105,7 +99,7 @@ const Navigator = (): ReactElement => {
       theme={TerraTheme}
       linking={linking}
     >
-      <AuthNavigator />
+      <></>
     </NavigationContainer>
   )
 }

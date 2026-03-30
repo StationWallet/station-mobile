@@ -24,9 +24,6 @@ import { AppProvider } from './useApp'
 
 import AppNavigator from '../navigatoin'
 
-import AgentChat from '../screens/AgentChat'
-import DrawerPanel from '../screens/DrawerPanel'
-
 import useSecurity from 'hooks/useSecurity'
 import useNetworks from 'hooks/useNetworks'
 
@@ -86,26 +83,6 @@ let App = ({
     getSecurityErrorMessage,
     securityCheckFailed,
   } = useSecurity()
-
-  /* agent POC navigation */
-  const [currentScreen, setCurrentScreen] = useState<'agent' | 'station'>('agent')
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [hasWallet, setHasWallet] = useState<boolean | null>(null)
-
-  useEffect(() => {
-    getWallets().then((wallets) => {
-      setHasWallet(wallets.length > 0)
-    })
-  }, [])
-
-  // Re-check wallet existence when switching to station screen
-  useEffect(() => {
-    if (currentScreen === 'station') {
-      getWallets().then((wallets) => {
-        setHasWallet(wallets.length > 0)
-      })
-    }
-  }, [currentScreen])
 
   /* onboarding */
   const [showOnBoarding, setshowOnBoarding] = useState<boolean>(false)
@@ -178,9 +155,8 @@ let App = ({
                   style={{
                     flex: 0,
                     backgroundColor: showOnBoarding
-                      ? '#fff' : currentScreen === 'agent'
-                        ? '#02122B' : (currentScreen === 'station' && !hasWallet) ? '#02122B' : !webviewComponentLoaded
-                          ? '#1f42b4' : themes?.[currentTheme]?.backgroundColor,
+                      ? '#fff' : !webviewComponentLoaded
+                        ? '#1f42b4' : themes?.[currentTheme]?.backgroundColor,
                   }}
                 />
                 <KeyboardAvoidingView
@@ -191,9 +167,8 @@ let App = ({
                     style={{
                       ...defaultViewStyle,
                       backgroundColor: showOnBoarding
-                        ? '#fff' : currentScreen === 'agent'
-                          ? '#02122B' : (currentScreen === 'station' && !hasWallet) ? '#02122B' : !webviewComponentLoaded
-                            ? '#1f42b4' : themes?.[currentTheme]?.backgroundColor,
+                        ? '#fff' : !webviewComponentLoaded
+                          ? '#1f42b4' : themes?.[currentTheme]?.backgroundColor,
                     }}
                   >
                     <StatusBar
@@ -216,18 +191,13 @@ let App = ({
                       />
                     ) : (
                       <>
-                        {currentScreen === 'agent' ? (
-                          <AgentChat onMenu={() => setDrawerOpen(true)} />
-                        ) : currentScreen === 'station' && !hasWallet ? (
-                          <AppNavigator />
-                        ) : (
-                          <View style={defaultViewStyle}>
-                            <WebViewContainer
-                              user={user}
-                              setIsVisibleModal={setIsVisibleModal}
-                            />
-                          </View>
-                        )}
+                        <View style={defaultViewStyle}>
+                          <WebViewContainer
+                            user={user}
+                            setIsVisibleModal={setIsVisibleModal}
+                          />
+                        </View>
+                        <AppNavigator />
                         <GlobalTopNotification />
                         <UnderMaintenance />
                         {webviewComponentLoaded && config.chain.current.name !== 'mainnet' && (
@@ -258,17 +228,6 @@ let App = ({
             </AuthProvider>
           </ConfigProvider>
         </AppProvider>
-      )}
-      {drawerOpen && (
-        <DrawerPanel
-          onClose={() => setDrawerOpen(false)}
-          onNavigate={(screen: string) => {
-            if (screen === 'agent' || screen === 'station') {
-              setCurrentScreen(screen)
-            }
-          }}
-          currentScreen={currentScreen}
-        />
       )}
     </>
   )
