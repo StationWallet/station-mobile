@@ -12,6 +12,7 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "scheme": "terrastation",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "money.terra.station"
