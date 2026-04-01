@@ -178,6 +178,16 @@ const clearKeystoreWhenFirstRun = async (): Promise<void> => {
   const firstRun = await preferences.getBool(PreferencesEnum.firstRun)
   if (firstRun) return
 
+  // On upgrade from old RN app, firstRun is false because it was in MMKV
+  // (now inaccessible). Check if wallet data exists before clearing —
+  // if it does, this is an upgrade, not a fresh install.
+  const existingData = await keystore.read(KeystoreEnum.AuthData)
+  if (existingData) {
+    // Upgrade path: preserve wallet data, just mark firstRun
+    preferences.setBool(PreferencesEnum.firstRun, true)
+    return
+  }
+
   try {
     keystore.remove(KeystoreEnum.AuthData)
   } finally {

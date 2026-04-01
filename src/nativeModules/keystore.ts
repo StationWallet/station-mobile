@@ -14,11 +14,29 @@ export type KeystoreType = {
   migratePreferences(key: string): Promise<void>
 }
 
-// Expo SecureStore replacement for native Keystore
+// Match the old react-native-keychain storage location exactly so that
+// existing wallet data is accessible after the Expo upgrade.
+//
+// Old app (react-native-keychain):
+//   kSecAttrService = "app.keystore-AD"
+//   kSecAttrAccount = "keystore"
+//
+// expo-secure-store maps:
+//   keychainService option → kSecAttrService
+//   key parameter          → kSecAttrAccount
+//
+// So we use keychainService="app.keystore-{key}" and key="keystore".
+const LEGACY_SERVICE_PREFIX = 'app.keystore'
+const LEGACY_ACCOUNT = 'keystore'
+
+function keychainOpts(key: string): SecureStore.SecureStoreOptions {
+  return { keychainService: `${LEGACY_SERVICE_PREFIX}-${key}` }
+}
+
 export default {
   write: (key: string, value: string): boolean => {
     try {
-      SecureStore.setItem(key, value)
+      SecureStore.setItem(LEGACY_ACCOUNT, value, keychainOpts(key))
       return true
     } catch {
       return false
@@ -26,7 +44,7 @@ export default {
   },
   read: async (key: string): Promise<string> => {
     try {
-      const value = await SecureStore.getItemAsync(key)
+      const value = await SecureStore.getItemAsync(LEGACY_ACCOUNT, keychainOpts(key))
       return value || ''
     } catch {
       return ''
@@ -34,13 +52,14 @@ export default {
   },
   remove: (key: string): boolean => {
     try {
-      SecureStore.deleteItemAsync(key)
+      SecureStore.deleteItemAsync(LEGACY_ACCOUNT, keychainOpts(key))
       return true
     } catch {
       return false
     }
   },
   migratePreferences: async (_key: string): Promise<void> => {
-    // No-op for Expo migration - old native preferences are not accessible
+    // No-op — preferences were in MMKV (lost on upgrade).
+    // Wallet data is preserved via matching the old keychain service name.
   },
 }
