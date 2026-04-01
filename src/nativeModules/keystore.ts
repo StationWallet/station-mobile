@@ -8,9 +8,9 @@ export enum KeystoreEnum {
 }
 
 export type KeystoreType = {
-  write(key: string, value: string): boolean
+  write(key: string, value: string): Promise<boolean>
   read(key: string): Promise<string>
-  remove(key: string): boolean
+  remove(key: string): Promise<boolean>
   migratePreferences(key: string): Promise<void>
 }
 
@@ -34,9 +34,9 @@ function keychainOpts(key: string): SecureStore.SecureStoreOptions {
 }
 
 export default {
-  write: (key: string, value: string): boolean => {
+  write: async (key: string, value: string): Promise<boolean> => {
     try {
-      SecureStore.setItem(LEGACY_ACCOUNT, value, keychainOpts(key))
+      await SecureStore.setItemAsync(LEGACY_ACCOUNT, value, keychainOpts(key))
       return true
     } catch {
       return false
@@ -50,9 +50,9 @@ export default {
       return ''
     }
   },
-  remove: (key: string): boolean => {
+  remove: async (key: string): Promise<boolean> => {
     try {
-      SecureStore.deleteItemAsync(LEGACY_ACCOUNT, keychainOpts(key))
+      await SecureStore.deleteItemAsync(LEGACY_ACCOUNT, keychainOpts(key))
       return true
     } catch {
       return false

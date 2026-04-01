@@ -184,14 +184,14 @@ const clearKeystoreWhenFirstRun = async (): Promise<void> => {
   const existingData = await keystore.read(KeystoreEnum.AuthData)
   if (existingData) {
     // Upgrade path: preserve wallet data, just mark firstRun
-    preferences.setBool(PreferencesEnum.firstRun, true)
+    await preferences.setBool(PreferencesEnum.firstRun, true)
     return
   }
 
   try {
-    keystore.remove(KeystoreEnum.AuthData)
+    await keystore.remove(KeystoreEnum.AuthData)
   } finally {
-    preferences.setBool(PreferencesEnum.firstRun, true)
+    await preferences.setBool(PreferencesEnum.firstRun, true)
   }
 }
 

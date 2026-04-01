@@ -24,9 +24,13 @@ export default function AppNavigator() {
   const currentTheme = theme.current
 
   useEffect(() => {
-    getWallets().then((wallets) => {
-      setHasWallet(wallets.length > 0)
-    })
+    getWallets()
+      .then((wallets) => {
+        setHasWallet(wallets.length > 0)
+      })
+      .catch(() => {
+        setHasWallet(false)
+      })
   }, [])
 
   const onWalletCreated = useCallback(() => {
