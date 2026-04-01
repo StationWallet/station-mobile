@@ -6,6 +6,7 @@
 const { Buffer } = require('buffer');
 const bip39 = require('bip39');
 const { bech32 } = require('bech32');
+const createLCD = require('./terra-lcd');
 
 // Use @noble/hashes for hash functions (pure JS, Hermes-compatible)
 const { sha256 } = require('@noble/hashes/sha2.js');
@@ -503,10 +504,18 @@ class Wallet {
     this.key = key;
   }
   async accountNumberAndSequence() {
-    return { account_number: 0, sequence: 0 };
+    var info = await this.lcd.auth.accountInfo(this.key.accAddress);
+    return {
+      account_number: info.account_number,
+      sequence: info.sequence,
+    };
+  }
+  async sequence() {
+    var result = await this.accountNumberAndSequence();
+    return result.sequence;
   }
   async createAndSignTx() {
-    return new Tx();
+    throw new Error('createAndSignTx requires full terra.js — use WebView signing flow');
   }
 }
 
@@ -535,60 +544,27 @@ class LCDClient {
     this.config = config;
     this.chainID = config?.chainID || 'phoenix-1';
     this.URL = config?.URL || '';
+    var lcd = createLCD(this.URL);
+    this._auth = lcd.auth;
+    this._bank = lcd.bank;
+    this._staking = lcd.staking;
+    this._distribution = lcd.distribution;
+    this._oracle = lcd.oracle;
+    this._market = lcd.market;
+    this._tx = lcd.tx;
+    this._ibc = lcd.ibc;
   }
   wallet(key) {
     return new Wallet(this, key);
   }
-  get tx() {
-    return {
-      create: async () => new Tx(),
-      broadcastSync: async () => ({ txhash: '', raw_log: '' }),
-      broadcast: async () => ({ txhash: '', raw_log: '' }),
-      hash: async () => '',
-      txInfo: async () => new TxInfo(),
-      decode: () => new Tx(),
-    };
-  }
-  get auth() {
-    return {
-      accountInfo: async () => ({
-        getAccountNumber: () => 0,
-        getSequenceNumber: () => 0,
-        account_number: 0,
-        sequence: 0,
-      }),
-    };
-  }
-  get bank() {
-    return {
-      balance: async () => [new Coins([])],
-      total: async () => new Coins([]),
-    };
-  }
-  get staking() {
-    return {
-      validators: async () => [[]],
-      delegations: async () => [[]],
-      unbondingDelegations: async () => [[]],
-      delegation: async () => null,
-    };
-  }
-  get distribution() {
-    return {
-      rewards: async () => ({ total: new Coins([]), rewards: {} }),
-    };
-  }
-  get oracle() {
-    return {
-      parameters: async () => ({}),
-      exchangeRates: async () => new Coins([]),
-    };
-  }
-  get ibc() {
-    return {
-      denomTrace: async () => ({ denom_trace: { path: '', base_denom: '' } }),
-    };
-  }
+  get auth() { return this._auth; }
+  get bank() { return this._bank; }
+  get staking() { return this._staking; }
+  get distribution() { return this._distribution; }
+  get oracle() { return this._oracle; }
+  get market() { return this._market; }
+  get tx() { return this._tx; }
+  get ibc() { return this._ibc; }
 }
 
 // --- isTxError ---

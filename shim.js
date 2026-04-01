@@ -9,4 +9,7 @@ if (typeof Buffer === 'undefined') {
 if (typeof process === 'undefined') {
   global.process = require('process')
 }
+// Must be false — node-forge, pbkdf2, and other deps check this to select
+// Node.js-compatible code paths (nextTick, native crypto, binary encoding).
+// Setting to true or removing breaks crypto operations.
 process.browser = false

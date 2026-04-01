@@ -4,7 +4,11 @@
 // Rate limiting: not implemented. ~20+ queries may fire on startup.
 // No rate limiting observed on PublicNode or Polkachu, but not guaranteed.
 
-const { Coin, Coins, Fee, Tx, TxInfo } = require('./terra');
+// Lazy-load terra types to avoid circular dependency (terra.js <-> terra-lcd.js).
+// By the time any of these are called at runtime the module graph is fully resolved.
+function getTerraTypes() {
+  return require('./terra');
+}
 
 // --- Helpers ---
 
@@ -51,6 +55,9 @@ async function postJSON(url, body) {
 }
 
 function parseCoins(coinArray) {
+  var types = getTerraTypes();
+  var Coin = types.Coin;
+  var Coins = types.Coins;
   if (!Array.isArray(coinArray)) return new Coins([]);
   return new Coins(coinArray.map(c => new Coin(c.denom, c.amount)));
 }
@@ -100,10 +107,14 @@ function createLCD(baseURL) {
   const tx = {
     // Stub — full simulation deferred to Task 7/8
     async create(_signers, _options) {
+      var Tx = getTerraTypes().Tx;
       return new Tx();
     },
 
     async estimateFee(_signers, options) {
+      var types = getTerraTypes();
+      var Fee = types.Fee;
+      var Coin = types.Coin;
       try {
         const msgs = (options && options.msgs) || [];
         const body = {
@@ -157,11 +168,13 @@ function createLCD(baseURL) {
     },
 
     async txInfo(hash) {
+      var TxInfo = getTerraTypes().TxInfo;
       const data = await fetchJSON(`${base}/cosmos/tx/v1beta1/txs/${hash}`);
       return new TxInfo(data.tx_response || data);
     },
 
     async txsByEvents(events, params) {
+      var TxInfo = getTerraTypes().TxInfo;
       params = params || {};
       // events can be a string or an array
       const eventList = Array.isArray(events) ? events : [events];
@@ -201,6 +214,7 @@ function createLCD(baseURL) {
     },
 
     async delegations(delegator) {
+      var Coin = getTerraTypes().Coin;
       const data = await fetchJSON(`${base}/cosmos/staking/v1beta1/delegations/${delegator}`);
       const responses = (data.delegation_responses || []).map(r => ({
         delegation: r.delegation,
@@ -283,6 +297,7 @@ function createLCD(baseURL) {
         const data = await fetchJSON(`${base}/terra/oracle/v1beta1/denoms/exchange_rates`);
         return parseCoins(data.exchange_rates);
       } catch (_err) {
+        var Coins = getTerraTypes().Coins;
         return new Coins([]);
       }
     },
@@ -300,6 +315,7 @@ function createLCD(baseURL) {
   // --- market module ---
   const market = {
     async swapRate(offerCoin, askDenom) {
+      var Coin = getTerraTypes().Coin;
       try {
         const offerStr = `${offerCoin.amount}${offerCoin.denom}`;
         const data = await fetchJSON(
