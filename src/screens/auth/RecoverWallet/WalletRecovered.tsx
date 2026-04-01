@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native'
-import { CommonActions } from '@react-navigation/native'
+import { useWalletCreated } from 'navigation'
 
 const COLORS = {
   bg: '#02122B',
@@ -20,14 +20,11 @@ const COLORS = {
 
 const WalletRecovered = ({ navigation, route }: any) => {
   const { wallet } = route.params
+  const onWalletCreated = useWalletCreated()
 
   const handleDone = () => {
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'AuthMenu' }],
-      })
-    )
+    // Signal AppNavigator to switch from AuthNavigator to MainNavigator
+    onWalletCreated()
   }
 
   return (

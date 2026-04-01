@@ -7,8 +7,8 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native'
-import { CommonActions } from '@react-navigation/native'
 import { createWallet } from 'utils/wallet'
+import { useWalletCreated } from 'navigation'
 
 const COLORS = {
   bg: '#02122B',
@@ -26,6 +26,7 @@ const WalletCreated = ({ navigation, route }: any) => {
   const [wallet, setWallet] = useState<LocalWallet | null>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(true)
+  const onWalletCreated = useWalletCreated()
 
   useEffect(() => {
     const persist = async () => {
@@ -50,14 +51,8 @@ const WalletCreated = ({ navigation, route }: any) => {
   }, [])
 
   const handleDone = () => {
-    // Reset the entire navigation stack back to AuthMenu
-    // The App component will detect the wallet and show the main screen
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'AuthMenu' }],
-      })
-    )
+    // Signal AppNavigator to switch from AuthNavigator to MainNavigator
+    onWalletCreated()
   }
 
   if (saving) {
