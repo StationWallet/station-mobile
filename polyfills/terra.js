@@ -8,92 +8,19 @@ const bip39 = require('bip39');
 const { bech32 } = require('bech32');
 
 // Use @noble/hashes for hash functions (pure JS, Hermes-compatible)
-const { sha256 } = require('@noble/hashes/sha256');
-const { ripemd160 } = require('@noble/hashes/ripemd160');
-const { hmac } = require('@noble/hashes/hmac');
-const { sha512 } = require('@noble/hashes/sha512');
+const { sha256 } = require('@noble/hashes/sha2.js');
+const { ripemd160 } = require('@noble/hashes/legacy.js');
+const { HDKey } = require('@scure/bip32');
 
 // Use elliptic for secp256k1 (pure JS, used by the secp256k1 package's fallback)
 const EC = require('elliptic').ec;
 const ec = new EC('secp256k1');
 
-// --- BIP32 HD key derivation (pure JS replacement for bip32 package) ---
-
-const HIGHEST_BIT = 0x80000000;
-
-function hmacSHA512(key, data) {
-  return Buffer.from(hmac(sha512, key, data));
-}
+// --- Address derivation ---
 
 function hash160(buf) {
   return Buffer.from(ripemd160(sha256(buf)));
 }
-
-function deriveChild(parentKey, parentChainCode, index) {
-  const isHardened = index >= HIGHEST_BIT;
-  const data = Buffer.alloc(37);
-
-  if (isHardened) {
-    // Hardened: 0x00 || ser256(parentKey) || ser32(index)
-    data[0] = 0x00;
-    parentKey.copy(data, 1);
-  } else {
-    // Normal: serP(point(parentKey)) || ser32(index)
-    const kp = ec.keyFromPrivate(parentKey);
-    const pubKey = Buffer.from(kp.getPublic(true, 'array'));
-    pubKey.copy(data, 0);
-  }
-
-  data.writeUInt32BE(index, 33);
-
-  const I = hmacSHA512(parentChainCode, data);
-  const IL = I.slice(0, 32);
-  const IR = I.slice(32);
-
-  // Child key = parse256(IL) + parentKey (mod n)
-  const ilBN = ec.keyFromPrivate(IL).getPrivate();
-  const parentBN = ec.keyFromPrivate(parentKey).getPrivate();
-  const childBN = ilBN.add(parentBN).mod(ec.curve.n);
-
-  const childKey = Buffer.from(childBN.toArray('be', 32));
-  return { key: childKey, chainCode: IR };
-}
-
-function fromSeed(seed) {
-  const I = hmacSHA512(Buffer.from('Bitcoin seed'), seed);
-  const masterKey = I.slice(0, 32);
-  const masterChainCode = I.slice(32);
-
-  return {
-    key: masterKey,
-    chainCode: masterChainCode,
-    derivePath: function(path) {
-      const segments = path.split('/');
-      let currentKey = this.key;
-      let currentChainCode = this.chainCode;
-
-      for (let i = 0; i < segments.length; i++) {
-        const segment = segments[i];
-        if (segment === 'm') continue;
-
-        let index;
-        if (segment.endsWith("'")) {
-          index = parseInt(segment.slice(0, -1), 10) + HIGHEST_BIT;
-        } else {
-          index = parseInt(segment, 10);
-        }
-
-        const derived = deriveChild(currentKey, currentChainCode, index);
-        currentKey = derived.key;
-        currentChainCode = derived.chainCode;
-      }
-
-      return { privateKey: currentKey, chainCode: currentChainCode };
-    },
-  };
-}
-
-// --- Address derivation ---
 
 function pubKeyToAccAddress(compressedPubKey, prefix) {
   prefix = prefix || 'terra';
@@ -206,15 +133,14 @@ class MnemonicKey extends RawKey {
     }
 
     const seed = bip39.mnemonicToSeedSync(mnemonic);
-    const masterKey = fromSeed(seed);
-    const hdPath = `m/44'/${coinType}'/${account}'/0/${index}`;
-    const derived = masterKey.derivePath(hdPath);
+    const hdKey = HDKey.fromMasterSeed(seed);
+    const derived = hdKey.derive(`m/44'/${coinType}'/${account}'/0/${index}`);
 
     if (!derived.privateKey) {
       throw new Error('Failed to derive key pair');
     }
 
-    super(derived.privateKey);
+    super(Buffer.from(derived.privateKey));
     this.mnemonic = mnemonic;
   }
 }
@@ -225,7 +151,9 @@ const AccAddress = {
     try {
       if (typeof addr !== 'string') return false;
       const decoded = bech32.decode(addr);
-      return decoded.prefix === 'terra' && decoded.words.length > 0;
+      if (decoded.prefix !== 'terra') return false;
+      const data = bech32.fromWords(decoded.words);
+      return data.length === 20;
     } catch (e) {
       return false;
     }
