@@ -19,6 +19,9 @@ const COLORS = {
 }
 
 const AuthMenu = ({ navigation }: any) => {
+  const navState = navigation.getState()
+  const isAddMode = navState?.routes?.some((r: any) => r.name === 'AddWalletMenu')
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -40,14 +43,14 @@ const AuthMenu = ({ navigation }: any) => {
         <View style={styles.buttons}>
           <TouchableOpacity
             style={styles.primaryButton}
-            onPress={() => navigation.navigate('NewWallet')}
+            onPress={() => navigation.navigate(isAddMode ? 'AddNewWallet' : 'NewWallet')}
           >
             <Text style={styles.primaryButtonText}>Create New Wallet</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() => navigation.navigate('RecoverWallet')}
+            onPress={() => navigation.navigate(isAddMode ? 'AddRecoverWallet' : 'RecoverWallet')}
           >
             <Text style={styles.secondaryButtonText}>
               Recover Wallet
@@ -74,6 +77,14 @@ const AuthMenu = ({ navigation }: any) => {
           )}
         </View>
       </ScrollView>
+      {isAddMode && (
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.cancelText}>Cancel</Text>
+        </TouchableOpacity>
+      )}
     </View>
   )
 }
@@ -155,6 +166,16 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: COLORS.disabledText,
+  },
+  cancelButton: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    padding: 8,
+  },
+  cancelText: {
+    color: COLORS.textSecondary,
+    fontSize: 16,
   },
 })
 
