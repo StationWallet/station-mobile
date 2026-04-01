@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native'
-import { useWalletCreated } from 'navigation'
+import { useWalletCreated, useWalletNav } from 'navigation'
 
 const COLORS = {
   bg: '#02122B',
@@ -21,10 +21,19 @@ const COLORS = {
 const WalletRecovered = ({ navigation, route }: any) => {
   const { wallet } = route.params
   const onWalletCreated = useWalletCreated()
+  const { refreshWallets } = useWalletNav()
+  const parentState = navigation.getParent()?.getParent()?.getState()
+  const isAddMode = parentState?.routes?.some((r: any) =>
+    r.name === 'AddWalletMenu' || r.name === 'AddNewWallet' || r.name === 'AddRecoverWallet'
+  )
 
-  const handleDone = () => {
-    // Signal AppNavigator to switch from AuthNavigator to MainNavigator
-    onWalletCreated()
+  const handleDone = async () => {
+    if (isAddMode) {
+      await refreshWallets()
+      navigation.getParent()?.getParent()?.navigate('WalletPicker')
+    } else {
+      onWalletCreated()
+    }
   }
 
   return (

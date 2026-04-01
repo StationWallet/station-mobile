@@ -8,7 +8,7 @@ import {
   Platform,
 } from 'react-native'
 import { createWallet } from 'utils/wallet'
-import { useWalletCreated } from 'navigation'
+import { useWalletCreated, useWalletNav } from 'navigation'
 
 const COLORS = {
   bg: '#02122B',
@@ -27,6 +27,11 @@ const WalletCreated = ({ navigation, route }: any) => {
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(true)
   const onWalletCreated = useWalletCreated()
+  const { refreshWallets } = useWalletNav()
+  const parentState = navigation.getParent()?.getParent()?.getState()
+  const isAddMode = parentState?.routes?.some((r: any) =>
+    r.name === 'AddWalletMenu' || r.name === 'AddNewWallet' || r.name === 'AddRecoverWallet'
+  )
 
   useEffect(() => {
     const persist = async () => {
@@ -50,9 +55,14 @@ const WalletCreated = ({ navigation, route }: any) => {
     persist()
   }, [])
 
-  const handleDone = () => {
-    // Signal AppNavigator to switch from AuthNavigator to MainNavigator
-    onWalletCreated()
+  const handleDone = async () => {
+    if (isAddMode) {
+      await refreshWallets()
+      // Navigate up to the MainNavigator's WalletPicker
+      navigation.getParent()?.getParent()?.navigate('WalletPicker')
+    } else {
+      onWalletCreated()
+    }
   }
 
   if (saving) {
