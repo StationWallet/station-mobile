@@ -22,7 +22,7 @@ import { UTIL } from 'consts'
 import { Settings } from 'types'
 import { AppProvider } from './useApp'
 
-import AppNavigator from '../navigatoin'
+import AppNavigator from '../navigation'
 
 import useSecurity from 'hooks/useSecurity'
 import useNetworks from 'hooks/useNetworks'
