@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#11284A',
     paddingTop: 16,
   },
-  managementRow: { paddingVertical: 14 },
+  managementRow: { paddingVertical: 14, alignItems: 'center' },
   managementText: { color: '#8295AE', fontSize: 15 },
   removeText: { color: '#FF5C5C', fontSize: 15 },
 })
