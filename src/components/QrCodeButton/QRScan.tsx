@@ -11,7 +11,6 @@ type QrScanType = {
   onRead: (props: { data: string }) => void
   dataParser?: (props: { data: string }) => string
   onlyIfScan?: (props: { data: string }) => string
-  stepNo?: number
   closeModal: () => void
 }
 

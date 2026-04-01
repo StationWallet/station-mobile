@@ -41,7 +41,6 @@ export type QrCodeButtonProps = {
    * @return {string} return error message
    */
   onlyIfScan?: (props: { data: string }) => string
-  stepNo?: number
   children?: ReactNode
   defaultVisible?: boolean
 }
@@ -49,7 +48,6 @@ export type QrCodeButtonProps = {
 const QrCodeButton = ({
   onRead,
   onlyIfScan,
-  stepNo,
   children,
   dataParser,
   defaultVisible = false,
@@ -112,7 +110,6 @@ const QrCodeButton = ({
         visible={isVisibleModal}
       >
         <QRScan
-          stepNo={stepNo}
           onRead={onRead}
           onlyIfScan={onlyIfScan}
           closeModal={(): void => {
