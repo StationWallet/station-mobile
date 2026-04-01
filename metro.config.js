@@ -5,7 +5,7 @@ const config = getDefaultConfig(__dirname)
 
 // Node.js built-in polyfills for packages that need them (terra.js, ledger, etc.)
 config.resolver.extraNodeModules = {
-  crypto: path.resolve(__dirname, 'mocks/crypto-shim.js'),
+  crypto: path.resolve(__dirname, 'polyfills/crypto.js'),
   stream: require.resolve('stream-browserify'),
   buffer: require.resolve('buffer'),
   process: require.resolve('process'),
@@ -13,10 +13,10 @@ config.resolver.extraNodeModules = {
   url: require.resolve('react-native-url-polyfill'),
 }
 
-// Mock packages that crash in Hermes or need native modules not available on simulator
-const ledgerMock = path.resolve(__dirname, 'mocks/ledger-transport-ble.js')
-const ledgerTerraMock = path.resolve(__dirname, 'mocks/ledger-terra-js.js')
-const terraJsMock = path.resolve(__dirname, 'mocks/terra-js-safe.js')
+// Polyfill packages that crash in Hermes or need native modules not available on simulator
+const ledgerMock = path.resolve(__dirname, 'polyfills/ledger-transport-ble.js')
+const ledgerTerraMock = path.resolve(__dirname, 'polyfills/ledger-terra-js.js')
+const terraJsMock = path.resolve(__dirname, 'polyfills/terra.js')
 
 const originalResolveRequest = config.resolver.resolveRequest
 config.resolver.resolveRequest = (context, moduleName, platform) => {

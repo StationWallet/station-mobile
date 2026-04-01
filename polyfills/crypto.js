@@ -1,6 +1,6 @@
-// Minimal crypto module shim for Hermes compatibility
-// The main terra.js crypto operations are handled by the terra-js-safe.js mock
-// using @noble/hashes and elliptic directly. This shim handles any other
+// Minimal crypto module polyfill for Hermes compatibility
+// The main terra.js crypto operations are handled by the terra.js polyfill
+// using @noble/hashes and elliptic directly. This polyfill handles any other
 // code that tries to import node's crypto module.
 
 var { Buffer } = require('buffer');
