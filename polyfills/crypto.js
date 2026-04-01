@@ -4,6 +4,9 @@
 // code that tries to import node's crypto module.
 
 var { Buffer } = require('buffer');
+var { sha256, sha512 } = require('@noble/hashes/sha2.js');
+var { ripemd160 } = require('@noble/hashes/legacy.js');
+var { hmac: hmacFn } = require('@noble/hashes/hmac.js');
 
 function randomBytes(size) {
   if (typeof globalThis.crypto === 'undefined' || !globalThis.crypto.getRandomValues) {
@@ -15,26 +18,16 @@ function randomBytes(size) {
 }
 
 // Minimal createHash using @noble/hashes
+var hashAlgos = { sha256: sha256, sha512: sha512, ripemd160: ripemd160, rmd160: ripemd160 };
+
 function createHash(algorithm) {
-  var hashFn;
-  if (algorithm === 'sha256') {
-    hashFn = require('@noble/hashes/sha2.js').sha256;
-  } else if (algorithm === 'sha512') {
-    hashFn = require('@noble/hashes/sha2.js').sha512;
-  } else if (algorithm === 'ripemd160' || algorithm === 'rmd160') {
-    hashFn = require('@noble/hashes/legacy.js').ripemd160;
-  } else {
-    throw new Error('Unsupported hash algorithm: ' + algorithm);
-  }
+  var hashFn = hashAlgos[algorithm];
+  if (!hashFn) throw new Error('Unsupported hash algorithm: ' + algorithm);
 
   var data = [];
   return {
     update: function(input) {
-      if (typeof input === 'string') {
-        data.push(Buffer.from(input));
-      } else {
-        data.push(Buffer.from(input));
-      }
+      data.push(Buffer.from(input));
       return this;
     },
     digest: function(encoding) {
@@ -48,26 +41,17 @@ function createHash(algorithm) {
 }
 
 // Minimal createHmac using @noble/hashes
-function createHmac(algorithm, key) {
-  var hashFn;
-  if (algorithm === 'sha256') {
-    hashFn = require('@noble/hashes/sha2.js').sha256;
-  } else if (algorithm === 'sha512') {
-    hashFn = require('@noble/hashes/sha2.js').sha512;
-  } else {
-    throw new Error('Unsupported HMAC algorithm: ' + algorithm);
-  }
+var hmacAlgos = { sha256: sha256, sha512: sha512 };
 
-  var hmacFn = require('@noble/hashes/hmac.js').hmac;
-  var keyBuf = typeof key === 'string' ? Buffer.from(key) : Buffer.from(key);
+function createHmac(algorithm, key) {
+  var hashFn = hmacAlgos[algorithm];
+  if (!hashFn) throw new Error('Unsupported HMAC algorithm: ' + algorithm);
+
+  var keyBuf = Buffer.from(key);
   var data = [];
   return {
     update: function(input) {
-      if (typeof input === 'string') {
-        data.push(Buffer.from(input));
-      } else {
-        data.push(Buffer.from(input));
-      }
+      data.push(Buffer.from(input));
       return this;
     },
     digest: function(encoding) {

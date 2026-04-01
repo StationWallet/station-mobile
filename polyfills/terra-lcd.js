@@ -6,8 +6,10 @@
 
 // Lazy-load terra types to avoid circular dependency (terra.js <-> terra-lcd.js).
 // By the time any of these are called at runtime the module graph is fully resolved.
+var cachedTerraTypes = null;
 function getTerraTypes() {
-  return require('./terra');
+  if (!cachedTerraTypes) cachedTerraTypes = require('./terra');
+  return cachedTerraTypes;
 }
 
 // --- Helpers ---
