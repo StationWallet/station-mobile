@@ -8,28 +8,22 @@ const defaultNetworks: Record<NetworkEnum, ChainOptions> = {
   mainnet: {
     name: NetworkEnum.mainnet,
     chainID: 'phoenix-1',
-    lcd: 'https://phoenix-lcd.terra.dev',
+    lcd: 'https://terra-rest.publicnode.com',
     fcd: 'https://phoenix-fcd.terra.dev',
-    api: 'https://phoenix-api.terra.dev',
-    mantle: 'https://phoenix-mantle.terra.dev',
     walletconnectID: 1
   },
   classic: {
     name: NetworkEnum.classic,
     chainID: 'columbus-5',
-    lcd: 'https://columbus-lcd.terra.dev',
-    fcd: 'https://columbus-fcd.terra.dev',
-    api: 'https://columbus-api.terra.dev',
-    mantle: 'https://columbus-mantle.terra.dev',
+    lcd: 'https://terra-classic-lcd.publicnode.com',
+    fcd: 'https://terra-classic-lcd.publicnode.com',
     walletconnectID: 2
   },
   testnet: {
     name: NetworkEnum.testnet,
     chainID: 'pisco-1',
-    lcd: 'https://pisco-lcd.terra.dev',
-    fcd: 'https://pisco-fcd.terra.dev',
-    api: 'https://pisco-api.terra.dev',
-    mantle: 'https://pisco-mantle.terra.dev',
+    lcd: 'https://terra-testnet-api.polkachu.com',
+    fcd: 'https://terra-testnet-api.polkachu.com',
     walletconnectID: 0
   }
 }
@@ -43,7 +37,7 @@ const useNetworks = (): {
 
   const networks: Record<NetworkEnum, ChainOptions> = useMemo(() => {
     const getOptions = (net: NetworkEnum): ChainOptions => {
-      return { ...defaultNetworks[net], ...data?.[net] }
+      return { ...data?.[net], ...defaultNetworks[net] }
     }
 
     return {

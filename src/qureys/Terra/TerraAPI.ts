@@ -6,7 +6,6 @@ import { OracleParams, ValAddress } from '@terra-money/terra.js'
 import { TerraValidator } from 'types/validator'
 import { TerraProposalItem } from 'types/proposal'
 import { queryKey, RefetchOptions } from '../query'
-import { useConfig } from 'lib/contexts/ConfigContext'
 
 export enum Aggregate {
   PERIODIC = 'periodic',
@@ -24,13 +23,10 @@ export enum AggregateWallets {
   ACTIVE = 'active',
 }
 
-export const useTerraAPIURL = (network?: string) => {
-  const { chain } = useConfig()
-  return {
-    mainnet: 'https://phoenix-api.terra.dev',
-    classic: 'https://api.terra.dev',
-    testnet: 'https://pisco-api.terra.dev',
-  }[network ?? chain.current.name]
+export const useTerraAPIURL = (_network?: string) => {
+  // Terra API service (phoenix-api.terra.dev) is dead on all networks.
+  // TFL infrastructure shut down after bankruptcy.
+  return undefined
 }
 
 export const useIsTerraAPIAvailable = () => {
@@ -58,18 +54,19 @@ export const useTerraAPI = <T>(path: string, params?: object, fallback?: T) => {
 export type GasPrices = Record<Denom, Amount>
 
 export const useGasPrices = () => {
-  const current = useTerraAPIURL()
-  const mainnet = useTerraAPIURL('mainnet')
-  const baseURL = current ?? mainnet
-  const path = '/gas-prices'
-
   return useQuery(
-    [queryKey.TerraAPI, baseURL, path],
+    [queryKey.TerraAPI, 'gas-prices'],
     async () => {
-      const { data } = await axios.get<GasPrices>(path, { baseURL })
-      return data
+      try {
+        const { data } = await axios.get<GasPrices>(
+          'https://phoenix-fcd.terra.dev/v1/txs/gas_prices'
+        )
+        return data
+      } catch {
+        return { uluna: '0.015' } as GasPrices
+      }
     },
-    { ...RefetchOptions.INFINITY, enabled: !!baseURL }
+    { ...RefetchOptions.INFINITY }
   )
 }
 
@@ -97,7 +94,7 @@ export const useTerraValidator = (address: ValAddress) => {
 }
 
 export const useTerraProposal = (id: number) => {
-  return useTerraAPI<TerraProposalItem[]>(`proposals/${id}`)
+  return useTerraAPI<TerraProposalItem[]>(`proposals/${id}`, undefined, [])
 }
 
 /* helpers */
