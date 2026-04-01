@@ -62,6 +62,16 @@ const AuthMenu = ({ navigation }: any) => {
               Connect Ledger (coming soon)
             </Text>
           </TouchableOpacity>
+
+          {__DEV__ && (
+            <TouchableOpacity
+              testID="dev-crypto-test"
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('CryptoTest')}
+            >
+              <Text style={styles.secondaryButtonText}>Crypto Tests (dev)</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </View>

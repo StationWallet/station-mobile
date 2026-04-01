@@ -1,6 +1,22 @@
 describe('Crypto Parity', () => {
   beforeAll(async () => {
     await device.launchApp({ newInstance: true });
+    await device.disableSynchronization();
+
+    // Tap the dev-only "Crypto Tests" button on AuthMenu
+    await waitFor(element(by.id('dev-crypto-test')))
+      .toBeVisible()
+      .withTimeout(30000);
+    await element(by.id('dev-crypto-test')).tap();
+
+    // Wait for crypto test results to render
+    await waitFor(element(by.id('mk330-address')))
+      .toExist()
+      .withTimeout(15000);
+  });
+
+  afterAll(async () => {
+    await device.enableSynchronization();
   });
 
   it('mk330-address matches golden value', async () => {
