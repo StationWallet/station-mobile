@@ -16,6 +16,7 @@ import { UTIL } from 'consts'
 
 import { RN_APIS } from '../App/WebViewContainer'
 
+import CryptoTestScreen from '../components/CryptoTestScreen'
 import { useRecoilState, useRecoilValue } from 'recoil'
 import AutoLogoutStore from 'stores/AutoLogoutStore'
 import AppStore from 'stores/AppStore'
@@ -99,7 +100,7 @@ const Navigator = (): ReactElement => {
       theme={TerraTheme}
       linking={linking}
     >
-      <></>
+      {__DEV__ ? <CryptoTestScreen /> : <></>}
     </NavigationContainer>
   )
 }
