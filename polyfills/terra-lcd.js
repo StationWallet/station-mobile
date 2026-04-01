@@ -185,7 +185,145 @@ function createLCD(baseURL) {
     },
   };
 
-  return { auth, bank, tx };
+  // --- staking module ---
+  const staking = {
+    async validators(status) {
+      const url = status
+        ? `${base}/cosmos/staking/v1beta1/validators?status=${encodeURIComponent(status)}`
+        : `${base}/cosmos/staking/v1beta1/validators`;
+      const data = await fetchJSON(url);
+      return [data.validators || [], data.pagination || null];
+    },
+
+    async validator(addr) {
+      const data = await fetchJSON(`${base}/cosmos/staking/v1beta1/validators/${addr}`);
+      return data.validator || data;
+    },
+
+    async delegations(delegator) {
+      const data = await fetchJSON(`${base}/cosmos/staking/v1beta1/delegations/${delegator}`);
+      const responses = (data.delegation_responses || []).map(r => ({
+        delegation: r.delegation,
+        balance: new Coin(r.balance.denom, r.balance.amount),
+      }));
+      return [responses, data.pagination || null];
+    },
+
+    async delegation(delegator, validator) {
+      try {
+        const data = await fetchJSON(
+          `${base}/cosmos/staking/v1beta1/validators/${validator}/delegations/${delegator}`
+        );
+        return data.delegation_response || data;
+      } catch (_err) {
+        return null;
+      }
+    },
+
+    async unbondingDelegations(delegator) {
+      const data = await fetchJSON(
+        `${base}/cosmos/staking/v1beta1/delegators/${delegator}/unbonding_delegations`
+      );
+      return [data.unbonding_responses || [], data.pagination || null];
+    },
+
+    async pool() {
+      const data = await fetchJSON(`${base}/cosmos/staking/v1beta1/pool`);
+      return data.pool || data;
+    },
+  };
+
+  // --- distribution module ---
+  const distribution = {
+    async rewards(delegator) {
+      const data = await fetchJSON(
+        `${base}/cosmos/distribution/v1beta1/delegators/${delegator}/rewards`
+      );
+      const total = parseCoins(data.total);
+      const rewardsMap = {};
+      for (const r of (data.rewards || [])) {
+        rewardsMap[r.validator_address] = parseCoins(r.reward);
+      }
+      return { total, rewards: rewardsMap };
+    },
+
+    async communityPool() {
+      const data = await fetchJSON(`${base}/cosmos/distribution/v1beta1/community_pool`);
+      return parseCoins(data.pool);
+    },
+
+    async validatorCommission(validator) {
+      const data = await fetchJSON(
+        `${base}/cosmos/distribution/v1beta1/validators/${validator}/commission`
+      );
+      return data.commission || data;
+    },
+
+    async withdrawAddress(delegator) {
+      const data = await fetchJSON(
+        `${base}/cosmos/distribution/v1beta1/delegators/${delegator}/withdraw_address`
+      );
+      return data.withdraw_address || '';
+    },
+  };
+
+  // --- oracle module (Classic only — graceful failures on Phoenix-1) ---
+  const oracle = {
+    async activeDenoms() {
+      try {
+        const data = await fetchJSON(`${base}/terra/oracle/v1beta1/denoms/actives`);
+        return data.actives || [];
+      } catch (_err) {
+        return [];
+      }
+    },
+
+    async exchangeRates() {
+      try {
+        const data = await fetchJSON(`${base}/terra/oracle/v1beta1/denoms/exchange_rates`);
+        return parseCoins(data.exchange_rates);
+      } catch (_err) {
+        return new Coins([]);
+      }
+    },
+
+    async parameters() {
+      try {
+        const data = await fetchJSON(`${base}/terra/oracle/v1beta1/params`);
+        return data.params || {};
+      } catch (_err) {
+        return {};
+      }
+    },
+  };
+
+  // --- market module ---
+  const market = {
+    async swapRate(offerCoin, askDenom) {
+      try {
+        const offerStr = `${offerCoin.amount}${offerCoin.denom}`;
+        const data = await fetchJSON(
+          `${base}/terra/market/v1beta1/swap?offer_coin=${encodeURIComponent(offerStr)}&ask_denom=${encodeURIComponent(askDenom)}`
+        );
+        const r = data.return_coin || data;
+        return new Coin(r.denom, r.amount);
+      } catch (_err) {
+        return new Coin(askDenom, '0');
+      }
+    },
+  };
+
+  // --- ibc module ---
+  const ibc = {
+    async denomTrace(hash) {
+      const data = await fetchJSON(
+        `${base}/ibc/apps/transfer/v1beta1/denom_traces/${hash}`
+      );
+      return data;
+    },
+  };
+
+  return { auth, bank, tx, staking, distribution, oracle, market, ibc };
 }
 
 module.exports = createLCD;
