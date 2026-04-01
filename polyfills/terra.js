@@ -223,14 +223,25 @@ class Coins {
   filter(fn) { return new Coins(this.coins.filter(fn)); }
 }
 
-// --- Msg types (stubs for data-holding) ---
+// --- Msg serialization helpers ---
+function serializeCoin(c) {
+  if (c && typeof c.toProto === 'function') return c.toProto();
+  if (c && typeof c.toData === 'function') return c.toData();
+  return c;
+}
+
+function serializeCoins(c) {
+  if (c && typeof c.toProto === 'function') return c.toProto();
+  if (Array.isArray(c)) return c.map(serializeCoin);
+  return c;
+}
+
+// --- Msg types ---
 class Msg {
   static fromData(data) { return data; }
   static fromAmino(data) { return data; }
   static fromProto(data) { return data; }
-  toData() { return {}; }
-  toAmino() { return {}; }
-  toProto() { return {}; }
+  toData() { return this.toProto(); }
 }
 
 class MsgSend extends Msg {
@@ -239,6 +250,24 @@ class MsgSend extends Msg {
     this.from_address = from_address;
     this.to_address = to_address;
     this.amount = amount;
+  }
+  toProto() {
+    return {
+      '@type': '/cosmos.bank.v1beta1.MsgSend',
+      from_address: this.from_address,
+      to_address: this.to_address,
+      amount: serializeCoins(this.amount),
+    };
+  }
+  toAmino() {
+    return {
+      type: 'cosmos-sdk/MsgSend',
+      value: {
+        from_address: this.from_address,
+        to_address: this.to_address,
+        amount: serializeCoins(this.amount),
+      },
+    };
   }
 }
 
@@ -250,6 +279,26 @@ class MsgExecuteContract extends Msg {
     this.execute_msg = execute_msg;
     this.coins = coins || new Coins([]);
   }
+  toProto() {
+    return {
+      '@type': '/cosmwasm.wasm.v1.MsgExecuteContract',
+      sender: this.sender,
+      contract: this.contract,
+      msg: this.execute_msg,
+      funds: serializeCoins(this.coins),
+    };
+  }
+  toAmino() {
+    return {
+      type: 'wasm/MsgExecuteContract',
+      value: {
+        sender: this.sender,
+        contract: this.contract,
+        execute_msg: this.execute_msg,
+        coins: serializeCoins(this.coins),
+      },
+    };
+  }
 }
 
 class MsgSwap extends Msg {
@@ -258,6 +307,24 @@ class MsgSwap extends Msg {
     this.trader = trader;
     this.offer_coin = offer_coin;
     this.ask_denom = ask_denom;
+  }
+  toProto() {
+    return {
+      '@type': '/terra.market.v1beta1.MsgSwap',
+      trader: this.trader,
+      offer_coin: serializeCoin(this.offer_coin),
+      ask_denom: this.ask_denom,
+    };
+  }
+  toAmino() {
+    return {
+      type: 'market/MsgSwap',
+      value: {
+        trader: this.trader,
+        offer_coin: serializeCoin(this.offer_coin),
+        ask_denom: this.ask_denom,
+      },
+    };
   }
 }
 
@@ -268,6 +335,24 @@ class MsgDeposit extends Msg {
     this.depositor = depositor;
     this.amount = amount;
   }
+  toProto() {
+    return {
+      '@type': '/cosmos.gov.v1beta1.MsgDeposit',
+      proposal_id: this.proposal_id,
+      depositor: this.depositor,
+      amount: serializeCoins(this.amount),
+    };
+  }
+  toAmino() {
+    return {
+      type: 'cosmos-sdk/MsgDeposit',
+      value: {
+        proposal_id: this.proposal_id,
+        depositor: this.depositor,
+        amount: serializeCoins(this.amount),
+      },
+    };
+  }
 }
 
 class MsgWithdrawDelegatorReward extends Msg {
@@ -275,6 +360,22 @@ class MsgWithdrawDelegatorReward extends Msg {
     super();
     this.delegator_address = delegator_address;
     this.validator_address = validator_address;
+  }
+  toProto() {
+    return {
+      '@type': '/cosmos.distribution.v1beta1.MsgWithdrawDelegationReward',
+      delegator_address: this.delegator_address,
+      validator_address: this.validator_address,
+    };
+  }
+  toAmino() {
+    return {
+      type: 'cosmos-sdk/MsgWithdrawDelegationReward',
+      value: {
+        delegator_address: this.delegator_address,
+        validator_address: this.validator_address,
+      },
+    };
   }
 }
 
@@ -284,6 +385,24 @@ class MsgDelegate extends Msg {
     this.delegator_address = delegator_address;
     this.validator_address = validator_address;
     this.amount = amount;
+  }
+  toProto() {
+    return {
+      '@type': '/cosmos.staking.v1beta1.MsgDelegate',
+      delegator_address: this.delegator_address,
+      validator_address: this.validator_address,
+      amount: serializeCoin(this.amount),
+    };
+  }
+  toAmino() {
+    return {
+      type: 'cosmos-sdk/MsgDelegate',
+      value: {
+        delegator_address: this.delegator_address,
+        validator_address: this.validator_address,
+        amount: serializeCoin(this.amount),
+      },
+    };
   }
 }
 
@@ -295,6 +414,26 @@ class MsgBeginRedelegate extends Msg {
     this.validator_dst_address = validator_dst_address;
     this.amount = amount;
   }
+  toProto() {
+    return {
+      '@type': '/cosmos.staking.v1beta1.MsgBeginRedelegate',
+      delegator_address: this.delegator_address,
+      validator_src_address: this.validator_src_address,
+      validator_dst_address: this.validator_dst_address,
+      amount: serializeCoin(this.amount),
+    };
+  }
+  toAmino() {
+    return {
+      type: 'cosmos-sdk/MsgBeginRedelegate',
+      value: {
+        delegator_address: this.delegator_address,
+        validator_src_address: this.validator_src_address,
+        validator_dst_address: this.validator_dst_address,
+        amount: serializeCoin(this.amount),
+      },
+    };
+  }
 }
 
 class MsgUndelegate extends Msg {
@@ -303,6 +442,24 @@ class MsgUndelegate extends Msg {
     this.delegator_address = delegator_address;
     this.validator_address = validator_address;
     this.amount = amount;
+  }
+  toProto() {
+    return {
+      '@type': '/cosmos.staking.v1beta1.MsgUndelegate',
+      delegator_address: this.delegator_address,
+      validator_address: this.validator_address,
+      amount: serializeCoin(this.amount),
+    };
+  }
+  toAmino() {
+    return {
+      type: 'cosmos-sdk/MsgUndelegate',
+      value: {
+        delegator_address: this.delegator_address,
+        validator_address: this.validator_address,
+        amount: serializeCoin(this.amount),
+      },
+    };
   }
 }
 
