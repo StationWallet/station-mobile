@@ -17,7 +17,7 @@ const setSettings = async (
   next: Partial<Settings>
 ): Promise<void> => {
   const settings = await getSettings()
-  preferences.setString(
+  await preferences.setString(
     PreferencesEnum.settings,
     JSON.stringify(merge(settings, next))
   )
@@ -27,14 +27,14 @@ const deleteSettings = async (
   keys: (keyof Settings)[]
 ): Promise<void> => {
   const settings = await getSettings()
-  preferences.setString(
+  await preferences.setString(
     PreferencesEnum.settings,
     JSON.stringify(omit(keys, settings))
   )
 }
 
-const clearSettings = (): void => {
-  preferences.clear()
+const clearSettings = async (): Promise<void> => {
+  await preferences.clear()
 }
 
 // interface of setting
@@ -56,7 +56,7 @@ export const getSkipOnboarding = async (): Promise<boolean> => {
 export const setSkipOnboarding = async (
   skip: boolean
 ): Promise<void> => {
-  preferences.setBool(PreferencesEnum.onboarding, skip)
+  await preferences.setBool(PreferencesEnum.onboarding, skip)
 }
 
 export const setUseBioAuth = async ({
@@ -64,7 +64,7 @@ export const setUseBioAuth = async ({
 }: {
   isUse: boolean
 }): Promise<void> => {
-  preferences.setBool(PreferencesEnum.useBioAuth, isUse)
+  await preferences.setBool(PreferencesEnum.useBioAuth, isUse)
 }
 
 export const getIsUseBioAuth = async (): Promise<boolean> =>

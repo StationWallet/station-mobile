@@ -38,11 +38,11 @@ export const getAuthDataValue = async (
   return authData && authData[walletName]
 }
 
-const setAuthData = ({
+const setAuthData = async ({
   authData,
 }: {
   authData: AuthDataType
-}): boolean => {
+}): Promise<boolean> => {
   return keystore.write(
     KeystoreEnum.AuthData,
     JSON.stringify(authData)

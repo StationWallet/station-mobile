@@ -13,18 +13,18 @@ export enum PreferencesEnum {
 }
 
 export type PreferencesType = {
-  setString(key: PreferencesEnum, val: string): void
+  setString(key: PreferencesEnum, val: string): Promise<void>
   getString(key: PreferencesEnum): Promise<string>
-  setBool(key: PreferencesEnum, val: boolean): void
+  setBool(key: PreferencesEnum, val: boolean): Promise<void>
   getBool(key: PreferencesEnum): Promise<boolean>
-  remove(key: PreferencesEnum): void
-  clear(): void
+  remove(key: PreferencesEnum): Promise<void>
+  clear(): Promise<void>
 }
 
 // Expo SecureStore replacement for native Preferences
 const Preferences: PreferencesType = {
-  setString: (key: PreferencesEnum, val: string): void => {
-    SecureStore.setItem(key, val)
+  setString: async (key: PreferencesEnum, val: string): Promise<void> => {
+    await SecureStore.setItemAsync(key, val)
   },
   getString: async (key: PreferencesEnum): Promise<string> => {
     try {
@@ -34,8 +34,8 @@ const Preferences: PreferencesType = {
       return ''
     }
   },
-  setBool: (key: PreferencesEnum, val: boolean): void => {
-    SecureStore.setItem(key, val ? 'true' : 'false')
+  setBool: async (key: PreferencesEnum, val: boolean): Promise<void> => {
+    await SecureStore.setItemAsync(key, val ? 'true' : 'false')
   },
   getBool: async (key: PreferencesEnum): Promise<boolean> => {
     try {
@@ -45,14 +45,16 @@ const Preferences: PreferencesType = {
       return false
     }
   },
-  remove: (key: PreferencesEnum): void => {
-    SecureStore.deleteItemAsync(key)
+  remove: async (key: PreferencesEnum): Promise<void> => {
+    await SecureStore.deleteItemAsync(key)
   },
-  clear: (): void => {
+  clear: async (): Promise<void> => {
     // No bulk clear in SecureStore - clear known keys
-    Object.values(PreferencesEnum).forEach((key) => {
-      try { SecureStore.deleteItemAsync(key) } catch {}
-    })
+    await Promise.all(
+      Object.values(PreferencesEnum).map((key) =>
+        SecureStore.deleteItemAsync(key).catch(() => {})
+      )
+    )
   },
 }
 

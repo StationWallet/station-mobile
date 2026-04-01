@@ -13,8 +13,8 @@ import preferences, {
 
 const useTokens = (): {
   tokens: Whitelist
-  addToken: (params: Whitelist) => void
-  removeToken: (token: string) => void
+  addToken: (params: Whitelist) => Promise<void>
+  removeToken: (token: string) => Promise<void>
 } => {
   const chainName = useCurrentChainName()
 
@@ -28,24 +28,24 @@ const useTokens = (): {
     }
   )
 
-  const addToken = (params: Whitelist): void => {
+  const addToken = async (params: Whitelist): Promise<void> => {
     const next = {
       ...allNetworkTokens,
       [chainName]: { ...allNetworkTokens[chainName], ...params },
     }
-    preferences.setString(
+    await preferences.setString(
       PreferencesEnum.tokens,
       JSON.stringify(next)
     )
     refetch()
   }
 
-  const removeToken = (token: string): void => {
+  const removeToken = async (token: string): Promise<void> => {
     const next = {
       ...allNetworkTokens,
       [chainName]: _.omit(allNetworkTokens[chainName], token),
     }
-    preferences.setString(
+    await preferences.setString(
       PreferencesEnum.tokens,
       JSON.stringify(next)
     )
