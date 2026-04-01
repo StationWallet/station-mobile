@@ -10,7 +10,9 @@
     "ios": "npx expo run:ios",
     "android": "npx expo run:android",
     "test": "jest __test__",
-    "lint": "eslint --fix src --ext .ts,.tsx"
+    "lint": "eslint --fix src --ext .ts,.tsx",
+    "e2e:build": "detox build --configuration ios.sim.debug",
+    "e2e:test": "detox test --configuration ios.sim.debug"
   },
   "dependencies": {
     "@apollo/client": "^3.3.10",
@@ -89,6 +91,7 @@
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "@babel/runtime": "^7.24.0",
+    "@config-plugins/detox": "^11.0.0",
     "@types/crypto-js": "^3.1.47",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.14.168",
@@ -97,6 +100,7 @@
     "@types/ramda": "^0.27.38",
     "@types/react": "~19.2.10",
     "babel-plugin-module-resolver": "^5.0.0",
+    "detox": "^20.50.1",
     "jest": "^30.3.0",
     "patch-package": "^8.0.1",
     "prettier": "^2.2.1",
