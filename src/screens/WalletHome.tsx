@@ -116,7 +116,7 @@ export default function WalletHome(): React.ReactElement {
 
       <View style={styles.actions}>
         <Button
-          title={t('Wallet:Receive')}
+          title="Receive"
           onPress={() =>
             navigation.navigate('Receive', { address: wallet.address })
           }
@@ -124,7 +124,7 @@ export default function WalletHome(): React.ReactElement {
           theme="sapphire"
         />
         <Button
-          title={t('Wallet:History')}
+          title="History"
           onPress={() =>
             navigation.navigate('History', { address: wallet.address })
           }
