@@ -4,7 +4,7 @@ import { TokenBalance, Tokens } from '../types'
 import { QueryKeyEnum } from 'types'
 import { useConfig } from '../contexts/ConfigContext'
 import useTokens from 'hooks/useTokens'
-import useLCD from 'lib/api/useLCD'
+import useLCD from 'hooks/useLCD'
 import useWhitelist from 'lib/cw20/useWhitelist'
 
 export interface TokenBalanceQuery {

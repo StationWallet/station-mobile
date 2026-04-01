@@ -3,7 +3,7 @@ import { useQuery } from 'react-query'
 import { getAmount, sortCoins, sortDenoms } from 'utils/coin'
 import { toPrice } from 'utils/num'
 import { queryKey, RefetchOptions } from './query'
-import useLCDClient from 'lib/api/useLCD'
+import useLCDClient from 'hooks/useLCD'
 import {
   useConfig,
   useIsClassic,

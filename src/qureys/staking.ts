@@ -15,7 +15,7 @@ import {
 import { BondStatus } from '@terra-money/terra.proto/cosmos/staking/v1beta1/staking'
 import { has } from 'utils/num'
 import { queryKey, Pagination, RefetchOptions } from './query'
-import useLCDClient from 'lib/api/useLCD'
+import useLCDClient from 'hooks/useLCD'
 import { useAuth } from 'lib/contexts/AuthContext'
 
 export const useValidators = () => {

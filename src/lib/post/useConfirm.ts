@@ -25,7 +25,7 @@ import { lt, gt } from '../utils/math'
 import { useCalcFee } from './txHelpers'
 import { checkError, parseError } from './txHelpers'
 import { useConfig, useIsClassic } from 'lib'
-import useLCDClient from 'lib/api/useLCD'
+import useLCDClient from 'hooks/useLCD'
 
 interface SignParams {
   user: User
