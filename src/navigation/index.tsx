@@ -7,9 +7,16 @@ import { getWallets } from 'utils/wallet'
 import { useConfig } from 'lib'
 import { themes } from 'lib/contexts/useTheme'
 
-type WalletCreatedFn = () => void
-const WalletCreatedContext = createContext<WalletCreatedFn>(() => {})
-export const useWalletCreated = () => useContext(WalletCreatedContext)
+interface WalletNav {
+  onWalletCreated: () => void
+  onWalletDisconnected: () => void
+}
+const WalletNavContext = createContext<WalletNav>({
+  onWalletCreated: () => {},
+  onWalletDisconnected: () => {},
+})
+export const useWalletCreated = () => useContext(WalletNavContext).onWalletCreated
+export const useWalletDisconnected = () => useContext(WalletNavContext).onWalletDisconnected
 
 export default function AppNavigator() {
   const [hasWallet, setHasWallet] = useState<boolean | null>(null)
@@ -26,6 +33,10 @@ export default function AppNavigator() {
     setHasWallet(true)
   }, [])
 
+  const onWalletDisconnected = useCallback(() => {
+    setHasWallet(false)
+  }, [])
+
   const navTheme = {
     ...DefaultTheme,
     colors: {
@@ -37,10 +48,10 @@ export default function AppNavigator() {
   if (hasWallet === null) return null // Still loading
 
   return (
-    <WalletCreatedContext.Provider value={onWalletCreated}>
+    <WalletNavContext.Provider value={{ onWalletCreated, onWalletDisconnected }}>
       <NavigationContainer theme={navTheme}>
         {hasWallet ? <MainNavigator /> : <AuthNavigator />}
       </NavigationContainer>
-    </WalletCreatedContext.Provider>
+    </WalletNavContext.Provider>
   )
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import {
+  Alert,
   View,
   ScrollView,
   RefreshControl,
@@ -12,11 +13,12 @@ import { useTranslation } from 'react-i18next'
 import { NavigationProp, useNavigation } from '@react-navigation/native'
 
 import useLCD from 'hooks/useLCD'
-import { getWallets } from 'utils/wallet'
+import { getWallets, deleteWallet } from 'utils/wallet'
 import { UTIL } from 'consts'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import Loading from 'components/Loading'
+import { useWalletDisconnected } from 'navigation'
 
 type MainStackParams = {
   WalletHome: undefined
@@ -28,6 +30,7 @@ export default function WalletHome(): React.ReactElement {
   const { t } = useTranslation()
   const lcd = useLCD()
   const navigation = useNavigation<NavigationProp<MainStackParams>>()
+  const onWalletDisconnected = useWalletDisconnected()
   const [wallet, setWallet] = useState<{ name: string; address: string } | null>(null)
 
   useEffect(() => {
@@ -59,6 +62,25 @@ export default function WalletHome(): React.ReactElement {
       await Clipboard.setStringAsync(wallet.address)
     }
   }, [wallet])
+
+  const handleDisconnect = useCallback(() => {
+    if (!wallet) return
+    Alert.alert(
+      'Disconnect Wallet',
+      'This will remove the wallet from this device. Make sure you have your seed phrase backed up.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Disconnect',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteWallet({ walletName: wallet.name })
+            onWalletDisconnected()
+          },
+        },
+      ]
+    )
+  }, [wallet, onWalletDisconnected])
 
   if (!wallet) return <Loading />
 
@@ -110,6 +132,10 @@ export default function WalletHome(): React.ReactElement {
           theme="transparent"
         />
       </View>
+
+      <TouchableOpacity style={styles.disconnect} onPress={handleDisconnect}>
+        <Text style={styles.disconnectText}>Disconnect Wallet</Text>
+      </TouchableOpacity>
     </ScrollView>
   )
 }
@@ -136,4 +162,6 @@ const styles = StyleSheet.create({
   balanceAmount: { color: '#F0F4FC', fontSize: 32, fontWeight: '700' },
   actions: { flexDirection: 'row', gap: 16, width: '100%' },
   actionButton: { flex: 1 },
+  disconnect: { marginTop: 40, padding: 12 },
+  disconnectText: { color: '#FF5C5C', fontSize: 14 },
 })
