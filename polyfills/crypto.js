@@ -6,10 +6,11 @@
 var { Buffer } = require('buffer');
 
 function randomBytes(size) {
-  var arr = new Uint8Array(size);
-  if (typeof globalThis.crypto !== 'undefined' && globalThis.crypto.getRandomValues) {
-    globalThis.crypto.getRandomValues(arr);
+  if (typeof globalThis.crypto === 'undefined' || !globalThis.crypto.getRandomValues) {
+    throw new Error('No secure random number generator available');
   }
+  var arr = new Uint8Array(size);
+  globalThis.crypto.getRandomValues(arr);
   return Buffer.from(arr);
 }
 
@@ -17,16 +18,13 @@ function randomBytes(size) {
 function createHash(algorithm) {
   var hashFn;
   if (algorithm === 'sha256') {
-    hashFn = require('@noble/hashes/sha256').sha256;
+    hashFn = require('@noble/hashes/sha2.js').sha256;
   } else if (algorithm === 'sha512') {
-    hashFn = require('@noble/hashes/sha512').sha512;
+    hashFn = require('@noble/hashes/sha2.js').sha512;
   } else if (algorithm === 'ripemd160' || algorithm === 'rmd160') {
-    hashFn = require('@noble/hashes/ripemd160').ripemd160;
+    hashFn = require('@noble/hashes/legacy.js').ripemd160;
   } else {
-    return {
-      update: function() { return this; },
-      digest: function() { return Buffer.alloc(32); },
-    };
+    throw new Error('Unsupported hash algorithm: ' + algorithm);
   }
 
   var data = [];
@@ -51,19 +49,16 @@ function createHash(algorithm) {
 
 // Minimal createHmac using @noble/hashes
 function createHmac(algorithm, key) {
-  var hmacFn = require('@noble/hashes/hmac').hmac;
   var hashFn;
   if (algorithm === 'sha256') {
-    hashFn = require('@noble/hashes/sha256').sha256;
+    hashFn = require('@noble/hashes/sha2.js').sha256;
   } else if (algorithm === 'sha512') {
-    hashFn = require('@noble/hashes/sha512').sha512;
+    hashFn = require('@noble/hashes/sha2.js').sha512;
   } else {
-    return {
-      update: function() { return this; },
-      digest: function() { return Buffer.alloc(32); },
-    };
+    throw new Error('Unsupported HMAC algorithm: ' + algorithm);
   }
 
+  var hmacFn = require('@noble/hashes/hmac.js').hmac;
   var keyBuf = typeof key === 'string' ? Buffer.from(key) : Buffer.from(key);
   var data = [];
   return {
@@ -90,9 +85,9 @@ module.exports = {
   createHmac: createHmac,
   randomBytes: randomBytes,
   getRandomValues: function(arr) {
-    if (typeof globalThis.crypto !== 'undefined' && globalThis.crypto.getRandomValues) {
-      return globalThis.crypto.getRandomValues(arr);
+    if (typeof globalThis.crypto === 'undefined' || !globalThis.crypto.getRandomValues) {
+      throw new Error('No secure random number generator available');
     }
-    return arr;
+    return globalThis.crypto.getRandomValues(arr);
   },
 };
