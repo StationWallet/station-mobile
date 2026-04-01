@@ -5,8 +5,6 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
 } from 'react-native'
 import { useSetRecoilState } from 'recoil'
@@ -41,10 +39,7 @@ const Step2Seed = ({ navigation }: any) => {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -85,7 +80,7 @@ const Step2Seed = ({ navigation }: any) => {
           <Text style={styles.buttonText}>Next</Text>
         </TouchableOpacity>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   )
 }
 

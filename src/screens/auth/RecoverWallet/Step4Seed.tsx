@@ -5,8 +5,6 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   ActivityIndicator,
 } from 'react-native'
@@ -67,10 +65,7 @@ const Step4Seed = ({ navigation }: any) => {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -140,7 +135,7 @@ const Step4Seed = ({ navigation }: any) => {
           )}
         </TouchableOpacity>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   )
 }
 
