@@ -4,12 +4,14 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import QRCode from 'react-native-qrcode-svg'
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native'
 
 import { getDecyrptedKey } from 'utils/wallet'
+import { exportVaultShare, shareVaultFile } from 'services/exportVaultShare'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import { MONO_FONT } from 'consts/theme'
@@ -25,6 +27,11 @@ export default function ExportPrivateKey() {
   const [privateKey, setPrivateKey] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+
+  const [exportPassword, setExportPassword] = useState('')
+  const [showExportForm, setShowExportForm] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState('')
 
   const timerRef = useRef<ReturnType<typeof setTimeout>>()
 
@@ -58,6 +65,22 @@ export default function ExportPrivateKey() {
     setCopied(true)
     timerRef.current = setTimeout(() => setCopied(false), 2000)
   }, [privateKey])
+
+  const handleExportVaultShare = useCallback(async () => {
+    if (!privateKey || exportPassword.length === 0) return
+    setExporting(true)
+    setExportError('')
+    try {
+      const fileUri = await exportVaultShare(privateKey, wallet.name, exportPassword)
+      await shareVaultFile(fileUri)
+      setShowExportForm(false)
+      setExportPassword('')
+    } catch (e) {
+      setExportError('Failed to export vault share')
+    } finally {
+      setExporting(false)
+    }
+  }, [privateKey, wallet.name, exportPassword])
 
   return (
     <ScrollView
@@ -111,6 +134,39 @@ export default function ExportPrivateKey() {
             theme="sapphire"
             containerStyle={styles.button}
           />
+          {!showExportForm ? (
+            <Button
+              title="Export as Vault Share"
+              onPress={() => setShowExportForm(true)}
+              theme="dodgerBlue"
+              containerStyle={styles.button}
+            />
+          ) : (
+            <View style={styles.exportForm}>
+              <Text style={styles.exportLabel}>
+                Set a password to encrypt the vault file:
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Export password"
+                placeholderTextColor="#8295AE"
+                secureTextEntry
+                value={exportPassword}
+                onChangeText={setExportPassword}
+                autoCapitalize="none"
+              />
+              {exportError !== '' && (
+                <Text style={styles.errorText}>{exportError}</Text>
+              )}
+              <Button
+                title={exporting ? 'Exporting...' : 'Export .vult File'}
+                onPress={handleExportVaultShare}
+                disabled={exportPassword.length === 0 || exporting}
+                theme="sapphire"
+                containerStyle={styles.button}
+              />
+            </View>
+          )}
         </>
       )}
 
@@ -171,4 +227,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   button: { width: '100%', marginBottom: 12 },
+  exportForm: {
+    width: '100%',
+    marginBottom: 12,
+  },
+  exportLabel: {
+    color: '#8295AE',
+    fontSize: 13,
+    marginBottom: 8,
+  },
 })
