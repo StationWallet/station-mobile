@@ -97,7 +97,7 @@ export default function ExportPrivateKey() {
         </Text>
       </View>
 
-      {privateKey === null ? (
+      {!privateKey ? (
         <>
           <TextInput
             style={styles.input}
