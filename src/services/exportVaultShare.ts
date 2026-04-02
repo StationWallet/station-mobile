@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js'
 import { secp256k1 } from '@noble/curves/secp256k1.js'
 import { hex, base64 } from '@scure/base'
 import * as ExpoCrypto from 'expo-crypto'
-import * as FileSystem from 'expo-file-system'
+import { cacheDirectory, writeAsStringAsync } from 'expo-file-system/legacy'
 import * as Sharing from 'expo-sharing'
 
 import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
@@ -99,8 +99,8 @@ export async function exportVaultShare(
   // 6. Write to cache file
   const cleanName = walletName.replace(/[^a-zA-Z0-9-_]/g, '-')
   const fileName = `${cleanName}-station-mobile.vult`
-  const fileUri = `${FileSystem.cacheDirectory}${fileName}`
-  await FileSystem.writeAsStringAsync(fileUri, containerBase64)
+  const fileUri = `${cacheDirectory}${fileName}`
+  await writeAsStringAsync(fileUri, containerBase64)
 
   return fileUri
 }

@@ -75,7 +75,9 @@ export default function ExportPrivateKey() {
       setShowExportForm(false)
       setExportPassword('')
     } catch (e) {
-      setExportError('Failed to export vault share')
+      const msg = e instanceof Error ? e.message : String(e)
+      console.error('Vault share export failed:', msg, e)
+      setExportError(`Export failed: ${msg}`)
     } finally {
       setExporting(false)
     }
