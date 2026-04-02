@@ -7,6 +7,7 @@ import History from '../screens/History'
 import AuthMenu from '../screens/auth/AuthMenu'
 import NewWalletStack from './NewWalletStack'
 import RecoverWalletStack from './RecoverWalletStack'
+import ExportPrivateKey from '../screens/ExportPrivateKey'
 
 export type MainStackParams = {
   WalletPicker: undefined
@@ -16,6 +17,7 @@ export type MainStackParams = {
   AddWalletMenu: undefined
   AddNewWallet: undefined
   AddRecoverWallet: undefined
+  ExportPrivateKey: { wallet: { name: string; address: string } }
 }
 
 const Stack = createStackNavigator<MainStackParams>()
@@ -47,6 +49,7 @@ export default function MainNavigator({ initialWallet }: Props) {
       <Stack.Screen name="AddWalletMenu" component={AuthMenu} />
       <Stack.Screen name="AddNewWallet" component={NewWalletStack} />
       <Stack.Screen name="AddRecoverWallet" component={RecoverWalletStack} />
+      <Stack.Screen name="ExportPrivateKey" component={ExportPrivateKey} />
     </Stack.Navigator>
   )
 }
