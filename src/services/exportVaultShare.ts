@@ -54,9 +54,12 @@ export async function exportVaultShare(
   walletName: string,
   exportPassword: string,
 ): Promise<string> {
+  console.log('[vault-export] step 0: deriving public key')
   const publicKeyHex = derivePublicKeyHex(privateKeyHex)
+  console.log('[vault-export] step 0 done, pubkey length:', publicKeyHex.length)
 
   // 1. Build Vault protobuf
+  console.log('[vault-export] step 1: building protobuf')
   const vaultProto = create(VaultSchema, {
     name: walletName,
     publicKeyEcdsa: publicKeyHex,
@@ -80,10 +83,14 @@ export async function exportVaultShare(
   })
 
   // 2. Serialize to binary
+  console.log('[vault-export] step 2: serializing to binary')
   const vaultBytes = toBinary(VaultSchema, vaultProto)
+  console.log('[vault-export] step 2 done, type:', typeof vaultBytes, 'isUint8Array:', vaultBytes instanceof Uint8Array, 'length:', vaultBytes?.length)
 
   // 3. Encrypt with export password
+  console.log('[vault-export] step 3: encrypting')
   const encryptedBytes = encryptWithPassword(vaultBytes, exportPassword)
+  console.log('[vault-export] step 3 done')
 
   // 4. Wrap in VaultContainer
   const container = create(VaultContainerSchema, {
