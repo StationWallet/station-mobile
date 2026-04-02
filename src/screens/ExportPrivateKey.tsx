@@ -7,6 +7,7 @@ import {
   Platform,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
+import QRCode from 'react-native-qrcode-svg'
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native'
 
 import { getDecyrptedKey } from 'utils/wallet'
@@ -96,6 +97,9 @@ export default function ExportPrivateKey() {
         </>
       ) : (
         <>
+          <View style={styles.qrContainer}>
+            <QRCode value={privateKey} size={200} backgroundColor="#061B3A" color="#F0F4FC" />
+          </View>
           <View style={styles.keyCard}>
             <Text style={styles.keyText} selectable>
               {privateKey}
@@ -147,6 +151,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   errorText: { color: '#FF5C5C', fontSize: 13, marginBottom: 12 },
+  qrContainer: {
+    backgroundColor: '#061B3A',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 16,
+  },
   keyCard: {
     backgroundColor: '#061B3A',
     borderRadius: 12,
