@@ -24,6 +24,13 @@ export default function DevMigrationTest(): React.ReactElement {
   const runTest = async (): Promise<void> => {
     const r: Record<string, string> = {}
 
+    if (!LegacyKeystore) {
+      r['error'] = 'Native module unavailable (Expo Go?)'
+      r['all-passed'] = 'skipped'
+      setResults(r)
+      return
+    }
+
     try {
       // Step 1: Clean slate
       await LegacyKeystore.clearAllLegacyData()
@@ -77,7 +84,7 @@ export default function DevMigrationTest(): React.ReactElement {
 
     // Clean up after test
     try {
-      await LegacyKeystore.clearAllLegacyData()
+      await LegacyKeystore?.clearAllLegacyData()
       await keystore.remove(KeystoreEnum.AuthData)
       await preferences.setString(PreferencesEnum.legacyKeystoreMigrated, '')
     } catch {}

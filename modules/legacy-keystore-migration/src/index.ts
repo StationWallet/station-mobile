@@ -1,4 +1,4 @@
-import { requireNativeModule } from 'expo-modules-core'
+import { requireOptionalNativeModule } from 'expo-modules-core'
 
 interface LegacyKeystoreMigrationModule {
   /**
@@ -30,6 +30,6 @@ interface LegacyKeystoreMigrationModule {
   clearAllLegacyData(): Promise<boolean>
 }
 
-export default requireNativeModule<LegacyKeystoreMigrationModule>(
+export default requireOptionalNativeModule<LegacyKeystoreMigrationModule>(
   'LegacyKeystoreMigration'
 )

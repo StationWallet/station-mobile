@@ -44,6 +44,14 @@ export async function migrateLegacyKeystore(): Promise<void> {
       return
     }
 
+    // Native module unavailable (e.g. running in Expo Go) — skip migration
+    if (!LegacyKeystore) {
+      await preferences.setString(
+        PreferencesEnum.legacyKeystoreMigrated, 'true'
+      )
+      return
+    }
+
     // Attempt to read from old native keystore
     const legacyData = await LegacyKeystore.readLegacy('AD')
 
