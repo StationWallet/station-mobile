@@ -10,6 +10,7 @@ export enum PreferencesEnum {
   walletConnectSession = 'walletConnectSession',
   stakingFilter = 'stakingFilter',
   tokens = 'tokens',
+  legacyKeystoreMigrated = 'legacyKeystoreMigrated',
 }
 
 export type PreferencesType = {
