@@ -27,8 +27,7 @@
       "expo-secure-store",
       "expo-camera",
       "expo-local-authentication",
-      "@config-plugins/detox",
-      "./modules/legacy-keystore-migration"
+      "@config-plugins/detox"
     ]
   }
 }
