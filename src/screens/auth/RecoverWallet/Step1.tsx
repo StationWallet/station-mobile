@@ -6,17 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
-
-const COLORS = {
-  bg: '#02122B',
-  surface: '#061B3A',
-  textPrimary: '#F0F4FC',
-  textSecondary: '#8295AE',
-  accent: '#0B4EFF',
-  border: '#11284A',
-  disabled: '#1a2d4d',
-  disabledText: '#4a5a72',
-}
+import { COLORS } from 'consts/theme'
 
 const Step1 = ({ navigation }: any) => {
   return (

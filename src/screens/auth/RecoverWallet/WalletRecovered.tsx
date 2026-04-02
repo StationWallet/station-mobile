@@ -4,19 +4,9 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Platform,
 } from 'react-native'
 import { useWalletCreated, useWalletNav } from 'navigation'
-
-const COLORS = {
-  bg: '#02122B',
-  surface: '#061B3A',
-  textPrimary: '#F0F4FC',
-  textSecondary: '#8295AE',
-  accent: '#0B4EFF',
-  border: '#11284A',
-  success: '#18D2C3',
-}
+import { COLORS, MONO_FONT } from 'consts/theme'
 
 const WalletRecovered = ({ navigation, route }: any) => {
   const { wallet } = route.params
@@ -101,7 +91,7 @@ const styles = StyleSheet.create({
   address: {
     color: COLORS.textPrimary,
     fontSize: 13,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontFamily: MONO_FONT,
   },
   button: {
     backgroundColor: COLORS.accent,

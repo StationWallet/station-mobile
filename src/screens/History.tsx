@@ -11,6 +11,7 @@ import { RouteProp, useRoute } from '@react-navigation/native'
 
 import { useConfig } from 'lib/contexts/ConfigContext'
 import { UTIL } from 'consts'
+import { EXPLORER_URL } from 'consts/theme'
 import Text from 'components/Text'
 import Loading from 'components/Loading'
 
@@ -119,23 +120,43 @@ export default function History() {
   }, [fetchAll])
 
   const loadMore = useCallback(async () => {
+    if (!hasMoreSent && !hasMoreReceived) return
     try {
-      const result = await fetchAll(
-        hasMoreSent ? sentOffset : 0,
-        hasMoreReceived ? receivedOffset : 0
-      )
-      const existingHashes = new Set(txs.map((tx) => tx.txhash))
-      const newTxs = result.txs.filter((tx) => !existingHashes.has(tx.txhash))
-      setTxs((prev) => [...prev, ...newTxs])
-      setHasMoreSent(result.hasMoreSent)
-      setHasMoreReceived(result.hasMoreReceived)
-      if (hasMoreSent) setSentOffset((o) => o + PAGE_SIZE)
-      if (hasMoreReceived) setReceivedOffset((o) => o + PAGE_SIZE)
+      const [sent, received] = await Promise.all([
+        hasMoreSent
+          ? fetchByQuery(`message.sender='${address}'`, sentOffset)
+          : Promise.resolve(null),
+        hasMoreReceived
+          ? fetchByQuery(`coin_received.receiver='${address}'`, receivedOffset)
+          : Promise.resolve(null),
+      ])
+      const sentTxs = sent?.tx_responses || []
+      const receivedTxs = received?.tx_responses || []
+      setTxs((prev) => {
+        const seen = new Set(prev.map((tx) => tx.txhash))
+        const unique = [...sentTxs, ...receivedTxs].filter((tx) => {
+          if (seen.has(tx.txhash)) return false
+          seen.add(tx.txhash)
+          return true
+        })
+        return [...prev, ...unique].sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )
+      })
+      if (hasMoreSent) {
+        setHasMoreSent(sentTxs.length === PAGE_SIZE)
+        setSentOffset((o) => o + PAGE_SIZE)
+      }
+      if (hasMoreReceived) {
+        setHasMoreReceived(receivedTxs.length === PAGE_SIZE)
+        setReceivedOffset((o) => o + PAGE_SIZE)
+      }
     } catch {
       setHasMoreSent(false)
       setHasMoreReceived(false)
     }
-  }, [fetchAll, txs, sentOffset, receivedOffset, hasMoreSent, hasMoreReceived])
+  }, [fetchByQuery, address, sentOffset, receivedOffset, hasMoreSent, hasMoreReceived])
 
   const refresh = useCallback(async () => {
     setRefreshing(true)
@@ -158,7 +179,7 @@ export default function History() {
   }, [loadInitial])
 
   const openExplorer = useCallback((hash: string) => {
-    Linking.openURL(`https://chainsco.pe/terra2/tx/${hash}`)
+    Linking.openURL(`${EXPLORER_URL}${hash}`)
   }, [])
 
   const getTxLabel = (tx: TxResponse): string => {

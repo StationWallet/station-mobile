@@ -11,17 +11,7 @@ import {
 import { useRecoilValue, useSetRecoilState } from 'recoil'
 import RecoverWalletStore from 'stores/RecoverWalletStore'
 import { createWallet } from 'utils/wallet'
-
-const COLORS = {
-  bg: '#02122B',
-  surface: '#061B3A',
-  textPrimary: '#F0F4FC',
-  textSecondary: '#8295AE',
-  accent: '#0B4EFF',
-  border: '#11284A',
-  error: '#FF5C5C',
-  inputBg: 'rgba(6,27,58,0.8)',
-}
+import { COLORS } from 'consts/theme'
 
 const Step4Seed = ({ navigation }: any) => {
   const seed = useRecoilValue(RecoverWalletStore.seed)

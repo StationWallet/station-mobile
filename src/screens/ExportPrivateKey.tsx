@@ -4,7 +4,6 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
-  Platform,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import QRCode from 'react-native-qrcode-svg'
@@ -13,6 +12,7 @@ import { RouteProp, useRoute, useNavigation } from '@react-navigation/native'
 import { getDecyrptedKey } from 'utils/wallet'
 import Text from 'components/Text'
 import Button from 'components/Button'
+import { MONO_FONT } from 'consts/theme'
 
 import type { MainStackParams } from 'navigation/MainNavigator'
 
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   keyText: {
     color: '#F0F4FC',
     fontSize: 13,
-    fontFamily: Platform.select({ ios: 'Courier New', android: 'monospace', default: 'monospace' }),
+    fontFamily: MONO_FONT,
     lineHeight: 20,
   },
   button: { width: '100%', marginBottom: 12 },

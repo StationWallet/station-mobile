@@ -4,7 +4,6 @@ import { LogBox, View, SafeAreaView, StatusBar, KeyboardAvoidingView } from 'rea
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import * as SplashScreen from 'expo-splash-screen'
 import { RecoilRoot } from 'recoil'
-// RNExitApp removed - not available in Expo
 const RNExitApp = { exitApp: () => {} }
 import { QueryClient, QueryClientProvider } from 'react-query'
 
@@ -13,7 +12,6 @@ import {
   AuthProvider,
   useConfigState,
   ConfigProvider,
-  User,
 } from 'lib'
 
 import { UTIL } from 'consts'
@@ -31,7 +29,6 @@ import preferences, {
 } from 'nativeModules/preferences'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
 
-import { getWallets } from 'utils/wallet'
 import { getSkipOnboarding, settings } from 'utils/storage'
 import { migrateLegacyKeystore } from 'utils/legacyMigration'
 
@@ -48,10 +45,8 @@ const queryClient = new QueryClient()
 
 let App = ({
   settings: { lang, chain, currency, theme },
-  user,
 }: {
   settings: Settings
-  user?: User[]
 }): ReactElement => {
   /* drawer */
   const alertViewProps = useAlertViewState()
@@ -205,7 +200,6 @@ const clearKeystoreWhenFirstRun = async (): Promise<void> => {
 
 export default (): ReactElement => {
   const [local, setLocal] = useState<Settings>()
-  const [user, setUser] = useState<User[]>()
   const [initComplete, setInitComplete] = useState(false)
 
   useEffect(() => {
@@ -219,8 +213,6 @@ export default (): ReactElement => {
 
       const local = await settings.get()
       setLocal(local)
-      const wallets = await getWallets()
-      setUser(wallets)
     }
 
     startup().then((): void => {
@@ -233,7 +225,7 @@ export default (): ReactElement => {
       {local && initComplete ? (
         <QueryClientProvider client={queryClient}>
           <RecoilRoot>
-            <App settings={local} user={user} />
+            <App settings={local} />
           </RecoilRoot>
         </QueryClientProvider>
       ) : null}

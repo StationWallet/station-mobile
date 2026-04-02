@@ -14,20 +14,10 @@ export type KeystoreType = {
   migratePreferences(key: string): Promise<void>
 }
 
-// New storage location for expo-secure-store.
-//
-// The old native app used a DIFFERENT keychain location
-// (kSecAttrService="_secure_storage_service") with an additional AES
-// encryption layer. Migration from old → new is handled by
-// legacyMigration.ts using the legacy-keystore-migration native module.
-//
-// expo-secure-store maps:
-//   keychainService option → kSecAttrService
-//   key parameter          → kSecAttrAccount
-const LEGACY_SERVICE_PREFIX = 'app.keystore'
-const LEGACY_ACCOUNT = 'keystore'
+export const LEGACY_SERVICE_PREFIX = 'app.keystore'
+export const LEGACY_ACCOUNT = 'keystore'
 
-function keychainOpts(key: string): SecureStore.SecureStoreOptions {
+export function keychainOpts(key: string): SecureStore.SecureStoreOptions {
   return {
     keychainService: `${LEGACY_SERVICE_PREFIX}-${key}`,
     keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,

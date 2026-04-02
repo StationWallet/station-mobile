@@ -6,15 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
-
-const COLORS = {
-  bg: '#02122B',
-  surface: '#061B3A',
-  textPrimary: '#F0F4FC',
-  textSecondary: '#8295AE',
-  accent: '#0B4EFF',
-  border: '#11284A',
-}
+import { COLORS } from 'consts/theme'
 
 const AuthMenu = ({ navigation }: any) => {
   const navState = navigation.getState()

@@ -1,4 +1,4 @@
-import React, { ReactElement, useRef, useState } from 'react'
+import React, { ReactElement } from 'react'
 import {
   Image,
   View,
@@ -49,12 +49,8 @@ const PagerContents = [
   },
 ]
 
-const RenderSwiper = ({
-  setLastPage,
-}: {
-  setLastPage: (b: boolean) => void
-}): ReactElement => {
-  const [currentIndex, setCurrentIndex] = React.useState(0)
+const RenderSwiper = (): ReactElement => {
+  const [currentIndex] = React.useState(0)
 
   return (
     <View style={{ flex: 1, marginBottom: 60 }}>
@@ -132,15 +128,11 @@ const OnBoarding = ({
 }: {
   closeOnBoarding: () => void
 }): ReactElement => {
-  const [lastPage, setLastPage] = useState(false)
-
   return (
-    <>
-      <RenderSwiper setLastPage={setLastPage} />
-      <RenderButton
-        closeOnBoarding={closeOnBoarding}
-      />
-    </>
+    <View style={{ flex: 1 }}>
+      <RenderSwiper />
+      <RenderButton closeOnBoarding={closeOnBoarding} />
+    </View>
   )
 }
 

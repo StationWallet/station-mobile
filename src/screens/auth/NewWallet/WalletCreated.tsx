@@ -5,21 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
 } from 'react-native'
 import { createWallet } from 'utils/wallet'
 import { useWalletCreated, useWalletNav } from 'navigation'
-
-const COLORS = {
-  bg: '#02122B',
-  surface: '#061B3A',
-  textPrimary: '#F0F4FC',
-  textSecondary: '#8295AE',
-  accent: '#0B4EFF',
-  border: '#11284A',
-  success: '#18D2C3',
-  error: '#FF5C5C',
-}
+import { COLORS, MONO_FONT } from 'consts/theme'
 
 const WalletCreated = ({ navigation, route }: any) => {
   const { mnemonic, name, password } = route.params
@@ -154,7 +143,7 @@ const styles = StyleSheet.create({
   address: {
     color: COLORS.textPrimary,
     fontSize: 13,
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontFamily: MONO_FONT,
   },
   button: {
     backgroundColor: COLORS.accent,

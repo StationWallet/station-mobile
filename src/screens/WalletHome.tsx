@@ -30,20 +30,24 @@ export default function WalletHome() {
   const { wallets, onWalletDisconnected } = useWalletNav()
 
   const wallet = route.params?.wallet
-  if (!wallet) return <Loading />
 
-  const [isLedger, setIsLedger] = useState(true) // default true to hide button until checked
+  const [isLedger, setIsLedger] = useState(true)
 
   useEffect(() => {
+    if (!wallet) return
     getAuthDataValue(wallet.name).then((data) => {
       setIsLedger(data?.ledger === true)
     })
-  }, [wallet.name])
+  }, [wallet?.name])
 
-  // Save last-used wallet
-  React.useEffect(() => {
-    settings.set({ walletName: wallet.name })
-  }, [wallet.name])
+  useEffect(() => {
+    if (!wallet) return
+    settings.get().then((saved) => {
+      if (saved.walletName !== wallet.name) {
+        settings.set({ walletName: wallet.name })
+      }
+    })
+  }, [wallet?.name])
 
   const {
     data: balance,
@@ -51,19 +55,23 @@ export default function WalletHome() {
     refetch,
     isRefetching,
   } = useQuery(
-    ['balance', wallet.address],
+    ['balance', wallet?.address],
     async () => {
+      if (!wallet) return '0'
       const [coins] = await lcd.bank.balance(wallet.address)
       const luna = coins.get('uluna')
       return luna ? UTIL.demicrofy(luna.amount as any) : '0'
     },
+    { enabled: !!wallet }
   )
 
   const copyAddress = useCallback(async () => {
+    if (!wallet) return
     await Clipboard.setStringAsync(wallet.address)
-  }, [wallet.address])
+  }, [wallet?.address])
 
   const handleRemove = useCallback(() => {
+    if (!wallet) return
     Alert.alert(
       'Remove Wallet',
       'This will remove the wallet from this device. Make sure you have your seed phrase backed up.',
@@ -79,7 +87,9 @@ export default function WalletHome() {
         },
       ]
     )
-  }, [wallet.name, onWalletDisconnected])
+  }, [wallet?.name, onWalletDisconnected])
+
+  if (!wallet) return <Loading />
 
   const truncated = UTIL.truncate(wallet.address, [10, 6])
   const hasMultipleWallets = wallets.length > 1

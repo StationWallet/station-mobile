@@ -1,14 +1,7 @@
 import * as SecureStore from 'expo-secure-store'
 import LegacyKeystore from '../../modules/legacy-keystore-migration/src'
 import preferences, { PreferencesEnum } from 'nativeModules/preferences'
-
-// These must match the constants in src/nativeModules/keystore.ts
-const LEGACY_SERVICE_PREFIX = 'app.keystore'
-const LEGACY_ACCOUNT = 'keystore'
-
-function keychainOpts(key: string): SecureStore.SecureStoreOptions {
-  return { keychainService: `${LEGACY_SERVICE_PREFIX}-${key}` }
-}
+import { LEGACY_ACCOUNT, keychainOpts } from 'nativeModules/keystore'
 
 /**
  * Migrate wallet data from the old native Keystore module to expo-secure-store.
@@ -25,10 +18,10 @@ function keychainOpts(key: string): SecureStore.SecureStoreOptions {
  */
 export async function migrateLegacyKeystore(): Promise<void> {
   // Check if already migrated
-  const alreadyDone = await preferences.getString(
+  const alreadyDone = await preferences.getBool(
     PreferencesEnum.legacyKeystoreMigrated
   )
-  if (alreadyDone === 'true') return
+  if (alreadyDone) return
 
   try {
     // Check if new-format data already exists (user already on new app)
@@ -38,16 +31,16 @@ export async function migrateLegacyKeystore(): Promise<void> {
     )
     if (existingNewData) {
       // Data already in new format — mark done and return
-      await preferences.setString(
-        PreferencesEnum.legacyKeystoreMigrated, 'true'
+      await preferences.setBool(
+        PreferencesEnum.legacyKeystoreMigrated, true
       )
       return
     }
 
     // Native module unavailable (e.g. running in Expo Go) — skip migration
     if (!LegacyKeystore) {
-      await preferences.setString(
-        PreferencesEnum.legacyKeystoreMigrated, 'true'
+      await preferences.setBool(
+        PreferencesEnum.legacyKeystoreMigrated, true
       )
       return
     }
@@ -81,7 +74,7 @@ export async function migrateLegacyKeystore(): Promise<void> {
     return
   }
 
-  await preferences.setString(
-    PreferencesEnum.legacyKeystoreMigrated, 'true'
+  await preferences.setBool(
+    PreferencesEnum.legacyKeystoreMigrated, true
   )
 }

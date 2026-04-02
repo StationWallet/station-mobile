@@ -6,9 +6,9 @@ import {
   Image,
 } from 'react-native'
 import { StackNavigationOptions } from '@react-navigation/stack'
-import { Platform, NativeModules } from 'react-native'
-const { StatusBarManager } = NativeModules
-const getStatusBarHeight = (): number => Platform.OS === 'ios' ? 44 : 0
+import { Platform, StatusBar } from 'react-native'
+const getStatusBarHeight = (): number =>
+  Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 44
 import { AccAddress } from '@terra-money/terra.js'
 import {
   NavigationProp,

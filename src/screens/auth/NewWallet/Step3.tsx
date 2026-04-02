@@ -10,17 +10,7 @@ import {
 import { useSetRecoilState, useRecoilValue } from 'recoil'
 import NewWalletStore from 'stores/NewWalletStore'
 import TerraWallet from 'nativeModules/terraWallet'
-
-const COLORS = {
-  bg: '#02122B',
-  surface: '#061B3A',
-  textPrimary: '#F0F4FC',
-  textSecondary: '#8295AE',
-  accent: '#0B4EFF',
-  border: '#11284A',
-  warning: '#FFB340',
-  inputBg: 'rgba(6,27,58,0.8)',
-}
+import { COLORS } from 'consts/theme'
 
 const Step3 = ({ navigation }: any) => {
   const [mnemonic, setMnemonic] = useState('')

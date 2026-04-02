@@ -24,20 +24,15 @@ export const formatSeedStringToArray = (seed: string): string[] => {
 export const generateAddresses = (
   mnemonic: string
 ): {
-  mk118: MnemonicKey
   mk330: MnemonicKey
 } => {
   const formatted = formatSeedStringToArray(mnemonic).join(' ')
-  const mk118 = new MnemonicKey({
-    mnemonic: formatted,
-    coinType: 118,
-  })
   const mk330 = new MnemonicKey({
     mnemonic: formatted,
     coinType: 330,
   })
 
-  return { mk118, mk330 }
+  return { mk330 }
 }
 
 export const createWallet = async ({
