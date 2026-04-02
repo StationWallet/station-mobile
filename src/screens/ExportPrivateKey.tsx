@@ -4,7 +4,6 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import QRCode from 'react-native-qrcode-svg'
