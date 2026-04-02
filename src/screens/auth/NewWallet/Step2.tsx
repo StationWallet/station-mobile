@@ -56,6 +56,8 @@ const Step2 = ({ navigation }: any) => {
             placeholder="Enter password"
             placeholderTextColor={COLORS.textSecondary}
             secureTextEntry
+            textContentType="none"
+            autoComplete="off"
             autoFocus
           />
           {tooShort && (
@@ -74,6 +76,8 @@ const Step2 = ({ navigation }: any) => {
             placeholder="Confirm password"
             placeholderTextColor={COLORS.textSecondary}
             secureTextEntry
+            textContentType="none"
+            autoComplete="off"
           />
           {mismatch && (
             <Text style={styles.errorText}>Passwords do not match</Text>

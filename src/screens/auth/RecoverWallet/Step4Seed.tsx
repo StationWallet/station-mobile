@@ -96,6 +96,8 @@ const Step4Seed = ({ navigation }: any) => {
             placeholder="Min 10 characters"
             placeholderTextColor={COLORS.textSecondary}
             secureTextEntry
+            textContentType="none"
+            autoComplete="off"
           />
           {tooShort && (
             <Text style={styles.errorText}>
@@ -113,6 +115,8 @@ const Step4Seed = ({ navigation }: any) => {
             placeholder="Confirm password"
             placeholderTextColor={COLORS.textSecondary}
             secureTextEntry
+            textContentType="none"
+            autoComplete="off"
           />
           {mismatch && (
             <Text style={styles.errorText}>Passwords do not match</Text>
