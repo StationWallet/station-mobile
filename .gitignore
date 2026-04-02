@@ -71,5 +71,7 @@ android/app/src/main/java/money/terra/station/generated/BasePackageList.java
 # Expo
 .expo/
 ios/
+!modules/**/ios/
 android/
+!modules/**/android/
 *.tsbuildinfo
