@@ -4,6 +4,7 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
+  Platform,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native'
@@ -48,7 +49,8 @@ export default function ExportPrivateKey() {
       keyboardShouldPersistTaps="handled"
     >
       <Text style={styles.title}>Export Private Key</Text>
-      <Text style={styles.address}>{wallet.name}</Text>
+      <Text style={styles.walletName}>{wallet.name}</Text>
+      <Text style={styles.address}>{wallet.address}</Text>
 
       <View style={styles.warningCard}>
         <Text style={styles.warningText}>
@@ -106,7 +108,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#02122B' },
   content: { padding: 20, alignItems: 'center' },
   title: { color: '#F0F4FC', fontSize: 20, fontWeight: '600', marginTop: 24 },
-  address: { color: '#8295AE', fontSize: 14, marginTop: 8, marginBottom: 24 },
+  walletName: { color: '#8295AE', fontSize: 14, marginTop: 8 },
+  address: { color: '#8295AE', fontSize: 12, marginTop: 4, marginBottom: 24 },
   warningCard: {
     backgroundColor: '#3D1A1A',
     borderRadius: 12,
@@ -135,7 +138,7 @@ const styles = StyleSheet.create({
   keyText: {
     color: '#F0F4FC',
     fontSize: 13,
-    fontFamily: 'monospace',
+    fontFamily: Platform.select({ ios: 'Courier New', android: 'monospace', default: 'monospace' }),
     lineHeight: 20,
   },
   button: { width: '100%', marginBottom: 12 },
