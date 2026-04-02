@@ -14,18 +14,16 @@ export type KeystoreType = {
   migratePreferences(key: string): Promise<void>
 }
 
-// Match the old react-native-keychain storage location exactly so that
-// existing wallet data is accessible after the Expo upgrade.
+// New storage location for expo-secure-store.
 //
-// Old app (react-native-keychain):
-//   kSecAttrService = "app.keystore-AD"
-//   kSecAttrAccount = "keystore"
+// The old native app used a DIFFERENT keychain location
+// (kSecAttrService="_secure_storage_service") with an additional AES
+// encryption layer. Migration from old → new is handled by
+// legacyMigration.ts using the legacy-keystore-migration native module.
 //
 // expo-secure-store maps:
 //   keychainService option → kSecAttrService
 //   key parameter          → kSecAttrAccount
-//
-// So we use keychainService="app.keystore-{key}" and key="keystore".
 const LEGACY_SERVICE_PREFIX = 'app.keystore'
 const LEGACY_ACCOUNT = 'keystore'
 

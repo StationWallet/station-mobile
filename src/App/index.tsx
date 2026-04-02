@@ -33,6 +33,7 @@ import keystore, { KeystoreEnum } from 'nativeModules/keystore'
 
 import { getWallets } from 'utils/wallet'
 import { getSkipOnboarding, settings } from 'utils/storage'
+import { migrateLegacyKeystore } from 'utils/legacyMigration'
 
 import DebugBanner from './DebugBanner'
 import OnBoarding from './OnBoarding'
@@ -201,23 +202,21 @@ export default (): ReactElement => {
   const [initComplete, setInitComplete] = useState(false)
 
   useEffect(() => {
-    clearKeystoreWhenFirstRun()
+    const startup = async (): Promise<void> => {
+      await clearKeystoreWhenFirstRun()
+      await migrateLegacyKeystore()
 
-    const migratePreferences = async (): Promise<void> => {
       try {
         await keystore.migratePreferences('AD')
       } catch {}
-    }
 
-    const init = async (): Promise<void> => {
-      await migratePreferences()
       const local = await settings.get()
       setLocal(local)
       const wallets = await getWallets()
       setUser(wallets)
     }
 
-    init().then((): void => {
+    startup().then((): void => {
       setInitComplete(true)
     })
   }, [])
