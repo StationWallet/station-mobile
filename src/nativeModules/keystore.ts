@@ -28,7 +28,10 @@ const LEGACY_SERVICE_PREFIX = 'app.keystore'
 const LEGACY_ACCOUNT = 'keystore'
 
 function keychainOpts(key: string): SecureStore.SecureStoreOptions {
-  return { keychainService: `${LEGACY_SERVICE_PREFIX}-${key}` }
+  return {
+    keychainService: `${LEGACY_SERVICE_PREFIX}-${key}`,
+    keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
+  }
 }
 
 export default {
