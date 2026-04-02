@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import {
   Alert,
   View,
@@ -13,6 +13,7 @@ import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navig
 
 import useLCD from 'hooks/useLCD'
 import { deleteWallet } from 'utils/wallet'
+import { getAuthDataValue } from 'utils/authData'
 import { settings } from 'utils/storage'
 import { UTIL } from 'consts'
 import Text from 'components/Text'
@@ -30,6 +31,14 @@ export default function WalletHome() {
 
   const wallet = route.params?.wallet
   if (!wallet) return <Loading />
+
+  const [isLedger, setIsLedger] = useState(true) // default true to hide button until checked
+
+  useEffect(() => {
+    getAuthDataValue(wallet.name).then((data) => {
+      setIsLedger(data?.ledger === true)
+    })
+  }, [wallet.name])
 
   // Save last-used wallet
   React.useEffect(() => {
@@ -129,6 +138,14 @@ export default function WalletHome() {
         >
           <Text style={styles.managementText}>Add Wallet</Text>
         </TouchableOpacity>
+        {!isLedger && (
+          <TouchableOpacity
+            style={styles.managementRow}
+            onPress={() => navigation.navigate('ExportPrivateKey', { wallet })}
+          >
+            <Text style={styles.managementText}>Export Private Key</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={styles.managementRow} onPress={handleRemove}>
           <Text style={styles.removeText}>Remove Wallet</Text>
         </TouchableOpacity>
