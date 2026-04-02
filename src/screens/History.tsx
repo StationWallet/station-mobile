@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   View,
   FlatList,
@@ -7,60 +7,184 @@ import {
   Linking,
   StyleSheet,
 } from 'react-native'
-import { useQuery } from 'react-query'
 import { RouteProp, useRoute } from '@react-navigation/native'
 
-import useLCD from 'hooks/useLCD'
+import { useConfig } from 'lib/contexts/ConfigContext'
 import { UTIL } from 'consts'
 import Text from 'components/Text'
 import Loading from 'components/Loading'
 
 type RouteParams = { History: { address: string } }
 
+interface TxResponse {
+  height: string
+  txhash: string
+  code?: number
+  timestamp: string
+  tx: {
+    '@type': string
+    body: { messages: any[]; memo: string }
+    auth_info: any
+    signatures: string[]
+  }
+}
+
+interface CosmosTxSearchResult {
+  tx_responses: TxResponse[]
+  total: string
+  pagination: { next_key: string | null; total: string } | null
+}
+
 const PAGE_SIZE = 20
 
 export default function History() {
   const { params } = useRoute<RouteProp<RouteParams, 'History'>>()
   const { address } = params
-  const lcd = useLCD()
-  const [offset, setOffset] = useState(0)
+  const { chain } = useConfig()
+  const lcdUrl = chain.current.lcd
 
-  const { data, isLoading, refetch, isRefetching } = useQuery(
-    ['tx-history', address, offset],
-    async () => {
-      const result = await lcd.tx.txsByEvents(
-        `message.sender='${address}'`,
-        {
-          order_by: 'ORDER_BY_DESC',
-          'pagination.limit': String(PAGE_SIZE),
-          'pagination.offset': String(offset),
-        }
-      )
-      return result
+  const [txs, setTxs] = useState<TxResponse[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [sentOffset, setSentOffset] = useState(0)
+  const [receivedOffset, setReceivedOffset] = useState(0)
+  const [hasMoreSent, setHasMoreSent] = useState(false)
+  const [hasMoreReceived, setHasMoreReceived] = useState(false)
+
+  const fetchByQuery = useCallback(
+    async (query: string, offset: number) => {
+      // Single quotes must be %27 for Cosmos SDK — use fetch to avoid
+      // axios re-encoding %27 back to literal quotes
+      const encodedQuery = encodeURIComponent(query).replace(/'/g, '%27')
+      const qs = `query=${encodedQuery}&order_by=ORDER_BY_DESC&pagination.limit=${PAGE_SIZE}&pagination.offset=${offset}`
+      const url = `${lcdUrl}/cosmos/tx/v1beta1/txs?${qs}`
+
+      // Public LCD nodes can return inconsistent results across load-balanced
+      // backends, so retry once if the first attempt returns empty
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await fetch(url)
+        const data: CosmosTxSearchResult = await res.json()
+        if ((data.tx_responses?.length ?? 0) > 0 || attempt === 1) return data
+      }
+      return { tx_responses: [], total: '0', pagination: null } as CosmosTxSearchResult
     },
-    { keepPreviousData: true }
+    [lcdUrl]
   )
+
+  const fetchAll = useCallback(
+    async (sOffset: number, rOffset: number) => {
+      const [sent, received] = await Promise.all([
+        fetchByQuery(`message.sender='${address}'`, sOffset),
+        fetchByQuery(`coin_received.receiver='${address}'`, rOffset),
+      ])
+
+      const sentTxs = sent.tx_responses || []
+      const receivedTxs = received.tx_responses || []
+
+      const seen = new Set<string>()
+      const merged = [...sentTxs, ...receivedTxs]
+        .filter((tx) => {
+          if (seen.has(tx.txhash)) return false
+          seen.add(tx.txhash)
+          return true
+        })
+        .sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )
+
+      return {
+        txs: merged,
+        hasMoreSent: sentTxs.length === PAGE_SIZE,
+        hasMoreReceived: receivedTxs.length === PAGE_SIZE,
+      }
+    },
+    [fetchByQuery, address]
+  )
+
+  const loadInitial = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result = await fetchAll(0, 0)
+      setTxs(result.txs)
+      setHasMoreSent(result.hasMoreSent)
+      setHasMoreReceived(result.hasMoreReceived)
+      setSentOffset(PAGE_SIZE)
+      setReceivedOffset(PAGE_SIZE)
+    } catch {
+      setTxs([])
+    } finally {
+      setLoading(false)
+    }
+  }, [fetchAll])
+
+  const loadMore = useCallback(async () => {
+    try {
+      const result = await fetchAll(
+        hasMoreSent ? sentOffset : 0,
+        hasMoreReceived ? receivedOffset : 0
+      )
+      const existingHashes = new Set(txs.map((tx) => tx.txhash))
+      const newTxs = result.txs.filter((tx) => !existingHashes.has(tx.txhash))
+      setTxs((prev) => [...prev, ...newTxs])
+      setHasMoreSent(result.hasMoreSent)
+      setHasMoreReceived(result.hasMoreReceived)
+      if (hasMoreSent) setSentOffset((o) => o + PAGE_SIZE)
+      if (hasMoreReceived) setReceivedOffset((o) => o + PAGE_SIZE)
+    } catch {
+      setHasMoreSent(false)
+      setHasMoreReceived(false)
+    }
+  }, [fetchAll, txs, sentOffset, receivedOffset, hasMoreSent, hasMoreReceived])
+
+  const refresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      const result = await fetchAll(0, 0)
+      setTxs(result.txs)
+      setHasMoreSent(result.hasMoreSent)
+      setHasMoreReceived(result.hasMoreReceived)
+      setSentOffset(PAGE_SIZE)
+      setReceivedOffset(PAGE_SIZE)
+    } catch {
+      /* keep existing list */
+    } finally {
+      setRefreshing(false)
+    }
+  }, [fetchAll])
+
+  useEffect(() => {
+    loadInitial()
+  }, [loadInitial])
 
   const openExplorer = useCallback((hash: string) => {
     Linking.openURL(`https://chainsco.pe/terra2/tx/${hash}`)
   }, [])
 
-  const getMsgType = (tx: any): string => {
+  const getTxLabel = (tx: TxResponse): string => {
     try {
-      const msgs = tx.body?.messages || tx.tx?.body?.messages || []
+      const msgs = tx.tx?.body?.messages || []
       if (msgs.length === 0) return 'Unknown'
-      const type = msgs[0]['@type'] || ''
-      return type.split('.').pop()?.replace('Msg', '') || 'Unknown'
+      const msg = msgs[0]
+      const type: string = msg['@type'] || ''
+      const baseType = type.split('.').pop()?.replace('Msg', '') || 'Unknown'
+
+      if (baseType === 'Send') {
+        if (msg.to_address === address) return 'Receive'
+        if (msg.from_address === address) return 'Send'
+      }
+
+      return baseType
     } catch {
       return 'Unknown'
     }
   }
 
-  const renderItem = ({ item }: { item: any }) => {
+  const renderItem = ({ item }: { item: TxResponse }) => {
     const hash = item.txhash || ''
     const success = !item.code || item.code === 0
     const timestamp = item.timestamp || ''
-    const msgType = getMsgType(item)
+    const msgType = getTxLabel(item)
 
     return (
       <TouchableOpacity style={styles.row} onPress={() => openExplorer(hash)}>
@@ -78,30 +202,26 @@ export default function History() {
     )
   }
 
-  const txResponses = data?.tx_responses || []
-  const hasMore = txResponses.length === PAGE_SIZE
+  const hasMore = hasMoreSent || hasMoreReceived
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>History</Text>
-      {isLoading ? (
+      {loading ? (
         <Loading />
-      ) : txResponses.length === 0 ? (
+      ) : txs.length === 0 ? (
         <Text style={styles.empty}>No transactions yet</Text>
       ) : (
         <FlatList
-          data={txResponses}
-          keyExtractor={(item: any) => item.txhash}
+          data={txs}
+          keyExtractor={(item) => item.txhash}
           renderItem={renderItem}
           refreshControl={
-            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#fff" />
+            <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#fff" />
           }
           ListFooterComponent={
             hasMore ? (
-              <TouchableOpacity
-                style={styles.loadMore}
-                onPress={() => setOffset((o) => o + PAGE_SIZE)}
-              >
+              <TouchableOpacity style={styles.loadMore} onPress={loadMore}>
                 <Text style={styles.loadMoreText}>Load more</Text>
               </TouchableOpacity>
             ) : null
