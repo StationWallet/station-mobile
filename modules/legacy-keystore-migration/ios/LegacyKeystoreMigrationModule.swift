@@ -10,14 +10,25 @@ public final class LegacyKeystoreMigrationModule: Module {
     Name("LegacyKeystoreMigration")
 
     AsyncFunction("readLegacy") { (key: String) -> String? in
-      guard let aesKeyString = self.readKeychain(account: self.aesKeyAccount) else {
-        // No AES key means no legacy data was ever written
-        return nil
-      }
       guard let encryptedData = self.readKeychainRaw(account: key) else {
         return nil
       }
-      return self.aesDecrypt(data: encryptedData, keyString: aesKeyString)
+
+      // Try AES decryption (normal path — data encrypted by old Keystore.m)
+      if let aesKeyString = self.readKeychain(account: self.aesKeyAccount) {
+        if let decrypted = self.aesDecrypt(data: encryptedData, keyString: aesKeyString) {
+          return decrypted
+        }
+      }
+
+      // Fallback: try reading raw data as plaintext UTF-8.
+      // The old Keystore.m readKeychain had this same fallback for data
+      // written before the AES encryption layer was added.
+      if let plaintext = String(data: encryptedData, encoding: .utf8) {
+        return plaintext
+      }
+
+      return nil
     }
 
     AsyncFunction("removeLegacy") { (key: String) -> Bool in

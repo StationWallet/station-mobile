@@ -2,6 +2,7 @@ package expo.modules.legacykeystoremigration
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import expo.modules.kotlin.modules.Module
@@ -11,6 +12,14 @@ import expo.modules.kotlin.functions.Coroutine
 
 open class LegacyKeystoreMigrationModule : Module() {
   private val prefsName = "SecureStorage"
+  private val tag = "LegacyKeystoreMigration"
+
+  // The old StorageCipher18 format stored keys with this prefix.
+  // If data exists under this prefix but NOT under the plain key in
+  // EncryptedSharedPreferences, it means migratePreferences() never ran
+  // on the old app and we cannot silently decrypt (RSA+AES is complex).
+  // We detect this and log a critical warning.
+  private val storageCipher18Prefix = "VGhpcyBpcyB0aGUgcHJlZml4IGZvciBhIHNlY3VyZSBzdG9yYWdlCg"
 
   private val reactContext: Context
     get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
@@ -19,8 +28,24 @@ open class LegacyKeystoreMigrationModule : Module() {
     Name("LegacyKeystoreMigration")
 
     AsyncFunction("readLegacy") Coroutine { key: String ->
-      val prefs = openLegacyPrefs() ?: return@Coroutine null
-      return@Coroutine prefs.getString(key, null)
+      // First try EncryptedSharedPreferences (modern format)
+      val prefs = openLegacyPrefs()
+      if (prefs != null) {
+        val value = prefs.getString(key, null)
+        if (value != null) return@Coroutine value
+      }
+
+      // If not found, check for un-migrated StorageCipher18 data
+      val oldPrefs = reactContext.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+      val prefixedKey = "${storageCipher18Prefix}_${key}"
+      if (oldPrefs.getString(prefixedKey, null) != null) {
+        Log.e(tag, "CRITICAL: Found wallet data in old StorageCipher18 format " +
+          "(key=$prefixedKey) that was never migrated to EncryptedSharedPreferences. " +
+          "This data cannot be read by the new app. The user must install the old " +
+          "app version first to trigger migratePreferences(), then upgrade.")
+      }
+
+      return@Coroutine null
     }
 
     AsyncFunction("removeLegacy") Coroutine { key: String ->
@@ -52,6 +77,7 @@ open class LegacyKeystoreMigrationModule : Module() {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
       )
     } catch (e: Exception) {
+      Log.e(tag, "Failed to open EncryptedSharedPreferences", e)
       null
     }
   }

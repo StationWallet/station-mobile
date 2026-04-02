@@ -180,16 +180,23 @@ const clearKeystoreWhenFirstRun = async (): Promise<void> => {
   if (firstRun) return
 
   // On upgrade from old RN app, firstRun is false because it was in MMKV
-  // (now inaccessible). Check if wallet data exists before clearing —
-  // if it does, this is an upgrade, not a fresh install.
+  // (now inaccessible). We check the NEW expo-secure-store location for
+  // existing data. On a genuine upgrade this will be empty (data is still
+  // in the old native keychain and hasn't been migrated yet), so the
+  // remove() below is a no-op — it only clears the new location.
+  //
+  // IMPORTANT: This function does NOT touch the old native keychain
+  // (service "_secure_storage_service"). Legacy data is preserved for
+  // migrateLegacyKeystore() which runs next.
   const existingData = await keystore.read(KeystoreEnum.AuthData)
   if (existingData) {
-    // Upgrade path: preserve wallet data, just mark firstRun
+    // Data already in new location (post-migration or fresh wallet)
     await preferences.setBool(PreferencesEnum.firstRun, true)
     return
   }
 
   try {
+    // Only removes from new expo-secure-store location (no-op on upgrade)
     await keystore.remove(KeystoreEnum.AuthData)
   } finally {
     await preferences.setBool(PreferencesEnum.firstRun, true)
