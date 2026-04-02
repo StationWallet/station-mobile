@@ -34,11 +34,6 @@ export default function WalletPicker() {
           {UTIL.truncate(item.address, [10, 6])}
         </Text>
       </View>
-      {item.ledger && (
-        <View style={styles.ledgerBadge}>
-          <Text style={styles.ledgerText}>Ledger</Text>
-        </View>
-      )}
     </TouchableOpacity>
   )
 
@@ -87,14 +82,6 @@ const styles = StyleSheet.create({
   walletInfo: { flex: 1 },
   walletName: { color: '#F0F4FC', fontSize: 16, fontWeight: '600' },
   walletAddress: { color: '#8295AE', fontSize: 13, marginTop: 4 },
-  ledgerBadge: {
-    backgroundColor: '#11284A',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginLeft: 12,
-  },
-  ledgerText: { color: '#8295AE', fontSize: 11, fontWeight: '600' },
   footer: { paddingTop: 16 },
   addButton: { width: '100%' },
 })

@@ -1,5 +1,4 @@
 import { createStackNavigator } from '@react-navigation/stack'
-import { AccAddress } from '@terra-money/terra.js'
 import {BankData, Card, CW20Pairs, VestingItemUI} from 'lib'
 import { DelegateType } from 'lib/post/useDelegate'
 import { TxParam } from './tx'
@@ -11,7 +10,6 @@ export type AuthStackParams = {
   NewWallet: undefined
   RecoverWallet: undefined
   WalletConnectDisconnected: undefined
-  ConnectLedger: undefined
 }
 
 export const AuthStack = createStackNavigator<AuthStackParams>()
@@ -37,25 +35,6 @@ export type RecoverWalletStackParams = {
 }
 
 export const RecoverWalletStack = createStackNavigator<RecoverWalletStackParams>()
-
-type LedgerWallet = {
-  address: AccAddress,
-  name: string,
-  ledger: true,
-  path: number,
-}
-
-/* ConnectLedger */
-export type ConnectLedgerStackParams = {
-  SelectDevice: undefined
-  SelectPath: {
-    device: string
-    name: string
-  }
-  LedgerConnected: { wallet: LedgerWallet }
-}
-
-export const ConnectLedgerStack = createStackNavigator<ConnectLedgerStackParams>()
 
 /* Root */
 export type RootStackParams = {
@@ -94,7 +73,6 @@ export type RootStackParams = {
   }
   Confirm: undefined
   ConfirmPassword: { feeSelectValue: string }
-  ConfirmLedger: { feeSelectValue: string }
   Delegate: { validatorAddress: string; type: DelegateType }
   ChangePassword: { walletName: string }
   StakingInformation: undefined

@@ -14,8 +14,6 @@ const COLORS = {
   textSecondary: '#8295AE',
   accent: '#0B4EFF',
   border: '#11284A',
-  disabled: '#1a2d4d',
-  disabledText: '#4a5a72',
 }
 
 const AuthMenu = ({ navigation }: any) => {
@@ -54,15 +52,6 @@ const AuthMenu = ({ navigation }: any) => {
           >
             <Text style={styles.secondaryButtonText}>
               Recover Wallet
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.secondaryButton, styles.disabledButton]}
-            disabled
-          >
-            <Text style={[styles.secondaryButtonText, styles.disabledText]}>
-              Connect Ledger (coming soon)
             </Text>
           </TouchableOpacity>
 
@@ -169,13 +158,6 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: '600',
-  },
-  disabledButton: {
-    backgroundColor: COLORS.disabled,
-    borderColor: COLORS.disabled,
-  },
-  disabledText: {
-    color: COLORS.disabledText,
   },
   cancelButton: {
     position: 'absolute',

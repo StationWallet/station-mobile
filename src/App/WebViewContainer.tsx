@@ -21,20 +21,10 @@ import useWalletConnect from 'hooks/useWalletConnect'
 import AppStore from 'stores/AppStore'
 import { User } from 'lib/types'
 import WalletConnectStore from 'stores/WalletConnectStore'
-import TransportBLE from '@ledgerhq/react-native-hw-transport-ble'
-import { LedgerKey } from '@terra-money/ledger-terra-js'
-import {
-  LCDClient,
-  CreateTxOptions,
-  Fee,
-  Msg,
-  SignatureV2,
-  SignDoc,
-} from '@terra-money/terra.js'
 import { settings } from 'utils/storage'
-import { useConfig, useIsClassic } from 'lib'
+import { useConfig } from 'lib'
 import useNetworks from 'hooks/useNetworks'
-import { checkCameraPermission, requestPermission, requestPermissionBLE} from 'utils/permission'
+import { checkCameraPermission, requestPermission } from 'utils/permission'
 import { UTIL } from 'consts'
 import images from 'assets/images'
 
@@ -55,14 +45,6 @@ export const RN_APIS = {
   CONFIRM_TX: 'CONFIRM_TX',
   APPROVE_TX: 'APPROVE_TX',
   REJECT_TX: 'REJECT_TX',
-  GET_LEDGER_LIST: 'GET_LEDGER_LIST',
-  GET_LEDGER_KEY: 'GET_LEDGER_KEY',
-  GET_LEDGER_DOC: 'GET_LEDGER_DOC',
-}
-
-interface DeviceInterface {
-  name: string
-  id: string
 }
 
 const uri = 'https://mobile.station.terra.money'
@@ -77,7 +59,6 @@ export const WebViewContainer = ({
   const appState = useRef<string>(AppState.currentState)
   const { chain, theme } = useConfig()
   const { networks } = useNetworks()
-  const isClassic = useIsClassic()
   const { top: insetTop, bottom: insetBottom } = useSafeAreaInsets()
 
   const {
@@ -99,40 +80,8 @@ export const WebViewContainer = ({
     useState<WalletConnect | null>(null)
 
   const [canGoBack, setCanGoBack] = useState(false)
-  const [, setScanning] = useState(false)
-  const [, setError] = useState('')
-  const [ledgers, setLedgers] = useState<DeviceInterface[]>([])
-  const [ledgerReqId, setLedgerReqId] = useState<string>('')
-
   let exitAppTimeout: NodeJS.Timeout | null = null
   let isExit = false
-
-  interface TxResponse<T = any> {
-    success: boolean
-    result?: T
-    error?: { code: number; message?: string }
-  }
-  interface DefaultRequest extends PrimitiveDefaultRequest {
-    timestamp: Date
-  }
-
-  interface TxRequest extends DefaultRequest {
-    tx: CreateTxOptions
-    requestType: 'signBytes' | 'post'
-  }
-
-  interface PrimitiveDefaultRequest {
-    id: number
-    origin: string
-  }
-
-  interface PrimitiveTxRequest
-    extends Partial<TxResponse>,
-      PrimitiveDefaultRequest {
-    msgs: string[]
-    fee?: string
-    memo?: string
-  }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const requestAppVersion = async () => {
@@ -141,39 +90,6 @@ export const WebViewContainer = ({
       return appVersion
     } catch (e) {
       console.log(e)
-    }
-  }
-
-  const parseTx = (request: PrimitiveTxRequest, isClassic: boolean): TxRequest['tx'] => {
-    const { msgs, fee, memo } = request
-    const isProto = "@type" in JSON.parse(msgs[0])
-    return isProto
-      ? {
-        msgs: msgs.map((msg) => Msg.fromData(JSON.parse(msg), isClassic)),
-        fee: fee ? Fee.fromData(JSON.parse(fee)) : undefined,
-        memo,
-      }
-      : {
-        msgs: msgs.map((msg) => Msg.fromAmino(JSON.parse(msg), isClassic)),
-        fee: fee ? Fee.fromAmino(JSON.parse(fee)) : undefined,
-        memo,
-      }
-  }
-
-  const getCircularReplacer = () => {
-    const seen = new WeakSet()
-
-    return (key: any, value: Record<string, unknown> | null) => {
-      if (typeof value === 'object' && value !== null) {
-        if (seen.has(value)) {
-          return
-        }
-        seen.add(value)
-      }
-      if (typeof value === 'function') {
-        return `(${value})`
-      }
-      return value
     }
   }
 
@@ -372,151 +288,6 @@ export const WebViewContainer = ({
             break
           }
 
-          case RN_APIS.GET_LEDGER_LIST: {
-            const requestResult = await requestPermissionBLE()
-            if (requestResult === 'granted') {
-              setLedgerReqId(reqId)
-              searchLedger()
-              return
-            } else {
-              webviewInstance.current?.postMessage(
-                JSON.stringify({
-                  reqId,
-                  type,
-                  data: 'Error: Bluetooth not authorized, Check your app permissions.',
-                })
-              )
-            }
-            break
-          }
-
-          case RN_APIS.GET_LEDGER_KEY: {
-            const ledgerId = await TransportBLE.open(data.id)
-            const disconnectLedger = () => TransportBLE.disconnect(data.id)
-            try {
-              const key = await LedgerKey.create(
-                ledgerId,
-                parseInt(data.path)
-              )
-
-              if (!data.hasOwnProperty('txOptions')) {
-                const json = JSON.stringify(
-                  key,
-                  getCircularReplacer()
-                )
-                webviewInstance.current?.postMessage(
-                  JSON.stringify({
-                    reqId,
-                    type,
-                    data: json,
-                  })
-                )
-                return
-              }
-
-              const lcd = new LCDClient(data?.lcdConfigs)
-              const wallet = lcd.wallet(key)
-
-              const { account_number, sequence } =
-                await wallet.accountNumberAndSequence()
-
-              const unsignedTx = await lcd.tx.create(
-                [
-                  {
-                    address: data.address,
-                  },
-                ],
-                parseTx(data.txOptions, isClassic)
-              )
-
-              const options = {
-                chainID: data?.lcdConfigs.chainID,
-                accountNumber: account_number,
-                sequence,
-                signMode: SignatureV2.SignMode.SIGN_MODE_LEGACY_AMINO_JSON
-              }
-
-              const signed = await key.signTx(
-                unsignedTx,
-                options,
-                isClassic
-              )
-              const result = await lcd.tx.broadcastSync(signed)
-
-              const json = JSON.stringify(
-                result,
-                getCircularReplacer()
-              )
-              webviewInstance.current?.postMessage(
-                JSON.stringify({
-                  reqId,
-                  type,
-                  data: json,
-                })
-              )
-            } catch (error) {
-              webviewInstance.current?.postMessage(
-                JSON.stringify({
-                  reqId,
-                  type,
-                  data: error?.toString(),
-                })
-              )
-            } finally {
-              disconnectLedger()
-            }
-            break
-          }
-
-          case RN_APIS.GET_LEDGER_DOC: {
-            const ledgerId = await TransportBLE.open(data.id)
-            const disconnectLedger = () => TransportBLE.disconnect(data.id)
-            try {
-              const key = await LedgerKey.create(
-                ledgerId,
-                parseInt(data.path)
-              )
-
-              const lcd = new LCDClient(data?.lcdConfigs)
-              const accountInfo = await lcd.auth.accountInfo(data.address)
-              const decoded = lcd.tx.decode(data.signTx)
-
-              const doc = new SignDoc(
-                data?.lcdConfigs.chainID,
-                accountInfo.getAccountNumber(),
-                accountInfo.getSequenceNumber(),
-                decoded.auth_info,
-                decoded.body
-              )
-
-              const signature = await key.createSignatureAmino(
-                doc,
-                isClassic
-              )
-              const string = JSON.stringify(signature.toData())
-              const base64sign = Buffer.from(string).toString("base64")
-
-              webviewInstance.current?.postMessage(
-                JSON.stringify({
-                  reqId,
-                  type,
-                  data: base64sign,
-                })
-              )
-            } catch (error) {
-              webviewInstance.current?.postMessage(
-                JSON.stringify({
-                  reqId,
-                  type,
-                  data: error?.toString(),
-                })
-              )
-            } finally {
-              disconnectLedger()
-            }
-            break
-          }
-
           case RN_APIS.APPROVE_TX: {
             const connector = walletConnectors[data.handshakeTopic]
 
@@ -678,67 +449,6 @@ export const WebViewContainer = ({
     },
     [localWalletConnector]
   )
-
-  const searchLedger = useCallback(() => {
-    let stopScan = (): void => {}
-
-    TransportBLE.observeState({
-      next: (e: any) => {
-        if (e.available) {
-          setScanning(true)
-          setError('')
-
-          const scan = TransportBLE.listen({
-            complete: (): void => {
-              setScanning(false)
-            },
-            next: (e: any): void => {
-              if (e.type === 'add') {
-                const device: DeviceInterface = {
-                  name: e.descriptor.localName || e.descriptor.name,
-                  id: e.descriptor.id,
-                }
-
-                !ledgers.some((d) => d.id === device.id) &&
-                ledgers.push(device)
-                setLedgers([...ledgers])
-              }
-            },
-            error: (error: any): void => {
-              setScanning(false)
-              setError(error)
-            },
-          })
-          stopScan = (): void => {
-            scan.unsubscribe()
-          }
-        } else {
-          setError(e.type)
-        }
-      },
-      complete: (): void => {},
-      error: (error: any): void => {
-        setScanning(false)
-        setError(error)
-      },
-    })
-
-    return (): void => {
-      stopScan()
-    }
-  }, [])
-
-  useEffect(() => {
-    if (ledgers) {
-      webviewInstance.current?.postMessage(
-        JSON.stringify({
-          reqId: ledgerReqId,
-          type: RN_APIS.GET_LEDGER_LIST,
-          data: ledgers,
-        })
-      )
-    }
-  }, [ledgers, ledgerReqId, webviewInstance])
 
   useEffect(() => {
     if (_.some(walletConnectors)) {
