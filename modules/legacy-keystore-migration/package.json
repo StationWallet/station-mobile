@@ -1,0 +1,7 @@
+{
+  "name": "legacy-keystore-migration",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "description": "Reads wallet data from the old native Keystore module format for migration to expo-secure-store",
+  "private": true
+}
