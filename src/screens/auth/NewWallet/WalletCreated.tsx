@@ -17,7 +17,7 @@ const WalletCreated = ({ navigation, route }: any) => {
   const [saving, setSaving] = useState(true)
   const onWalletCreated = useWalletCreated()
   const { refreshWallets } = useWalletNav()
-  const parentState = navigation.getParent()?.getParent()?.getState()
+  const parentState = navigation.getParent()?.getState()
   const isAddMode = parentState?.routes?.some((r: any) =>
     r.name === 'AddWalletMenu' || r.name === 'AddNewWallet' || r.name === 'AddRecoverWallet'
   )
@@ -48,7 +48,7 @@ const WalletCreated = ({ navigation, route }: any) => {
     if (isAddMode) {
       await refreshWallets()
       // Navigate up to the MainNavigator's WalletPicker
-      navigation.getParent()?.getParent()?.navigate('WalletPicker')
+      navigation.getParent()?.navigate('WalletPicker')
     } else {
       onWalletCreated()
     }
