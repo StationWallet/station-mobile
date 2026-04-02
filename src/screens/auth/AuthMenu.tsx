@@ -75,6 +75,16 @@ const AuthMenu = ({ navigation }: any) => {
               <Text style={styles.secondaryButtonText}>Crypto Tests (dev)</Text>
             </TouchableOpacity>
           )}
+
+          {__DEV__ && (
+            <TouchableOpacity
+              testID="dev-migration-test"
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('MigrationTest')}
+            >
+              <Text style={styles.secondaryButtonText}>Migration Tests (dev)</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
       {isAddMode && (

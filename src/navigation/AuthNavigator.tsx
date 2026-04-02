@@ -8,6 +8,10 @@ const CryptoTestScreen = __DEV__
   ? require('../components/CryptoTestScreen').default
   : null
 
+const DevMigrationTest = __DEV__
+  ? require('../components/DevMigrationTest').default
+  : null
+
 const Stack = createStackNavigator()
 
 export default function AuthNavigator() {
@@ -18,6 +22,9 @@ export default function AuthNavigator() {
       <Stack.Screen name="RecoverWallet" component={RecoverWalletStack} />
       {__DEV__ && CryptoTestScreen && (
         <Stack.Screen name="CryptoTest" component={CryptoTestScreen} />
+      )}
+      {__DEV__ && DevMigrationTest && (
+        <Stack.Screen name="MigrationTest" component={DevMigrationTest} />
       )}
     </Stack.Navigator>
   )
