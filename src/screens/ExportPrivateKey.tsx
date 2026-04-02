@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import {
   View,
   TextInput,
@@ -25,13 +25,29 @@ export default function ExportPrivateKey() {
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
 
+  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+
+  useEffect(() => {
+    return () => {
+      Clipboard.setStringAsync('')
+      setPrivateKey(null)
+      setPassword('')
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
+
   const handleReveal = useCallback(async () => {
     setError('')
     try {
       const key = await getDecyrptedKey(wallet.name, password)
       setPrivateKey(key)
-    } catch {
-      setError('Incorrect password')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : ''
+      if (msg.includes('Ledger')) {
+        setError('Export is not available for Ledger wallets')
+      } else {
+        setError('Incorrect password')
+      }
     }
   }, [wallet.name, password])
 
@@ -39,7 +55,7 @@ export default function ExportPrivateKey() {
     if (!privateKey) return
     await Clipboard.setStringAsync(privateKey)
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    timerRef.current = setTimeout(() => setCopied(false), 2000)
   }, [privateKey])
 
   return (
@@ -96,7 +112,10 @@ export default function ExportPrivateKey() {
 
       <Button
         title="Done"
-        onPress={() => navigation.goBack()}
+        onPress={async () => {
+          await Clipboard.setStringAsync('')
+          navigation.goBack()
+        }}
         theme="transparent"
         containerStyle={styles.button}
       />
