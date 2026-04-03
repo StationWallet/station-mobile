@@ -50,7 +50,9 @@ export default {
     }
   },
   migratePreferences: async (_key: string): Promise<void> => {
-    // No-op — preferences were in MMKV (lost on upgrade).
-    // Wallet data is preserved via matching the old keychain service name.
+    // No-op — preferences were in MMKV (now inaccessible after Expo migration).
+    // Wallet data is NOT preserved by name matching — the old keychain service was
+    // "_secure_storage_service" and the new one is "app.keystore-AD". Migration is
+    // handled entirely by migrateLegacyKeystore() in src/utils/legacyMigration.ts.
   },
 }
