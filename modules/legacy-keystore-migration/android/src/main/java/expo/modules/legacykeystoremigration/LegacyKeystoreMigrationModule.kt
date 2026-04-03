@@ -30,10 +30,9 @@ open class LegacyKeystoreMigrationModule : Module() {
     AsyncFunction("readLegacy") Coroutine { key: String ->
       // First try EncryptedSharedPreferences (modern format)
       val prefs = openLegacyPrefs()
-      if (prefs != null) {
-        val value = prefs.getString(key, null)
-        if (value != null) return@Coroutine value
-      }
+        ?: throw Exception("Failed to open legacy EncryptedSharedPreferences — Android Keystore may be unavailable (backup/restore or key rotation). Migration will retry on next launch.")
+      val value = prefs.getString(key, null)
+      if (value != null) return@Coroutine value
 
       // If not found, check for un-migrated StorageCipher18 data
       val oldPrefs = reactContext.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
