@@ -12,6 +12,10 @@ const DevMigrationTest = __DEV__
   ? require('../components/DevMigrationTest').default
   : null
 
+const DevFullE2ETest = __DEV__
+  ? require('../components/DevFullE2ETest').default
+  : null
+
 const Stack = createStackNavigator()
 
 export default function AuthNavigator() {
@@ -25,6 +29,9 @@ export default function AuthNavigator() {
       )}
       {__DEV__ && DevMigrationTest && (
         <Stack.Screen name="MigrationTest" component={DevMigrationTest} />
+      )}
+      {__DEV__ && DevFullE2ETest && (
+        <Stack.Screen name="FullE2ETest" component={DevFullE2ETest} />
       )}
     </Stack.Navigator>
   )

@@ -86,7 +86,7 @@ Encrypted keys are generated at runtime using `encrypt()` from `utils/crypto.ts`
 
 | Step | Action | Assertion |
 |------|--------|-----------|
-| 20 | Build JSON with 10 wallets (each with realistic ~300-byte encrypted keys) | JSON > 3000 bytes |
+| 20 | Build JSON with 10 wallets (each with realistic ~172-char encrypted keys) | JSON > 2048 bytes (historical limit) |
 | 21 | Write to expo-secure-store via `keystore.write()` | Returns true |
 | 22 | Read back via `keystore.read()` | Byte-for-byte match |
 | 23 | Report exact payload size in results | Logged for QA |
