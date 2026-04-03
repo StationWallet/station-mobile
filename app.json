@@ -23,7 +23,15 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "money.terra.station",
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "entitlements": {
+        "aps-environment": "production"
+      },
+      "associatedDomains": [
+        "applinks:station.app.link",
+        "applinks:station-alternate.app.link",
+        "applinks:terrastation.page.link"
+      ]
     },
     "android": {
       "adaptiveIcon": {
