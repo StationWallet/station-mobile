@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "TerraStation",
-    "slug": "terra-station",
+    "name": "Vultisig",
+    "slug": "vultisig",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/terraStation.png",
@@ -13,21 +13,32 @@
       "**/*"
     ],
     "scheme": "terrastation",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/YOUR_PROJECT_ID",
+      "fallbackToCacheTimeout": 0
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "money.terra.station"
+      "bundleIdentifier": "money.terra.station",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#1f42b4"
       },
-      "package": "money.terra.station"
+      "package": "money.terra.station",
+      "versionCode": 1
     },
     "plugins": [
       "expo-secure-store",
       "expo-camera",
       "expo-local-authentication",
-      "@config-plugins/detox"
+      "@config-plugins/detox",
+      "expo-sharing",
+      "expo-updates"
     ]
   }
 }

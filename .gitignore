@@ -75,3 +75,7 @@ ios/
 android/
 !modules/**/android/
 *.tsbuildinfo
+
+# EAS credentials (secrets — never commit)
+credentials.json
+google-service-account.json

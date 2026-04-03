@@ -12,7 +12,14 @@
     "test": "jest __test__",
     "lint": "eslint --fix src --ext .ts,.tsx",
     "e2e:build": "detox build --configuration ios.sim.debug",
-    "e2e:test": "detox test --configuration ios.sim.debug"
+    "e2e:test": "detox test --configuration ios.sim.debug",
+    "build:dev": "eas build --profile development",
+    "build:preview": "eas build --profile preview",
+    "build:prod": "eas build --profile production",
+    "submit:ios": "eas submit --platform ios --profile production",
+    "submit:android": "eas submit --platform android --profile production",
+    "update:preview": "eas update --channel preview",
+    "update:prod": "eas update --channel production"
   },
   "dependencies": {
     "@apollo/client": "^3.3.10",
@@ -56,6 +63,7 @@
     "expo-sharing": "~55.0.14",
     "expo-splash-screen": "~55.0.0",
     "expo-status-bar": "~55.0.0",
+    "expo-updates": "~55.0.18",
     "graphql": "^15.5.0",
     "i18next": "^23.4.0",
     "intl-pluralrules": "^2.0.1",
