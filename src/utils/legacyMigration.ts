@@ -46,8 +46,12 @@ export async function migrateLegacyKeystore(): Promise<void> {
     }
 
     // Attempt to read from old native keystore
-    const legacyData = await LegacyKeystore.readLegacy('AD')
-
+    const legacyData = await Promise.race([
+      LegacyKeystore.readLegacy('AD'),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Legacy keystore read timed out after 10s')), 10_000)
+      ),
+    ])
     if (legacyData) {
       // Validate it's parseable JSON before writing
       JSON.parse(legacyData)
