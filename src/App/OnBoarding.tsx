@@ -1,6 +1,10 @@
-import React, { ReactElement } from 'react'
+import React, { ReactElement, useCallback, useRef, useState } from 'react'
 import {
+  Dimensions,
   Image,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
   View,
   TouchableOpacity,
   LogBox,
@@ -13,6 +17,8 @@ import { setSkipOnboarding } from '../utils/storage'
 
 import { Text } from 'components'
 import images from 'assets/images'
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 LogBox.ignoreLogs([
   // https://reactjs.org/blog/2020/02/26/react-v16.13.0.html#warnings-for-some-updates-during-render
@@ -48,39 +54,40 @@ const PagerContents = [
 ]
 
 const RenderSwiper = (): ReactElement => {
-  const [currentIndex] = React.useState(0)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const scrollRef = useRef<ScrollView>(null)
+
+  const onMomentumScrollEnd = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetX = e.nativeEvent.contentOffset.x
+      const index = Math.round(offsetX / SCREEN_WIDTH)
+      setCurrentIndex(index)
+    },
+    []
+  )
 
   return (
     <View style={{ flex: 1, marginBottom: 60 }}>
-      <View style={styles.SwiperContent}>
-        <View
-          style={{
-            height: '60%',
-            paddingVertical: 20,
-            alignContent: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Image source={PagerContents[currentIndex].image} style={styles.SwiperContentImage} />
-        </View>
-        <View
-          style={{
-            minHeight: 160,
-            paddingTop: 20,
-          }}
-        >
-          <Text style={styles.SwiperContentTitle} fontType="bold">
-            {PagerContents[currentIndex].title}
-          </Text>
-          <Text
-            style={styles.SwiperContentDesc}
-            adjustsFontSizeToFit
-            numberOfLines={2}
-          >
-            {PagerContents[currentIndex].description}
-          </Text>
-        </View>
-      </View>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        style={{ flex: 1 }}
+      >
+        {PagerContents.map((item, i) => (
+          <View key={i} style={[styles.SwiperContent, { width: SCREEN_WIDTH }]}>
+            <View style={{ height: '60%', paddingVertical: 20, alignContent: 'center', justifyContent: 'center' }}>
+              <Image source={item.image} style={styles.SwiperContentImage} />
+            </View>
+            <View style={{ minHeight: 160, paddingTop: 20 }}>
+              <Text style={styles.SwiperContentTitle} fontType="bold">{item.title}</Text>
+              <Text style={styles.SwiperContentDesc} adjustsFontSizeToFit numberOfLines={2}>{item.description}</Text>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
       <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
         {PagerContents.map((_, i) => (
           <View key={i} style={i === currentIndex ? styles.SwiperDotActive : styles.SwiperDot} />
