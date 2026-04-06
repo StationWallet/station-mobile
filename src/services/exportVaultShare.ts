@@ -7,6 +7,8 @@ import * as ExpoCrypto from 'expo-crypto'
 import { cacheDirectory, writeAsStringAsync } from 'expo-file-system/legacy'
 import * as Sharing from 'expo-sharing'
 
+const LOCAL_PARTY_ID = 'station-mobile'
+
 import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container_pb'
@@ -62,8 +64,8 @@ export async function exportVaultShare(
     name: walletName,
     publicKeyEcdsa: publicKeyHex,
     publicKeyEddsa: '',
-    signers: ['station-mobile'],
-    localPartyId: 'station-mobile',
+    signers: [LOCAL_PARTY_ID],
+    localPartyId: LOCAL_PARTY_ID,
     hexChainCode: '',
     resharePrefix: '',
     libType: LibType.KEYIMPORT,

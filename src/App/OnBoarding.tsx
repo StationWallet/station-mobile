@@ -1,6 +1,5 @@
-import React, { ReactElement, useCallback, useRef, useState } from 'react'
+import React, { ReactElement, useCallback, useState } from 'react'
 import {
-  Dimensions,
   Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -9,6 +8,7 @@ import {
   TouchableOpacity,
   LogBox,
   StyleSheet,
+  useWindowDimensions,
 } from 'react-native'
 
 import { COLOR } from 'consts'
@@ -17,8 +17,6 @@ import { setSkipOnboarding } from '../utils/storage'
 
 import { Text } from 'components'
 import images from 'assets/images'
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 LogBox.ignoreLogs([
   // https://reactjs.org/blog/2020/02/26/react-v16.13.0.html#warnings-for-some-updates-during-render
@@ -55,40 +53,39 @@ const PagerContents = [
 
 const RenderSwiper = (): ReactElement => {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const scrollRef = useRef<ScrollView>(null)
+  const { width: screenWidth } = useWindowDimensions()
 
   const onMomentumScrollEnd = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = e.nativeEvent.contentOffset.x
-      const index = Math.round(offsetX / SCREEN_WIDTH)
+      const index = Math.round(offsetX / screenWidth)
       setCurrentIndex(index)
     },
-    []
+    [screenWidth]
   )
 
   return (
-    <View style={{ flex: 1, marginBottom: 60 }}>
+    <View style={styles.swiperWrapper}>
       <ScrollView
-        ref={scrollRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={onMomentumScrollEnd}
-        style={{ flex: 1 }}
+        style={styles.flex1}
       >
         {PagerContents.map((item, i) => (
-          <View key={i} style={[styles.SwiperContent, { width: SCREEN_WIDTH }]}>
-            <View style={{ height: '60%', paddingVertical: 20, alignContent: 'center', justifyContent: 'center' }}>
+          <View key={i} style={[styles.SwiperContent, { width: screenWidth }]}>
+            <View style={styles.imageWrapper}>
               <Image source={item.image} style={styles.SwiperContentImage} />
             </View>
-            <View style={{ minHeight: 160, paddingTop: 20 }}>
+            <View style={styles.textWrapper}>
               <Text style={styles.SwiperContentTitle} fontType="bold">{item.title}</Text>
               <Text style={styles.SwiperContentDesc} adjustsFontSizeToFit numberOfLines={2}>{item.description}</Text>
             </View>
           </View>
         ))}
       </ScrollView>
-      <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+      <View style={styles.dotsRow}>
         {PagerContents.map((_, i) => (
           <View key={i} style={i === currentIndex ? styles.SwiperDotActive : styles.SwiperDot} />
         ))}
@@ -114,11 +111,7 @@ const RenderButton = ({
         onPress={enterTabs}
       >
         <Text
-          style={{
-            fontSize: 16,
-            lineHeight: 24,
-            color: 'rgb(255,255,255)',
-          }}
+          style={styles.SwiperButtonText}
           fontType={'medium'}
         >
           Get started
@@ -134,7 +127,7 @@ const OnBoarding = ({
   closeOnBoarding: () => void
 }): ReactElement => {
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.flex1}>
       <RenderSwiper />
       <RenderButton closeOnBoarding={closeOnBoarding} />
     </View>
@@ -142,6 +135,11 @@ const OnBoarding = ({
 }
 
 const styles = StyleSheet.create({
+  flex1: { flex: 1 },
+  swiperWrapper: { flex: 1, marginBottom: 60 },
+  imageWrapper: { height: '60%', paddingVertical: 20, alignContent: 'center', justifyContent: 'center' },
+  textWrapper: { minHeight: 160, paddingTop: 20 },
+  dotsRow: { flexDirection: 'row', justifyContent: 'center' },
   SwiperDot: {
     backgroundColor: 'rgba(32, 67, 181, 0.2)',
     width: 6,
@@ -156,7 +154,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     margin: 7,
   },
-
   SwiperContent: {
     flex: 1,
     flexDirection: 'column',
@@ -190,27 +187,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingHorizontal: 20,
   },
-  SwiperButtonSkip: {
-    flex: 1,
-    height: 50,
-    borderRadius: 25,
-    paddingVertical: 13,
-    backgroundColor: 'rgba(32, 67, 181, 0.2)',
-    alignItems: 'center',
-  },
-  SwiperButtonSkipText: {
-    color: COLOR.primary._02,
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  SwiperButtonNext: {
-    flex: 1,
-    height: 50,
-    borderRadius: 25,
-    paddingVertical: 15,
-    backgroundColor: COLOR.primary._02,
-    alignItems: 'center',
-  },
   SwiperButtonStart: {
     flex: 1,
     height: 50,
@@ -219,6 +195,11 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     backgroundColor: COLOR.primary._02,
     alignItems: 'center',
+  },
+  SwiperButtonText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: 'rgb(255,255,255)',
   },
 })
 

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, ReactElement } from 'react'
-import { Platform } from 'react-native'
+import { Platform, BackHandler } from 'react-native'
 import { LogBox, View, StatusBar, KeyboardAvoidingView } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import * as SplashScreen from 'expo-splash-screen'
 import { RecoilRoot } from 'recoil'
-const RNExitApp = { exitApp: () => {} }
 import { QueryClient, QueryClientProvider } from 'react-query'
 
 import {
@@ -38,6 +37,7 @@ import GlobalTopNotification from './GlobalTopNotification'
 
 import { useAlertViewState } from './AlertView'
 import { themes } from 'lib/contexts/useTheme'
+import { COLORS } from 'consts/theme'
 
 LogBox.ignoreLogs(['EventEmitter.removeListener'])
 
@@ -86,7 +86,7 @@ let App = ({
       if (securityCheckFailed) {
         const message = getSecurityErrorMessage()
 
-        UTIL.showSystemAlert(message, 'OK', () => RNExitApp.exitApp())
+        UTIL.showSystemAlert(message, 'OK', () => BackHandler.exitApp())
       }
     }
   }, [securityCheckFailed])
@@ -118,7 +118,7 @@ let App = ({
                     ...defaultViewStyle,
                     backgroundColor: showOnBoarding
                       ? '#fff'
-                      : themes?.[currentTheme]?.backgroundColor || '#02122B',
+                      : themes?.[currentTheme]?.backgroundColor || COLORS.bg,
                   }}
                 >
                   {(securityCheckFailed) &&
@@ -191,10 +191,11 @@ export default (): ReactElement => {
 
   useEffect(() => {
     const startup = async (): Promise<void> => {
-      await clearKeystoreWhenFirstRun()
-      await migrateLegacyKeystore()
-
-      const local = await settings.get()
+      // Migration must be sequential, but settings.get() reads a different key
+      const [, local] = await Promise.all([
+        clearKeystoreWhenFirstRun().then(() => migrateLegacyKeystore()),
+        settings.get(),
+      ])
       setLocal(local)
     }
 

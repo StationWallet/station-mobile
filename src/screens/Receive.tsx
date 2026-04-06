@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import * as Clipboard from 'expo-clipboard'
 import QRCode from 'react-native-qrcode-svg'
 import { RouteProp, useRoute } from '@react-navigation/native'
-import { useTranslation } from 'react-i18next'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -13,7 +12,6 @@ import { COLORS } from 'consts/theme'
 type RouteParams = { Receive: { address: string } }
 
 export default function Receive() {
-  const { t } = useTranslation()
   const { params } = useRoute<RouteProp<RouteParams, 'Receive'>>()
   const { address } = params
 

@@ -32,7 +32,7 @@ const useModal = (): { modal: AppModal } => {
 
   const { addListener } = useNavigation()
   useEffect(() => {
-    addListener('blur', (): void => {
+    return addListener('blur', (): void => {
       modal.close()
     })
   }, [])

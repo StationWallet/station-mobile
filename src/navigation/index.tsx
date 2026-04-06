@@ -7,6 +7,7 @@ import { getWallets } from 'utils/wallet'
 import { settings } from 'utils/storage'
 import { useConfig } from 'lib'
 import { themes } from 'lib/contexts/useTheme'
+import { COLORS } from 'consts/theme'
 import { WalletNavContext } from './hooks'
 
 export { useWalletCreated, useWalletDisconnected, useWalletNav } from './hooks'
@@ -63,7 +64,7 @@ export default function AppNavigator() {
     ...DefaultTheme,
     colors: {
       ...DefaultTheme.colors,
-      background: themes?.[currentTheme]?.backgroundColor || '#02122B',
+      background: themes?.[currentTheme]?.backgroundColor || COLORS.bg,
     },
   }
 

@@ -105,22 +105,25 @@ export default function History() {
     [fetchByQuery, address]
   )
 
+  const resetFromResult = useCallback((result: { txs: TxResponse[]; hasMoreSent: boolean; hasMoreReceived: boolean }) => {
+    seenHashes.current = new Set(result.txs.map((tx) => tx.txhash))
+    setTxs(result.txs)
+    setHasMoreSent(result.hasMoreSent)
+    setHasMoreReceived(result.hasMoreReceived)
+    setSentOffset(PAGE_SIZE)
+    setReceivedOffset(PAGE_SIZE)
+  }, [])
+
   const loadInitial = useCallback(async () => {
     setLoading(true)
     try {
-      const result = await fetchAll(0, 0)
-      seenHashes.current = new Set(result.txs.map((tx) => tx.txhash))
-      setTxs(result.txs)
-      setHasMoreSent(result.hasMoreSent)
-      setHasMoreReceived(result.hasMoreReceived)
-      setSentOffset(PAGE_SIZE)
-      setReceivedOffset(PAGE_SIZE)
+      resetFromResult(await fetchAll(0, 0))
     } catch {
       setTxs([])
     } finally {
       setLoading(false)
     }
-  }, [fetchAll])
+  }, [fetchAll, resetFromResult])
 
   const loadMore = useCallback(async () => {
     if (!hasMoreSent && !hasMoreReceived) return
@@ -164,19 +167,13 @@ export default function History() {
   const refresh = useCallback(async () => {
     setRefreshing(true)
     try {
-      const result = await fetchAll(0, 0)
-      seenHashes.current = new Set(result.txs.map((tx) => tx.txhash))
-      setTxs(result.txs)
-      setHasMoreSent(result.hasMoreSent)
-      setHasMoreReceived(result.hasMoreReceived)
-      setSentOffset(PAGE_SIZE)
-      setReceivedOffset(PAGE_SIZE)
+      resetFromResult(await fetchAll(0, 0))
     } catch {
       /* keep existing list */
     } finally {
       setRefreshing(false)
     }
-  }, [fetchAll])
+  }, [fetchAll, resetFromResult])
 
   useEffect(() => {
     loadInitial()
