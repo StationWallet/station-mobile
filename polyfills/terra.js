@@ -14,7 +14,7 @@ const { ripemd160 } = require('@noble/hashes/legacy.js');
 const { HDKey } = require('@scure/bip32');
 
 // Use @noble/curves for secp256k1 (pure JS, Hermes-compatible, already used elsewhere)
-const { secp256k1 } = require('@noble/curves/secp256k1');
+const { secp256k1 } = require('@noble/curves/secp256k1.js');
 
 // --- Address derivation ---
 

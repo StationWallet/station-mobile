@@ -21,7 +21,7 @@ import { COLORS } from 'consts/theme'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import Loading from 'components/Loading'
-import { useWalletNav } from 'navigation'
+import { useWalletNav } from 'navigation/hooks'
 
 import type { MainStackParams } from 'navigation/MainNavigator'
 

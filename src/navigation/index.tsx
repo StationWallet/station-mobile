@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native'
 
 import MainNavigator from './MainNavigator'
@@ -7,20 +7,9 @@ import { getWallets } from 'utils/wallet'
 import { settings } from 'utils/storage'
 import { useConfig } from 'lib'
 import { themes } from 'lib/contexts/useTheme'
+import { WalletNavContext } from './hooks'
 
-interface WalletNav {
-  onWalletCreated: () => void
-  onWalletDisconnected: () => void
-  wallets: LocalWallet[]
-}
-const WalletNavContext = createContext<WalletNav>({
-  onWalletCreated: () => {},
-  onWalletDisconnected: () => {},
-  wallets: [],
-})
-export const useWalletCreated = () => useContext(WalletNavContext).onWalletCreated
-export const useWalletDisconnected = () => useContext(WalletNavContext).onWalletDisconnected
-export const useWalletNav = () => useContext(WalletNavContext)
+export { useWalletCreated, useWalletDisconnected, useWalletNav } from './hooks'
 
 export default function AppNavigator() {
   const [wallets, setWallets] = useState<LocalWallet[] | null>(null)

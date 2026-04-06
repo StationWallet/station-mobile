@@ -2,10 +2,10 @@ import React, { useEffect, useState, ReactElement } from 'react'
 import {
   Dimensions,
   Image,
-  SafeAreaView,
   StyleSheet,
   View,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { COLOR } from 'consts'

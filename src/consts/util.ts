@@ -5,7 +5,7 @@ import { Alert } from 'react-native'
 
 import { Token, uToken } from 'types'
 
-import { CURRENCY } from 'consts'
+import CURRENCY from './currency'
 
 const TERRA_DECIMAL = 1e6
 

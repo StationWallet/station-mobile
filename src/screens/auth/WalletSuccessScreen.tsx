@@ -5,7 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native'
-import { useWalletCreated } from 'navigation'
+import { useWalletCreated } from 'navigation/hooks'
 import { COLORS, MONO_FONT } from 'consts/theme'
 
 interface Props {

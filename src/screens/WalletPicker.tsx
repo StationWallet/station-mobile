@@ -7,7 +7,7 @@ import {
 } from 'react-native'
 import { NavigationProp, useNavigation } from '@react-navigation/native'
 
-import { useWalletNav } from 'navigation'
+import { useWalletNav } from 'navigation/hooks'
 import { settings } from 'utils/storage'
 import { UTIL } from 'consts'
 import { COLORS } from 'consts/theme'

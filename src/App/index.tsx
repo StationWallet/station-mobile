@@ -1,6 +1,7 @@
 import React, { useState, useEffect, ReactElement } from 'react'
 import { Platform } from 'react-native'
-import { LogBox, View, SafeAreaView, StatusBar, KeyboardAvoidingView } from 'react-native'
+import { LogBox, View, StatusBar, KeyboardAvoidingView } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import * as SplashScreen from 'expo-splash-screen'
 import { RecoilRoot } from 'recoil'
@@ -108,14 +109,6 @@ let App = ({
           <ConfigProvider value={config}>
             <AuthProvider value={auth}>
               <SafeAreaProvider>
-                <SafeAreaView
-                  style={{
-                    flex: 0,
-                    backgroundColor: showOnBoarding
-                      ? '#fff'
-                      : themes?.[currentTheme]?.backgroundColor || '#02122B',
-                  }}
-                />
                 <KeyboardAvoidingView
                   behavior={Platform.OS === "ios" ? "padding" : "height"}
                   style={defaultViewStyle}

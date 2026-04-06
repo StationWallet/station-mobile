@@ -5,6 +5,7 @@ const config = getDefaultConfig(__dirname)
 
 // Enable package.json "exports" field resolution for @noble/* and @scure/* libraries
 config.resolver.unstable_enablePackageExports = true
+config.resolver.unstable_conditionNames = ['react-native', 'require', 'default']
 
 // Node.js built-in polyfills for packages that need them (terra.js, ledger, etc.)
 config.resolver.extraNodeModules = {
