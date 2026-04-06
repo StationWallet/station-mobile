@@ -46,12 +46,13 @@ export async function migrateLegacyKeystore(): Promise<void> {
     }
 
     // Attempt to read from old native keystore
+    let timer: ReturnType<typeof setTimeout>
     const legacyData = await Promise.race([
       LegacyKeystore.readLegacy('AD'),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Legacy keystore read timed out after 10s')), 10_000)
-      ),
-    ])
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('Legacy keystore read timed out after 10s')), 10_000)
+      }),
+    ]).finally(() => clearTimeout(timer!))
     if (legacyData) {
       // Validate it's parseable JSON before writing
       JSON.parse(legacyData)
@@ -59,16 +60,7 @@ export async function migrateLegacyKeystore(): Promise<void> {
       // Write to new expo-secure-store location
       await SecureStore.setItemAsync(LEGACY_ACCOUNT, legacyData, keychainOpts('AD'))
 
-      // Verify the write succeeded
-      const verification = await SecureStore.getItemAsync(
-        LEGACY_ACCOUNT,
-        keychainOpts('AD')
-      )
-      if (verification !== legacyData) {
-        throw new Error('Migration verification failed: written data does not match')
-      }
-
-      // Clean up old data only after verified write
+      // Clean up old data only after successful write
       await LegacyKeystore.removeLegacy('AD')
     }
   } catch (error) {

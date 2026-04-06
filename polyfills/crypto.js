@@ -8,15 +8,6 @@ var { sha256, sha512 } = require('@noble/hashes/sha2.js');
 var { ripemd160 } = require('@noble/hashes/legacy.js');
 var { hmac: hmacFn } = require('@noble/hashes/hmac.js');
 
-function randomBytes(size) {
-  if (typeof globalThis.crypto === 'undefined' || !globalThis.crypto.getRandomValues) {
-    throw new Error('No secure random number generator available');
-  }
-  var arr = new Uint8Array(size);
-  globalThis.crypto.getRandomValues(arr);
-  return Buffer.from(arr);
-}
-
 // Minimal createHash using @noble/hashes
 var hashAlgos = { sha256: sha256, sha512: sha512, ripemd160: ripemd160, rmd160: ripemd160 };
 
@@ -64,14 +55,22 @@ function createHmac(algorithm, key) {
   };
 }
 
+function getRandomValues(arr) {
+  if (typeof globalThis.crypto === 'undefined' || !globalThis.crypto.getRandomValues) {
+    throw new Error('No secure random number generator available');
+  }
+  return globalThis.crypto.getRandomValues(arr);
+}
+
+function randomBytes(size) {
+  var arr = new Uint8Array(size);
+  getRandomValues(arr);
+  return Buffer.from(arr);
+}
+
 module.exports = {
   createHash: createHash,
   createHmac: createHmac,
   randomBytes: randomBytes,
-  getRandomValues: function(arr) {
-    if (typeof globalThis.crypto === 'undefined' || !globalThis.crypto.getRandomValues) {
-      throw new Error('No secure random number generator available');
-    }
-    return globalThis.crypto.getRandomValues(arr);
-  },
+  getRandomValues: getRandomValues,
 };

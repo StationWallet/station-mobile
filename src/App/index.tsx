@@ -207,10 +207,6 @@ export default (): ReactElement => {
       await clearKeystoreWhenFirstRun()
       await migrateLegacyKeystore()
 
-      try {
-        await keystore.migratePreferences('AD')
-      } catch {}
-
       const local = await settings.get()
       setLocal(local)
     }

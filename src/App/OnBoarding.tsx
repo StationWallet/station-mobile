@@ -6,8 +6,6 @@ import {
   LogBox,
   StyleSheet,
 } from 'react-native'
-import { ScrollView } from 'react-native'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 import { COLOR } from 'consts'
 

@@ -16,6 +16,7 @@ import { deleteWallet } from 'utils/wallet'
 import { getAuthDataValue } from 'utils/authData'
 import { settings } from 'utils/storage'
 import { UTIL } from 'consts'
+import { COLORS } from 'consts/theme'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import Loading from 'components/Loading'
@@ -35,14 +36,11 @@ export default function WalletHome() {
 
   useEffect(() => {
     if (!wallet) return
-    getAuthDataValue(wallet.name).then((data) => {
+    Promise.all([
+      getAuthDataValue(wallet.name),
+      settings.get(),
+    ]).then(([data, saved]) => {
       setIsLedger(data?.ledger === true)
-    })
-  }, [wallet?.name])
-
-  useEffect(() => {
-    if (!wallet) return
-    settings.get().then((saved) => {
       if (saved.walletName !== wallet.name) {
         settings.set({ walletName: wallet.name })
       }
@@ -165,29 +163,29 @@ export default function WalletHome() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#02122B' },
+  container: { flex: 1, backgroundColor: COLORS.bg },
   content: { padding: 20, alignItems: 'center' },
-  walletName: { color: '#F0F4FC', fontSize: 20, fontWeight: '600', marginTop: 24 },
-  address: { color: '#8295AE', fontSize: 14, marginTop: 8, marginBottom: 24 },
+  walletName: { color: COLORS.textPrimary, fontSize: 20, fontWeight: '600', marginTop: 24 },
+  address: { color: COLORS.textSecondary, fontSize: 14, marginTop: 8, marginBottom: 24 },
   balanceCard: {
-    backgroundColor: '#061B3A',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 24,
     width: '100%',
     alignItems: 'center',
     marginBottom: 32,
   },
-  balanceLabel: { color: '#8295AE', fontSize: 14, marginBottom: 8 },
-  balanceAmount: { color: '#F0F4FC', fontSize: 32, fontWeight: '700' },
+  balanceLabel: { color: COLORS.textSecondary, fontSize: 14, marginBottom: 8 },
+  balanceAmount: { color: COLORS.textPrimary, fontSize: 32, fontWeight: '700' },
   actions: { flexDirection: 'row', gap: 16, width: '100%', marginBottom: 32 },
   actionButton: { flex: 1 },
   management: {
     width: '100%',
     borderTopWidth: 1,
-    borderTopColor: '#11284A',
+    borderTopColor: COLORS.border,
     paddingTop: 16,
   },
   managementRow: { paddingVertical: 14, alignItems: 'center' },
-  managementText: { color: '#8295AE', fontSize: 15 },
-  removeText: { color: '#FF5C5C', fontSize: 15 },
+  managementText: { color: COLORS.textSecondary, fontSize: 15 },
+  removeText: { color: COLORS.error, fontSize: 15 },
 })

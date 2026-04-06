@@ -10,6 +10,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native'
 import { useWalletNav } from 'navigation'
 import { settings } from 'utils/storage'
 import { UTIL } from 'consts'
+import { COLORS } from 'consts/theme'
 import Text from 'components/Text'
 import Button from 'components/Button'
 
@@ -65,13 +66,13 @@ export default function WalletPicker() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#02122B', padding: 20 },
-  title: { color: '#F0F4FC', fontSize: 24, fontWeight: '700', marginTop: 48 },
-  subtitle: { color: '#8295AE', fontSize: 14, marginTop: 8, marginBottom: 24 },
+  container: { flex: 1, backgroundColor: COLORS.bg, padding: 20 },
+  title: { color: COLORS.textPrimary, fontSize: 24, fontWeight: '700', marginTop: 48 },
+  subtitle: { color: COLORS.textSecondary, fontSize: 14, marginTop: 8, marginBottom: 24 },
   list: { flex: 1 },
   listContent: { paddingBottom: 16 },
   walletRow: {
-    backgroundColor: '#061B3A',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -80,8 +81,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   walletInfo: { flex: 1 },
-  walletName: { color: '#F0F4FC', fontSize: 16, fontWeight: '600' },
-  walletAddress: { color: '#8295AE', fontSize: 13, marginTop: 4 },
+  walletName: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '600' },
+  walletAddress: { color: COLORS.textSecondary, fontSize: 13, marginTop: 4 },
   footer: { paddingTop: 16 },
   addButton: { width: '100%' },
 })

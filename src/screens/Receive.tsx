@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
+import { COLORS } from 'consts/theme'
 
 type RouteParams = { Receive: { address: string } }
 
@@ -24,7 +25,7 @@ export default function Receive() {
       <Text style={styles.title}>Receive</Text>
 
       <View style={styles.qrContainer}>
-        <QRCode value={address} size={200} backgroundColor="#061B3A" color="#F0F4FC" />
+        <QRCode value={address} size={200} backgroundColor={COLORS.surface} color={COLORS.textPrimary} />
       </View>
 
       <Text style={styles.address} selectable>
@@ -39,20 +40,20 @@ export default function Receive() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#02122B',
+    backgroundColor: COLORS.bg,
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: { color: '#F0F4FC', fontSize: 20, fontWeight: '600', marginBottom: 32 },
+  title: { color: COLORS.textPrimary, fontSize: 20, fontWeight: '600', marginBottom: 32 },
   qrContainer: {
-    backgroundColor: '#061B3A',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 24,
     marginBottom: 24,
   },
   address: {
-    color: '#8295AE',
+    color: COLORS.textSecondary,
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 24,

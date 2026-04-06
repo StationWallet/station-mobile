@@ -37,7 +37,7 @@ const useNetworks = (): {
 
   const networks: Record<NetworkEnum, ChainOptions> = useMemo(() => {
     const getOptions = (net: NetworkEnum): ChainOptions => {
-      return { ...data?.[net], ...defaultNetworks[net] }
+      return { ...defaultNetworks[net], ...data?.[net] }
     }
 
     return {

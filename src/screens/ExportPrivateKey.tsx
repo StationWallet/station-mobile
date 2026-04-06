@@ -13,7 +13,7 @@ import { getDecyrptedKey } from 'utils/wallet'
 import { exportVaultShare, shareVaultFile } from 'services/exportVaultShare'
 import Text from 'components/Text'
 import Button from 'components/Button'
-import { MONO_FONT } from 'consts/theme'
+import { COLORS, MONO_FONT } from 'consts/theme'
 
 import type { MainStackParams } from 'navigation/MainNavigator'
 
@@ -104,7 +104,7 @@ export default function ExportPrivateKey() {
           <TextInput
             style={styles.input}
             placeholder="Enter wallet password"
-            placeholderTextColor="#8295AE"
+            placeholderTextColor={COLORS.textSecondary}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -122,7 +122,7 @@ export default function ExportPrivateKey() {
       ) : (
         <>
           <View style={styles.qrContainer}>
-            <QRCode value={privateKey} size={200} backgroundColor="#061B3A" color="#F0F4FC" />
+            <QRCode value={privateKey} size={200} backgroundColor={COLORS.surface} color={COLORS.textPrimary} />
           </View>
           <View style={styles.keyCard}>
             <Text style={styles.keyText} selectable>
@@ -150,7 +150,7 @@ export default function ExportPrivateKey() {
               <TextInput
                 style={styles.input}
                 placeholder="Export password"
-                placeholderTextColor="#8295AE"
+                placeholderTextColor={COLORS.textSecondary}
                 secureTextEntry
                 value={exportPassword}
                 onChangeText={setExportPassword}
@@ -185,11 +185,11 @@ export default function ExportPrivateKey() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#02122B' },
+  container: { flex: 1, backgroundColor: COLORS.bg },
   content: { padding: 20, alignItems: 'center' },
-  title: { color: '#F0F4FC', fontSize: 20, fontWeight: '600', marginTop: 24 },
-  walletName: { color: '#8295AE', fontSize: 14, marginTop: 8 },
-  address: { color: '#8295AE', fontSize: 12, marginTop: 4, marginBottom: 24 },
+  title: { color: COLORS.textPrimary, fontSize: 20, fontWeight: '600', marginTop: 24 },
+  walletName: { color: COLORS.textSecondary, fontSize: 14, marginTop: 8 },
+  address: { color: COLORS.textSecondary, fontSize: 12, marginTop: 4, marginBottom: 24 },
   warningCard: {
     backgroundColor: '#3D1A1A',
     borderRadius: 12,
@@ -197,32 +197,32 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 24,
   },
-  warningText: { color: '#FF5C5C', fontSize: 14, textAlign: 'center' },
+  warningText: { color: COLORS.error, fontSize: 14, textAlign: 'center' },
   input: {
-    backgroundColor: '#061B3A',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 16,
     width: '100%',
-    color: '#F0F4FC',
+    color: COLORS.textPrimary,
     fontSize: 16,
     marginBottom: 12,
   },
-  errorText: { color: '#FF5C5C', fontSize: 13, marginBottom: 12 },
+  errorText: { color: COLORS.error, fontSize: 13, marginBottom: 12 },
   qrContainer: {
-    backgroundColor: '#061B3A',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 24,
     marginBottom: 16,
   },
   keyCard: {
-    backgroundColor: '#061B3A',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 16,
     width: '100%',
     marginBottom: 16,
   },
   keyText: {
-    color: '#F0F4FC',
+    color: COLORS.textPrimary,
     fontSize: 13,
     fontFamily: MONO_FONT,
     lineHeight: 20,
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   exportLabel: {
-    color: '#8295AE',
+    color: COLORS.textSecondary,
     fontSize: 13,
     marginBottom: 8,
   },
