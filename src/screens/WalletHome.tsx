@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react'
+import React, { useCallback, useState, useEffect, useMemo } from 'react'
 import {
   Alert,
   View,
@@ -8,10 +8,11 @@ import {
   StyleSheet,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
+import { LCDClient } from '@terra-money/terra.js'
 import { useQuery } from 'react-query'
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 
-import useLCD from 'hooks/useLCD'
+import { useConfig, useIsClassic } from 'lib/contexts/ConfigContext'
 import { deleteWallet } from 'utils/wallet'
 import { getAuthDataValue } from 'utils/authData'
 import { settings } from 'utils/storage'
@@ -25,7 +26,13 @@ import { useWalletNav } from 'navigation'
 import type { MainStackParams } from 'navigation/MainNavigator'
 
 export default function WalletHome() {
-  const lcd = useLCD()
+  const { chain } = useConfig()
+  const isClassic = useIsClassic()
+  const { chainID, lcd: URL } = chain.current
+  const lcd = useMemo(
+    () => new LCDClient({ chainID, URL, isClassic }),
+    [chainID, URL, isClassic]
+  )
   const navigation = useNavigation<NavigationProp<MainStackParams>>()
   const route = useRoute<RouteProp<MainStackParams, 'WalletHome'>>()
   const { wallets, onWalletDisconnected } = useWalletNav()

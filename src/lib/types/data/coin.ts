@@ -1,6 +1,3 @@
-import { Dictionary } from 'ramda'
-import { Token, ContractInfo } from '../pages/assets'
-
 export type Denom = 'ukrw' | 'umnt' | 'usdr' | 'uusd'
 
 export interface CoinItem {
@@ -13,8 +10,4 @@ export interface DisplayCoin {
   unit: string
 }
 
-export type DisplayCoinDictionary = Dictionary<DisplayCoin>
-export type Whitelist = Dictionary<Token>
-export type Contracts = Dictionary<ContractInfo>
-export type Pair = [string, string]
-export type Pairs = Dictionary<Pair>
+export type Whitelist = Record<string, { symbol?: string; name?: string }>

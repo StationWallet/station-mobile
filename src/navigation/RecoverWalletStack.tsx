@@ -1,6 +1,15 @@
 import React, { ReactElement } from 'react'
+import { createStackNavigator } from '@react-navigation/stack'
 
-import { RecoverWalletStack } from '../types'
+export type RecoverWalletStackParams = {
+  Step1: undefined
+  Step2Seed: undefined
+  Step3Seed: undefined
+  Step4Seed: undefined
+  WalletRecovered: { wallet: LocalWallet }
+}
+
+const RecoverWalletStack = createStackNavigator<RecoverWalletStackParams>()
 
 import Step1 from '../screens/auth/RecoverWallet/Step1'
 import Step2Seed from '../screens/auth/RecoverWallet/Step2Seed'

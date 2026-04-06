@@ -52,6 +52,11 @@ export interface Currency {
   krwRate?: string
 }
 
+export interface Rate {
+  denom: string
+  swaprate: string
+}
+
 export interface CurrencyConfig {
   current?: Currency
   list?: Currency[]

@@ -21,8 +21,8 @@ import { AppProvider } from './useApp'
 
 import AppNavigator from '../navigation'
 
-import useSecurity from 'hooks/useSecurity'
-import useNetworks from 'hooks/useNetworks'
+import useSecurity from './useSecurity'
+import useNetworks from './useNetworks'
 
 import preferences, {
   PreferencesEnum,

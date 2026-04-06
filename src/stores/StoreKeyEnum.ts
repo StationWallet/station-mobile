@@ -2,7 +2,6 @@
 export enum StoreKeyEnum {
   modalChildren = 'modalChildren',
   modalIsVisible = 'modalIsVisible',
-  isFromAutoLogout = 'isFromAutoLogout',
   showLoading = 'showLoading',
   loadingTxHash = 'loadingTxHash',
   loadingTitle = 'loadingTitle',
@@ -13,10 +12,4 @@ export enum StoreKeyEnum {
   recoverWalletPassword = 'recoverWalletPassword',
   recoverWalletSeed = 'recoverWalletSeed',
   recoverQRData = 'recoverQRData',
-  confirm = 'confirm',
-  unsignedTx = 'unsignedTx',
-  connectAddress = 'connectAddress',
-  continueSignedTx = 'continueSignedTx',
-  walletTabUi = 'walletTabUi',
-  tokensState = 'tokensState',
 }

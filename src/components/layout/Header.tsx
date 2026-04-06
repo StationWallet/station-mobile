@@ -1,6 +1,7 @@
 import React, { ReactElement } from 'react'
 import {
   NavigationProp,
+  ParamListBase,
   StackActions,
   useNavigation,
 } from '@react-navigation/native'
@@ -20,7 +21,6 @@ import { Icon } from 'components'
 
 import { COLOR } from 'consts'
 import { useAuth } from 'lib'
-import { RootStackParams } from 'types'
 
 type HeaderTheme = 'white' | 'sky' | 'sapphire'
 
@@ -46,7 +46,7 @@ const HeaderLeft = ({
 }): ReactElement => {
   const { user } = useAuth()
   const { goBack, canGoBack, dispatch } = useNavigation<
-    NavigationProp<RootStackParams>
+    NavigationProp<ParamListBase>
   >()
 
   const onPressGoBack = (): void => {

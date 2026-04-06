@@ -23,6 +23,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "money.terra.station",
+      "appleTeamId": "4268K8DFX6",
       "buildNumber": "1",
       "entitlements": {
         "aps-environment": "production"
