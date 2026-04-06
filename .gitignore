@@ -79,3 +79,6 @@ android/
 # EAS credentials (secrets — never commit)
 credentials.json
 google-service-account.json
+
+# Status updates
+docs/status-update*
