@@ -3,13 +3,13 @@ import {
   View,
   Text,
   TextInput,
-  StyleSheet,
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
 import { useSetRecoilState } from 'recoil'
 import NewWalletStore from 'stores/NewWalletStore'
 import { COLORS } from 'consts/theme'
+import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
 
 const Step2 = ({ navigation }: any) => {
   const [password, setPassword] = useState('')
@@ -27,20 +27,20 @@ const Step2 = ({ navigation }: any) => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={authStyles.container}>
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={authStyles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Set a password</Text>
-        <Text style={styles.subtitle}>
+        <Text style={authStyles.title}>Set a password</Text>
+        <Text style={authStyles.subtitle}>
           Must be at least 10 characters
         </Text>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Password</Text>
+        <View style={[authStyles.inputGroup, { marginBottom: 20 }]}>
+          <Text style={authStyles.label}>Password</Text>
           <TextInput
-            style={[styles.input, tooShort && styles.inputError]}
+            style={[authStyles.input, tooShort && authStyles.inputError]}
             value={password}
             onChangeText={setPassword}
             placeholder="Enter password"
@@ -51,16 +51,16 @@ const Step2 = ({ navigation }: any) => {
             autoFocus
           />
           {tooShort && (
-            <Text style={styles.errorText}>
+            <Text style={authStyles.errorText}>
               Password must be at least 10 characters
             </Text>
           )}
         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Confirm Password</Text>
+        <View style={[authStyles.inputGroup, { marginBottom: 20 }]}>
+          <Text style={authStyles.label}>Confirm Password</Text>
           <TextInput
-            style={[styles.input, mismatch && styles.inputError]}
+            style={[authStyles.input, mismatch && authStyles.inputError]}
             value={confirm}
             onChangeText={setConfirm}
             placeholder="Confirm password"
@@ -70,16 +70,16 @@ const Step2 = ({ navigation }: any) => {
             autoComplete="off"
           />
           {mismatch && (
-            <Text style={styles.errorText}>Passwords do not match</Text>
+            <Text style={authStyles.errorText}>Passwords do not match</Text>
           )}
         </View>
 
         <TouchableOpacity
-          style={[styles.button, !canProceed && styles.buttonDisabled]}
+          style={[authStyles.button, !canProceed && authStyles.buttonDisabled]}
           onPress={handleNext}
           disabled={!canProceed}
         >
-          <Text style={styles.buttonText}>Next</Text>
+          <Text style={authStyles.buttonText}>Next</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -88,69 +88,8 @@ const Step2 = ({ navigation }: any) => {
 
 Step2.navigationOptions = {
   title: 'Set Password',
-  headerStyle: { backgroundColor: '#02122B', shadowColor: 'transparent' },
-  headerTintColor: '#F0F4FC',
+  headerStyle: authStyles.headerStyle,
+  headerTintColor: HEADER_TINT_COLOR,
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 40,
-  },
-  title: {
-    color: COLORS.textPrimary,
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: COLORS.textSecondary,
-    fontSize: 15,
-    marginBottom: 32,
-  },
-  inputGroup: { marginBottom: 20 },
-  label: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  input: {
-    backgroundColor: COLORS.inputBg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    color: COLORS.textPrimary,
-    fontSize: 16,
-  },
-  inputError: {
-    borderColor: COLORS.error,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: 12,
-    marginTop: 6,
-  },
-  button: {
-    backgroundColor: COLORS.accent,
-    borderRadius: 99,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 'auto',
-  },
-  buttonDisabled: { opacity: 0.4 },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-})
 
 export default Step2

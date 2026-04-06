@@ -7,13 +7,14 @@ import {
   ScrollView,
 } from 'react-native'
 import { COLORS } from 'consts/theme'
+import authStyles from './authStyles'
 
 const AuthMenu = ({ navigation }: any) => {
   const navState = navigation.getState()
   const isAddMode = navState?.routes?.some((r: any) => r.name === 'AddWalletMenu')
 
   return (
-    <View style={styles.container}>
+    <View style={authStyles.container}>
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -23,8 +24,8 @@ const AuthMenu = ({ navigation }: any) => {
           <View style={styles.logoCircle}>
             <Text style={styles.logoText}>S</Text>
           </View>
-          <Text style={styles.title}>Station Wallet</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[authStyles.title, { fontSize: 28 }]}>Station Wallet</Text>
+          <Text style={[authStyles.subtitle, { textAlign: 'center', marginBottom: 0 }]}>
             Create or recover your Terra wallet
           </Text>
         </View>
@@ -32,10 +33,10 @@ const AuthMenu = ({ navigation }: any) => {
         {/* Buttons */}
         <View style={styles.buttons}>
           <TouchableOpacity
-            style={styles.primaryButton}
+            style={authStyles.button}
             onPress={() => navigation.navigate(isAddMode ? 'AddNewWallet' : 'NewWallet')}
           >
-            <Text style={styles.primaryButtonText}>Create New Wallet</Text>
+            <Text style={authStyles.buttonText}>Create New Wallet</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -95,10 +96,6 @@ AuthMenu.navigationOptions = {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.bg,
-  },
   content: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -123,30 +120,8 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
   },
-  title: {
-    color: COLORS.textPrimary,
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: COLORS.textSecondary,
-    fontSize: 15,
-    textAlign: 'center',
-  },
   buttons: {
     gap: 14,
-  },
-  primaryButton: {
-    backgroundColor: COLORS.accent,
-    borderRadius: 99,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
   secondaryButton: {
     backgroundColor: COLORS.surface,

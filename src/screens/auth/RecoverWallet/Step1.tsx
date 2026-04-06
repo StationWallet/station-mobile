@@ -6,26 +6,26 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
-import { COLORS } from 'consts/theme'
+import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
 
 const Step1 = ({ navigation }: any) => {
   return (
-    <View style={styles.container}>
+    <View style={authStyles.container}>
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={authStyles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Recover Wallet</Text>
-        <Text style={styles.subtitle}>
+        <Text style={authStyles.title}>Recover Wallet</Text>
+        <Text style={[authStyles.subtitle, { marginBottom: 40 }]}>
           Choose how to recover your wallet
         </Text>
 
         <View style={styles.buttons}>
           <TouchableOpacity
-            style={styles.primaryButton}
+            style={authStyles.button}
             onPress={() => navigation.navigate('Step2Seed')}
           >
-            <Text style={styles.primaryButtonText}>
+            <Text style={authStyles.buttonText}>
               Enter seed phrase
             </Text>
           </TouchableOpacity>
@@ -38,41 +38,12 @@ const Step1 = ({ navigation }: any) => {
 
 Step1.navigationOptions = {
   title: 'Recover Wallet',
-  headerStyle: { backgroundColor: '#02122B', shadowColor: 'transparent' },
-  headerTintColor: '#F0F4FC',
+  headerStyle: authStyles.headerStyle,
+  headerTintColor: HEADER_TINT_COLOR,
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 40,
-  },
-  title: {
-    color: COLORS.textPrimary,
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: COLORS.textSecondary,
-    fontSize: 15,
-    marginBottom: 40,
-  },
   buttons: { gap: 14 },
-  primaryButton: {
-    backgroundColor: COLORS.accent,
-    borderRadius: 99,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
 })
 
 export default Step1

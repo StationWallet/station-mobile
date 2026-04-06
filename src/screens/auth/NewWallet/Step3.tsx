@@ -11,6 +11,7 @@ import { useSetRecoilState, useRecoilValue } from 'recoil'
 import NewWalletStore from 'stores/NewWalletStore'
 import TerraWallet from 'nativeModules/terraWallet'
 import { COLORS } from 'consts/theme'
+import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
 
 const Step3 = ({ navigation }: any) => {
   const [mnemonic, setMnemonic] = useState('')
@@ -39,7 +40,7 @@ const Step3 = ({ navigation }: any) => {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <View style={[authStyles.container, styles.centered]}>
         <ActivityIndicator size="large" color={COLORS.accent} />
         <Text style={styles.loadingText}>Generating wallet...</Text>
       </View>
@@ -47,12 +48,14 @@ const Step3 = ({ navigation }: any) => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={authStyles.container}>
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={authStyles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Write down your seed phrase</Text>
+        <Text style={[authStyles.title, { marginBottom: 16 }]}>
+          Write down your seed phrase
+        </Text>
 
         <View style={styles.warningBox}>
           <Text style={styles.warningText}>
@@ -71,8 +74,8 @@ const Step3 = ({ navigation }: any) => {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleNext}>
-          <Text style={styles.buttonText}>I've saved it</Text>
+        <TouchableOpacity style={authStyles.button} onPress={handleNext}>
+          <Text style={authStyles.buttonText}>I've saved it</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -81,25 +84,12 @@ const Step3 = ({ navigation }: any) => {
 
 Step3.navigationOptions = {
   title: 'Seed Phrase',
-  headerStyle: { backgroundColor: '#02122B', shadowColor: 'transparent' },
-  headerTintColor: '#F0F4FC',
+  headerStyle: authStyles.headerStyle,
+  headerTintColor: HEADER_TINT_COLOR,
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
   centered: { alignItems: 'center', justifyContent: 'center' },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 40,
-  },
-  title: {
-    color: COLORS.textPrimary,
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
   warningBox: {
     backgroundColor: 'rgba(255,179,64,0.1)',
     borderWidth: 1,
@@ -147,18 +137,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     flexShrink: 1,
-  },
-  button: {
-    backgroundColor: COLORS.accent,
-    borderRadius: 99,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 'auto',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 })
 
