@@ -5,7 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native'
-import { useWalletCreated, useWalletNav } from 'navigation'
+import { useWalletCreated } from 'navigation'
 import { COLORS, MONO_FONT } from 'consts/theme'
 
 interface Props {
@@ -16,7 +16,6 @@ interface Props {
 
 const WalletSuccessScreen = ({ title, wallet, navigation }: Props) => {
   const onWalletCreated = useWalletCreated()
-  const { refreshWallets } = useWalletNav()
   const parentState = navigation.getParent()?.getState()
   const isAddMode = parentState?.routes?.some(
     (r: any) =>
@@ -27,7 +26,7 @@ const WalletSuccessScreen = ({ title, wallet, navigation }: Props) => {
 
   const handleDone = async () => {
     if (isAddMode) {
-      await refreshWallets()
+      await onWalletCreated()
       navigation.getParent()?.navigate('WalletPicker')
     } else {
       onWalletCreated()

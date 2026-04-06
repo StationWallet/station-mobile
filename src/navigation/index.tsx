@@ -12,13 +12,11 @@ interface WalletNav {
   onWalletCreated: () => void
   onWalletDisconnected: () => void
   wallets: LocalWallet[]
-  refreshWallets: () => Promise<void>
 }
 const WalletNavContext = createContext<WalletNav>({
   onWalletCreated: () => {},
   onWalletDisconnected: () => {},
   wallets: [],
-  refreshWallets: async () => {},
 })
 export const useWalletCreated = () => useContext(WalletNavContext).onWalletCreated
 export const useWalletDisconnected = () => useContext(WalletNavContext).onWalletDisconnected
@@ -53,10 +51,6 @@ export default function AppNavigator() {
     init().catch(() => setWallets([]))
   }, [loadWallets])
 
-  const refreshWallets = useCallback(async () => {
-    await loadWallets()
-  }, [loadWallets])
-
   const onWalletCreated = useCallback(async () => {
     const loaded = await loadWallets()
     // Auto-select the newest wallet (last in the list)
@@ -89,7 +83,7 @@ export default function AppNavigator() {
   const hasWallet = wallets.length > 0
 
   return (
-    <WalletNavContext.Provider value={{ onWalletCreated, onWalletDisconnected, wallets, refreshWallets }}>
+    <WalletNavContext.Provider value={{ onWalletCreated, onWalletDisconnected, wallets }}>
       <NavigationContainer theme={navTheme}>
         {hasWallet ? (
           <MainNavigator initialWallet={initialWallet} />
