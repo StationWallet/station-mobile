@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { COLORS } from 'consts/theme'
 import authStyles from './authStyles'
 
@@ -14,7 +15,7 @@ const AuthMenu = ({ navigation }: any) => {
   const isAddMode = navState?.routes?.some((r: any) => r.name === 'AddWalletMenu')
 
   return (
-    <View style={authStyles.container}>
+    <SafeAreaView style={authStyles.container}>
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -87,7 +88,7 @@ const AuthMenu = ({ navigation }: any) => {
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
       )}
-    </View>
+    </SafeAreaView>
   )
 }
 

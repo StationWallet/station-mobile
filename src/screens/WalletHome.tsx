@@ -12,6 +12,7 @@ import { LCDClient } from '@terra-money/terra.js'
 import { useQuery } from 'react-query'
 import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useConfig, useIsClassic } from 'lib/contexts/ConfigContext'
 import { deleteWallet } from 'utils/wallet'
 import { getAuthDataValue } from 'utils/authData'
@@ -100,8 +101,9 @@ export default function WalletHome() {
   const hasMultipleWallets = wallets.length > 1
 
   return (
+    <SafeAreaView style={styles.container}>
     <ScrollView
-      style={styles.container}
+      style={{ flex: 1 }}
       contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#fff" />
@@ -166,6 +168,7 @@ export default function WalletHome() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </SafeAreaView>
   )
 }
 

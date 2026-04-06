@@ -8,6 +8,7 @@ import {
 import * as Clipboard from 'expo-clipboard'
 import QRCode from 'react-native-qrcode-svg'
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { getDecyrptedKey } from 'utils/wallet'
 import { exportVaultShare, shareVaultFile } from 'services/exportVaultShare'
@@ -84,8 +85,9 @@ export default function ExportPrivateKey() {
   }, [privateKey, wallet.name, exportPassword])
 
   return (
+    <SafeAreaView style={styles.container}>
     <ScrollView
-      style={styles.container}
+      style={{ flex: 1 }}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
@@ -181,6 +183,7 @@ export default function ExportPrivateKey() {
         containerStyle={styles.button}
       />
     </ScrollView>
+    </SafeAreaView>
   )
 }
 

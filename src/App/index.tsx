@@ -1,7 +1,6 @@
 import React, { useState, useEffect, ReactElement } from 'react'
 import { Platform } from 'react-native'
 import { LogBox, View, StatusBar, KeyboardAvoidingView } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import * as SplashScreen from 'expo-splash-screen'
 import { RecoilRoot } from 'recoil'
@@ -109,48 +108,43 @@ let App = ({
           <ConfigProvider value={config}>
             <AuthProvider value={auth}>
               <SafeAreaProvider>
+                <StatusBar
+                  barStyle={themes?.[currentTheme]?.textContent ?? 'light-content'}
+                  backgroundColor={themes?.[currentTheme]?.backgroundColor}
+                />
                 <KeyboardAvoidingView
                   behavior={Platform.OS === "ios" ? "padding" : "height"}
-                  style={defaultViewStyle}
+                  style={{
+                    ...defaultViewStyle,
+                    backgroundColor: showOnBoarding
+                      ? '#fff'
+                      : themes?.[currentTheme]?.backgroundColor || '#02122B',
+                  }}
                 >
-                  <SafeAreaView
-                    style={{
-                      ...defaultViewStyle,
-                      backgroundColor: showOnBoarding
-                        ? '#fff'
-                        : themes?.[currentTheme]?.backgroundColor || '#02122B',
-                    }}
-                  >
-                    <StatusBar
-                      barStyle={themes?.[currentTheme]?.textContent ?? 'light-content'}
-                      backgroundColor={themes?.[currentTheme]?.backgroundColor}
+                  {(securityCheckFailed) &&
+                  Platform.OS === 'ios' ? (
+                    <View
+                      style={{
+                        flex: 1,
+                      }}
                     />
-
-                    {(securityCheckFailed) &&
-                    Platform.OS === 'ios' ? (
-                      <View
-                        style={{
-                          flex: 1,
-                        }}
-                      />
-                    ) : showOnBoarding ? (
-                      <OnBoarding
-                        closeOnBoarding={(): void =>
-                          setshowOnBoarding(false)
-                        }
-                      />
-                    ) : (
-                      <>
-                        <AppNavigator />
-                        <GlobalTopNotification />
-                        {config.chain.current.name !== 'mainnet' && (
-                          <DebugBanner
-                            title={config.chain.current.name.toUpperCase()}
-                          />
-                        )}
-                      </>
-                    )}
-                  </SafeAreaView>
+                  ) : showOnBoarding ? (
+                    <OnBoarding
+                      closeOnBoarding={(): void =>
+                        setshowOnBoarding(false)
+                      }
+                    />
+                  ) : (
+                    <>
+                      <AppNavigator />
+                      <GlobalTopNotification />
+                      {config.chain.current.name !== 'mainnet' && (
+                        <DebugBanner
+                          title={config.chain.current.name.toUpperCase()}
+                        />
+                      )}
+                    </>
+                  )}
                 </KeyboardAvoidingView>
               </SafeAreaProvider>
             </AuthProvider>

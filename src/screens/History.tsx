@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from 'react-native'
 import { RouteProp, useRoute } from '@react-navigation/native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useConfig } from 'lib/contexts/ConfigContext'
 import { UTIL } from 'consts'
@@ -229,7 +230,7 @@ export default function History() {
   const hasMore = hasMoreSent || hasMoreReceived
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.title}>History</Text>
       {loading ? (
         <Loading />
@@ -252,7 +253,7 @@ export default function History() {
           }
         />
       )}
-    </View>
+    </SafeAreaView>
   )
 }
 

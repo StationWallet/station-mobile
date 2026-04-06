@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react'
 import { View, StyleSheet } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import * as Clipboard from 'expo-clipboard'
 import QRCode from 'react-native-qrcode-svg'
 import { RouteProp, useRoute } from '@react-navigation/native'
@@ -21,7 +22,7 @@ export default function Receive() {
   }, [address])
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Receive</Text>
 
       <View style={styles.qrContainer}>
@@ -33,7 +34,7 @@ export default function Receive() {
       </Text>
 
       <Button title="Copy Address" onPress={copyAddress} containerStyle={styles.copyButton} />
-    </View>
+    </SafeAreaView>
   )
 }
 

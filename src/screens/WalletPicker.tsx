@@ -6,6 +6,7 @@ import {
   StyleSheet,
 } from 'react-native'
 import { NavigationProp, useNavigation } from '@react-navigation/native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useWalletNav } from 'navigation/hooks'
 import { settings } from 'utils/storage'
@@ -39,7 +40,7 @@ export default function WalletPicker() {
   )
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Select Wallet</Text>
       <Text style={styles.subtitle}>
         {wallets.length} wallet{wallets.length !== 1 ? 's' : ''} on this device
@@ -61,7 +62,7 @@ export default function WalletPicker() {
           theme="sapphire"
         />
       </View>
-    </View>
+    </SafeAreaView>
   )
 }
 

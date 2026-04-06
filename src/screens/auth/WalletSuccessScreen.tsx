@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useWalletCreated } from 'navigation/hooks'
 import { COLORS, MONO_FONT } from 'consts/theme'
 
@@ -34,7 +35,7 @@ const WalletSuccessScreen = ({ title, wallet, navigation }: Props) => {
   }
 
   return (
-    <View style={[styles.container, styles.centered]}>
+    <SafeAreaView style={[styles.container, styles.centered]}>
       <View style={styles.successCircle}>
         <Text style={styles.checkmark}>&#10003;</Text>
       </View>
@@ -49,7 +50,7 @@ const WalletSuccessScreen = ({ title, wallet, navigation }: Props) => {
       <TouchableOpacity style={styles.button} onPress={handleDone}>
         <Text style={styles.buttonText}>Done</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   )
 }
 

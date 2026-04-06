@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { createWallet } from 'utils/wallet'
 import { COLORS } from 'consts/theme'
 import WalletSuccessScreen from '../WalletSuccessScreen'
@@ -40,16 +41,16 @@ const WalletCreated = ({ navigation, route }: any) => {
 
   if (saving) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color={COLORS.accent} />
         <Text style={styles.savingText}>Creating wallet...</Text>
-      </View>
+      </SafeAreaView>
     )
   }
 
   if (error) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView style={[styles.container, styles.centered]}>
         <Text style={styles.errorIcon}>!</Text>
         <Text style={styles.errorTitle}>Error</Text>
         <Text style={styles.errorText}>{error}</Text>
@@ -59,7 +60,7 @@ const WalletCreated = ({ navigation, route }: any) => {
         >
           <Text style={styles.buttonText}>Go Back</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     )
   }
 
