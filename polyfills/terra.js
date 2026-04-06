@@ -13,9 +13,8 @@ const { sha256 } = require('@noble/hashes/sha2.js');
 const { ripemd160 } = require('@noble/hashes/legacy.js');
 const { HDKey } = require('@scure/bip32');
 
-// Use elliptic for secp256k1 (pure JS, used by the secp256k1 package's fallback)
-const EC = require('elliptic').ec;
-const ec = new EC('secp256k1');
+// Use @noble/curves for secp256k1 (pure JS, Hermes-compatible, already used elsewhere)
+const { secp256k1 } = require('@noble/curves/secp256k1');
 
 // --- Address derivation ---
 
@@ -94,8 +93,7 @@ class Key {
 class RawKey extends Key {
   constructor(privateKey) {
     const privBuf = Buffer.isBuffer(privateKey) ? privateKey : Buffer.from(privateKey);
-    const kp = ec.keyFromPrivate(privBuf);
-    const compressedPub = Buffer.from(kp.getPublic(true, 'array'));
+    const compressedPub = Buffer.from(secp256k1.getPublicKey(privBuf, true));
     const pubKeyBase64 = compressedPub.toString('base64');
     super(new SimplePublicKey(pubKeyBase64));
     this.privateKey = privBuf;
@@ -103,13 +101,9 @@ class RawKey extends Key {
 
   ecdsaSign(payload) {
     const hash = Buffer.from(sha256(payload));
-    const sig = ec.sign(hash, this.privateKey, { canonical: true });
-    const r = sig.r.toArray('be', 32);
-    const s = sig.s.toArray('be', 32);
-    const signature = new Uint8Array(64);
-    signature.set(r, 0);
-    signature.set(s, 32);
-    return { signature, recid: sig.recoveryParam };
+    const sig = secp256k1.sign(hash, this.privateKey);
+    const compactBytes = sig.toCompactRawBytes();
+    return { signature: compactBytes, recid: sig.recovery };
   }
 
   async sign(payload) {
