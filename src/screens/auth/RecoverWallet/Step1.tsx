@@ -30,14 +30,6 @@ const Step1 = ({ navigation }: any) => {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.secondaryButton, styles.disabledButton]}
-            disabled
-          >
-            <Text style={[styles.secondaryButtonText, styles.disabledText]}>
-              Scan QR code (coming soon)
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -80,26 +72,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  secondaryButton: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 99,
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  secondaryButtonText: {
-    color: COLORS.textPrimary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  disabledButton: {
-    backgroundColor: COLORS.disabled,
-    borderColor: COLORS.disabled,
-  },
-  disabledText: {
-    color: COLORS.disabledText,
   },
 })
 
