@@ -278,11 +278,16 @@ export default function DevFullE2ETest(): React.ReactElement {
       r['all-passed'] = 'false'
     }
 
-    // Clean up after test
+    // Restore original 3-wallet auth data (size test overwrites it)
+    // so migration onboarding tests can relaunch and see wallets
     try {
+      const encKey1 = encrypt(TEST_PRIVATE_KEY_1, PASSWORD_1)
+      const encKey2 = encrypt(TEST_PRIVATE_KEY_2, PASSWORD_2)
+      if (encKey1 && encKey2) {
+        const authDataJson = buildAuthData(encKey1, encKey2)
+        await keystore.write(KeystoreEnum.AuthData, authDataJson)
+      }
       await LegacyKeystore?.clearAllLegacyData()
-      await keystore.remove(KeystoreEnum.AuthData)
-      await preferences.setString(PreferencesEnum.legacyKeystoreMigrated, '')
     } catch {}
 
     setResults(r)
