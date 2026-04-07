@@ -81,4 +81,4 @@ credentials.json
 google-service-account.json
 
 # Status updates
-docs/status-update*
+docs/status-update*.superpowers/
