@@ -22,6 +22,7 @@ import { COLORS } from 'consts/theme'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import Loading from 'components/Loading'
+import VaultieComingSoonCard from 'components/VaultieComingSoonCard'
 import { useWalletNav } from 'navigation/hooks'
 
 import type { MainStackParams } from 'navigation/MainNavigator'
@@ -109,6 +110,7 @@ export default function WalletHome() {
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#fff" />
       }
     >
+      <VaultieComingSoonCard />
       <Text style={styles.walletName}>{wallet.name}</Text>
       <TouchableOpacity onPress={copyAddress}>
         <Text style={styles.address}>{truncated}</Text>
