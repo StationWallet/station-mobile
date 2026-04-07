@@ -1,26 +1,16 @@
-import { create, toBinary } from '@bufbuild/protobuf'
-import { secp256k1 } from '@noble/curves/secp256k1.js'
-import { hex, base64 } from '@scure/base'
+import { toBinary } from '@bufbuild/protobuf'
+import { base64 } from '@scure/base'
 import * as SecureStore from 'expo-secure-store'
 
-import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { getAuthData, AuthDataValueType, LedgerDataValueType } from 'utils/authData'
 import { decrypt } from 'utils/crypto'
+import { derivePublicKeyHex, buildVaultProto } from './vaultProto'
 
-const LOCAL_PARTY_ID = 'station-mobile'
 const VAULT_KEY_PREFIX = 'VAULT-'
 
-function vaultStoreOpts(): SecureStore.SecureStoreOptions {
-  return {
-    keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
-  }
-}
-
-function derivePublicKeyHex(privateKeyHex: string): string {
-  const privateKeyBytes = hex.decode(privateKeyHex)
-  const publicKeyBytes = secp256k1.getPublicKey(privateKeyBytes, true)
-  return hex.encode(publicKeyBytes)
+const VAULT_STORE_OPTS: SecureStore.SecureStoreOptions = {
+  keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
 }
 
 export interface MigrationWallet {
@@ -80,35 +70,14 @@ export async function migrateWalletToVault(
       publicKeyHex = derivePublicKeyHex(privateKeyHex)
     }
 
-    const vaultProto = create(VaultSchema, {
-      name,
-      publicKeyEcdsa: publicKeyHex,
-      publicKeyEddsa: '',
-      signers: [LOCAL_PARTY_ID],
-      localPartyId: LOCAL_PARTY_ID,
-      hexChainCode: '',
-      resharePrefix: '',
-      libType: LibType.KEYIMPORT,
-      keyShares: publicKeyHex
-        ? [{ publicKey: publicKeyHex, keyshare: privateKeyHex }]
-        : [],
-      chainPublicKeys: publicKeyHex
-        ? [{ chain: 'Terra', publicKey: publicKeyHex, isEddsa: false }]
-        : [],
-      createdAt: {
-        seconds: BigInt(Math.floor(Date.now() / 1000)),
-        nanos: 0,
-      },
-      publicKeyMldsa44: '',
-    })
-
+    const vaultProto = buildVaultProto(name, publicKeyHex, privateKeyHex)
     const vaultBytes = toBinary(VaultSchema, vaultProto)
     const encoded = base64.encode(vaultBytes)
 
     await SecureStore.setItemAsync(
       `${VAULT_KEY_PREFIX}${name}`,
       encoded,
-      vaultStoreOpts(),
+      VAULT_STORE_OPTS,
     )
 
     return { wallet, success: true }
@@ -148,7 +117,7 @@ export async function migrateAllWallets(
 export async function getStoredVault(walletName: string): Promise<string | null> {
   return SecureStore.getItemAsync(
     `${VAULT_KEY_PREFIX}${walletName}`,
-    vaultStoreOpts(),
+    VAULT_STORE_OPTS,
   )
 }
 
