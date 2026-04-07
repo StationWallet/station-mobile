@@ -28,7 +28,7 @@ import preferences, {
 } from 'nativeModules/preferences'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
 
-import { getSkipOnboarding, settings } from 'utils/storage'
+import { getSkipOnboarding, setSkipOnboarding, settings } from 'utils/storage'
 import { migrateLegacyKeystore } from 'utils/legacyMigration'
 
 import DebugBanner from './DebugBanner'
@@ -73,11 +73,27 @@ let App = ({
     securityCheckFailed,
   } = useSecurity()
 
-  /* onboarding */
+  /* onboarding — skip if migration flow will handle first-launch experience */
   const [showOnBoarding, setshowOnBoarding] = useState<boolean>(false)
 
   useEffect(() => {
-    getSkipOnboarding().then((b) => setshowOnBoarding(!b))
+    const checkOnboarding = async () => {
+      const skipOnboarding = await getSkipOnboarding()
+      if (skipOnboarding) {
+        setshowOnBoarding(false)
+        return
+      }
+      // If legacy wallets exist, the migration flow replaces onboarding
+      const { getWallets } = await import('utils/wallet')
+      const wallets = await getWallets()
+      if (wallets.length > 0) {
+        await setSkipOnboarding(true)
+        setshowOnBoarding(false)
+      } else {
+        setshowOnBoarding(true)
+      }
+    }
+    checkOnboarding()
   }, [])
 
   useEffect(() => {
