@@ -30,6 +30,7 @@ import keystore, { KeystoreEnum } from 'nativeModules/keystore'
 
 import { getSkipOnboarding, setSkipOnboarding, settings } from 'utils/storage'
 import { migrateLegacyKeystore } from 'utils/legacyMigration'
+import { getWallets } from 'utils/wallet'
 
 import DebugBanner from './DebugBanner'
 import OnBoarding from './OnBoarding'
@@ -83,8 +84,6 @@ let App = ({
         setshowOnBoarding(false)
         return
       }
-      // If legacy wallets exist, the migration flow replaces onboarding
-      const { getWallets } = await import('utils/wallet')
       const wallets = await getWallets()
       if (wallets.length > 0) {
         await setSkipOnboarding(true)
@@ -125,8 +124,8 @@ let App = ({
             <AuthProvider value={auth}>
               <SafeAreaProvider>
                 <StatusBar
-                  barStyle={themes?.[currentTheme]?.textContent ?? 'light-content'}
-                  backgroundColor={themes?.[currentTheme]?.backgroundColor}
+                  barStyle="light-content"
+                  backgroundColor={themes?.[currentTheme]?.backgroundColor ?? COLORS.bg}
                 />
                 <KeyboardAvoidingView
                   behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -203,26 +202,22 @@ const clearKeystoreWhenFirstRun = async (): Promise<void> => {
 
 export default (): ReactElement => {
   const [local, setLocal] = useState<Settings>()
-  const [initComplete, setInitComplete] = useState(false)
 
   useEffect(() => {
     const startup = async (): Promise<void> => {
-      // Migration must be sequential, but settings.get() reads a different key
-      const [, local] = await Promise.all([
+      const [, loaded] = await Promise.all([
         clearKeystoreWhenFirstRun().then(() => migrateLegacyKeystore()),
         settings.get(),
       ])
-      setLocal(local)
+      setLocal(loaded)
     }
 
-    startup().then((): void => {
-      setInitComplete(true)
-    })
+    startup()
   }, [])
 
   return (
     <>
-      {local && initComplete ? (
+      {local ? (
         <QueryClientProvider client={queryClient}>
           <RecoilRoot>
             <App settings={local} />

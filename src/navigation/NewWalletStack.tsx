@@ -8,7 +8,7 @@ import NewWalletStep3 from '../screens/auth/NewWallet/Step3'
 import WalletCreated from '../screens/auth/NewWallet/WalletCreated'
 const Stack = createStackNavigator()
 
-const StakingStack = (): ReactElement => (
+const NewWalletStack = (): ReactElement => (
   <Stack.Navigator initialRouteName="NewWalletStep1">
     <Stack.Screen
       name="NewWalletStep1"
@@ -33,4 +33,4 @@ const StakingStack = (): ReactElement => (
   </Stack.Navigator>
 )
 
-export default StakingStack
+export default NewWalletStack

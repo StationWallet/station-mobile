@@ -18,7 +18,7 @@ import Step4Seed from '../screens/auth/RecoverWallet/Step4Seed'
 
 import WalletRecovered from '../screens/auth/RecoverWallet/WalletRecovered'
 
-const StakingStack = (): ReactElement => (
+const RecoverWalletStackScreen = (): ReactElement => (
   <RecoverWalletStack.Navigator initialRouteName="Step1">
     <RecoverWalletStack.Screen
       name="Step1"
@@ -48,4 +48,4 @@ const StakingStack = (): ReactElement => (
   </RecoverWalletStack.Navigator>
 )
 
-export default StakingStack
+export default RecoverWalletStackScreen

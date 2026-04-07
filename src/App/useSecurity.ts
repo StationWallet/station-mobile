@@ -1,98 +1,51 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Platform } from 'react-native'
 import Security from 'utils/security'
 
-const DEFAULT_SECURITY_VALUE = __DEV__ ? false : undefined
+interface SecurityState {
+  isDeviceRooted: boolean
+  isDebugEnabled: boolean
+  isIncorrectFingerprint: boolean
+  isRunningEmulator: boolean
+}
 
 const useSecurity = (): {
   getSecurityErrorMessage: () => string
   securityCheckFailed: boolean | undefined
 } => {
-  const [isDeviceRooted, setDeviceRooted] = useState<
-    boolean | undefined
-  >(DEFAULT_SECURITY_VALUE)
+  const [state, setState] = useState<SecurityState | undefined>(
+    __DEV__
+      ? { isDeviceRooted: false, isDebugEnabled: false, isIncorrectFingerprint: false, isRunningEmulator: false }
+      : undefined,
+  )
 
-  const [isDebugEnabled, setDebugEnabled] = useState<
-    boolean | undefined
-  >(DEFAULT_SECURITY_VALUE)
-
-  const [isIncorrectFingerprint, setIncorrectFingerprint] = useState<
-    boolean | undefined
-  >(DEFAULT_SECURITY_VALUE)
-
-  const [isRunningEmulator, setRunningEmulator] = useState<
-    boolean | undefined
-  >(DEFAULT_SECURITY_VALUE)
-
-  const [securityCheckFailed, setSecurityCheckFailed] = useState<
-    boolean | undefined
-  >()
+  const securityCheckFailed = useMemo(() => {
+    if (!state) return undefined
+    return state.isDeviceRooted || state.isDebugEnabled || state.isIncorrectFingerprint || state.isRunningEmulator
+  }, [state])
 
   useEffect(() => {
-    if (
-      isDeviceRooted === undefined ||
-      isDebugEnabled === undefined ||
-      isIncorrectFingerprint === undefined ||
-      isRunningEmulator === undefined
-    ) {
-      return
-    }
+    if (state) return
 
-    const check =
-      isDeviceRooted ||
-      isDebugEnabled ||
-      isIncorrectFingerprint ||
-      isRunningEmulator
-    setSecurityCheckFailed(check)
-  }, [
-    isDeviceRooted,
-    isDebugEnabled,
-    isIncorrectFingerprint,
-    isRunningEmulator,
-  ])
-
-  useEffect(() => {
-    if (isDeviceRooted === undefined) {
-      Security.deviceRooted().then((ret: boolean) => {
-        setDeviceRooted(ret)
-      })
-    }
-
-    if (isDebugEnabled === undefined) {
-      Security.debugEnabled().then((ret: boolean) => {
-        setDebugEnabled(ret)
-      })
-    }
-
-    if (isIncorrectFingerprint === undefined) {
-      if (Platform.OS === 'android') {
-        Security.incorrectFingerprint().then((ret: boolean) => {
-          setIncorrectFingerprint(ret)
-        })
-      } else {
-        setIncorrectFingerprint(false)
-      }
-    }
-
-    if (isRunningEmulator === undefined) {
-      if (Platform.OS === 'android') {
-        Security.runningEmulator().then((ret: boolean) => {
-          setRunningEmulator(ret)
-        })
-      } else {
-        setRunningEmulator(false)
-      }
-    }
+    Promise.all([
+      Security.deviceRooted(),
+      Security.debugEnabled(),
+      Platform.OS === 'android' ? Security.incorrectFingerprint() : Promise.resolve(false),
+      Platform.OS === 'android' ? Security.runningEmulator() : Promise.resolve(false),
+    ]).then(([isDeviceRooted, isDebugEnabled, isIncorrectFingerprint, isRunningEmulator]) => {
+      setState({ isDeviceRooted, isDebugEnabled, isIncorrectFingerprint, isRunningEmulator })
+    })
   }, [])
 
   const getSecurityErrorMessage = (): string => {
-    return isDeviceRooted
+    if (!state) return ''
+    return state.isDeviceRooted
       ? 'The device is rooted. For security reasons the application cannot be run from a rooted device.'
-      : isDebugEnabled
+      : state.isDebugEnabled
       ? 'Developer debugging is turned on. Usage is restricted for security reasons.'
-      : isIncorrectFingerprint
+      : state.isIncorrectFingerprint
       ? 'Application signature is incorrect. Usage is restricted for security reasons.'
-      : isRunningEmulator
+      : state.isRunningEmulator
       ? 'Application is currently being run on an emulator. Usage is restricted for security reasons.'
       : ''
   }
