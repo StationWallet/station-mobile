@@ -60,6 +60,9 @@ export async function migrateLegacyKeystore(): Promise<void> {
       // Write to new expo-secure-store location
       await SecureStore.setItemAsync(LEGACY_ACCOUNT, legacyData, keychainOpts('AD'))
 
+      // Mark that we found and migrated actual legacy data
+      await preferences.setBool(PreferencesEnum.legacyDataFound, true)
+
       // Clean up old data only after successful write
       await LegacyKeystore.removeLegacy('AD')
     }

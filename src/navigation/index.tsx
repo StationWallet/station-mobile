@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native'
 
 import MainNavigator from './MainNavigator'
@@ -17,6 +17,15 @@ export { useWalletCreated, useWalletDisconnected, useWalletNav } from './hooks'
 
 type RootRoute = 'Migration' | 'Auth' | 'Main'
 
+async function pickInitialWallet(loaded: LocalWallet[]): Promise<LocalWallet | undefined> {
+  if (loaded.length === 1) return loaded[0]
+  if (loaded.length > 1) {
+    const saved = await settings.get()
+    return loaded.find((w) => w.name === saved.walletName)
+  }
+  return undefined
+}
+
 export default function AppNavigator() {
   const [wallets, setWallets] = useState<LocalWallet[] | null>(null)
   const [initialWallet, setInitialWallet] = useState<LocalWallet | undefined>(undefined)
@@ -34,20 +43,16 @@ export default function AppNavigator() {
     const init = async () => {
       const loaded = await loadWallets()
       const vaultsUpgraded = await preferences.getBool(PreferencesEnum.vaultsUpgraded)
+      const legacyDataFound = await preferences.getBool(PreferencesEnum.legacyDataFound)
 
-      if (loaded.length > 0 && !vaultsUpgraded) {
+      if (loaded.length > 0 && !vaultsUpgraded && legacyDataFound) {
         setRootRoute('Migration')
       } else if (loaded.length === 0) {
         setRootRoute('Auth')
       } else {
         setRootRoute('Main')
-        if (loaded.length === 1) {
-          setInitialWallet(loaded[0])
-        } else {
-          const saved = await settings.get()
-          const lastUsed = loaded.find((w) => w.name === saved.walletName)
-          if (lastUsed) setInitialWallet(lastUsed)
-        }
+        const picked = await pickInitialWallet(loaded)
+        if (picked) setInitialWallet(picked)
       }
     }
     init().catch(() => {
@@ -58,13 +63,8 @@ export default function AppNavigator() {
 
   const onMigrationComplete = useCallback(async () => {
     const loaded = await loadWallets()
-    if (loaded.length === 1) {
-      setInitialWallet(loaded[0])
-    } else if (loaded.length > 1) {
-      const saved = await settings.get()
-      const lastUsed = loaded.find((w) => w.name === saved.walletName)
-      if (lastUsed) setInitialWallet(lastUsed)
-    }
+    const picked = await pickInitialWallet(loaded)
+    if (picked) setInitialWallet(picked)
     setRootRoute('Main')
   }, [loadWallets])
 
@@ -87,13 +87,13 @@ export default function AppNavigator() {
     }
   }, [loadWallets])
 
-  const navTheme = {
+  const navTheme = useMemo(() => ({
     ...DefaultTheme,
     colors: {
       ...DefaultTheme.colors,
       background: themes?.[currentTheme]?.backgroundColor || COLORS.bg,
     },
-  }
+  }), [currentTheme])
 
   if (rootRoute === null || wallets === null) return null
 

@@ -11,6 +11,7 @@ export enum PreferencesEnum {
   stakingFilter = 'stakingFilter',
   tokens = 'tokens',
   legacyKeystoreMigrated = 'legacyKeystoreMigrated',
+  legacyDataFound = 'legacyDataFound',
   vaultsUpgraded = 'vaultsUpgraded',
 }
 
