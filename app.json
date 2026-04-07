@@ -19,7 +19,7 @@
       "policy": "fingerprint"
     },
     "updates": {
-      "url": "https://u.expo.dev/YOUR_PROJECT_ID",
+      "url": "https://u.expo.dev/3d195fcb-1b62-4088-88b8-4acb67e0eb4d",
       "fallbackToCacheTimeout": 0
     },
     "ios": {
