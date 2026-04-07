@@ -10,6 +10,7 @@ import { RouteProp, useRoute } from '@react-navigation/native'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
+import VaultieComingSoonCard from 'components/VaultieComingSoonCard'
 import { VULTISIG } from 'consts/vultisig'
 import preferences, { PreferencesEnum } from 'nativeModules/preferences'
 import { useMigrationComplete } from 'navigation/MigrationContext'
@@ -70,16 +71,8 @@ export default function MigrationSuccess() {
           ))}
         </Animated.View>
 
-        <Animated.View
-          entering={FadeInDown.delay(900).duration(400)}
-          style={styles.vaultieCard}
-        >
-          <Text style={styles.vaultieTitle} fontType="bold">
-            Vultisig Agent
-          </Text>
-          <Text style={styles.vaultieSubtitle} fontType="book">
-            Your AI-powered crypto companion is coming to this app. Stay tuned.
-          </Text>
+        <Animated.View entering={FadeInDown.delay(900).duration(400)}>
+          <VaultieComingSoonCard />
         </Animated.View>
 
         <Animated.View
@@ -162,25 +155,6 @@ const styles = StyleSheet.create({
   walletNameFailed: {
     color: VULTISIG.error,
   },
-  vaultieCard: {
-    width: '100%',
-    backgroundColor: VULTISIG.accentGlow,
-    borderWidth: 1,
-    borderColor: VULTISIG.cardBorder,
-    borderRadius: VULTISIG.radiusLg,
-    padding: 20,
-    marginBottom: 24,
-  },
-  vaultieTitle: {
-    fontSize: 18,
-    color: VULTISIG.accent,
-    marginBottom: 8,
-  },
-  vaultieSubtitle: {
-    fontSize: 14,
-    color: VULTISIG.textSecondary,
-    lineHeight: 20,
-  },
   buttonContainer: {
     width: '100%',
     paddingBottom: 24,
@@ -188,7 +162,5 @@ const styles = StyleSheet.create({
   },
   continueButton: {
     width: '100%',
-    backgroundColor: VULTISIG.accent,
-    borderColor: VULTISIG.accent,
   },
 })

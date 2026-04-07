@@ -10,17 +10,13 @@ import type { StackNavigationProp } from '@react-navigation/stack'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
+import { UTIL } from 'consts'
 import { VULTISIG } from 'consts/vultisig'
 import { discoverLegacyWallets, MigrationWallet } from 'services/migrateToVault'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'WalletDiscovery'>
-
-function truncateAddress(addr: string): string {
-  if (addr.length <= 16) return addr
-  return `${addr.slice(0, 10)}...${addr.slice(-4)}`
-}
 
 export default function WalletDiscovery() {
   const navigation = useNavigation<Nav>()
@@ -74,7 +70,7 @@ export default function WalletDiscovery() {
                   {wallet.name}
                 </Text>
                 <Text style={styles.walletAddress} fontType="book">
-                  {truncateAddress(wallet.address)}
+                  {UTIL.truncate(wallet.address, [10, 4])}
                 </Text>
               </View>
               {wallet.ledger && (
@@ -179,7 +175,5 @@ const styles = StyleSheet.create({
   },
   upgradeButton: {
     width: '100%',
-    backgroundColor: VULTISIG.accent,
-    borderColor: VULTISIG.accent,
   },
 })
