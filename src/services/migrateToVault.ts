@@ -1,6 +1,6 @@
 import { create, toBinary } from '@bufbuild/protobuf'
 import { secp256k1 } from '@noble/curves/secp256k1.js'
-import { hex } from '@scure/base'
+import { hex, base64 } from '@scure/base'
 import * as SecureStore from 'expo-secure-store'
 
 import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
@@ -103,7 +103,7 @@ export async function migrateWalletToVault(
     })
 
     const vaultBytes = toBinary(VaultSchema, vaultProto)
-    const encoded = btoa(String.fromCharCode(...vaultBytes))
+    const encoded = base64.encode(vaultBytes)
 
     await SecureStore.setItemAsync(
       `${VAULT_KEY_PREFIX}${name}`,

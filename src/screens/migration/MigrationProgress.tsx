@@ -8,7 +8,6 @@ import Animated, {
   withSequence,
   withTiming,
   withSpring,
-  withDelay,
   Easing,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -92,15 +91,12 @@ export default function MigrationProgress() {
   const { wallets } = params
 
   const [completedIndices, setCompletedIndices] = useState<Set<number>>(new Set())
-  const [results, setResults] = useState<MigrationResult[]>([])
 
   const runMigration = useCallback(async () => {
     const allResults: MigrationResult[] = []
-    let currentIndex = 0
 
-    await migrateAllWallets((result, index, _total) => {
+    await migrateAllWallets((result) => {
       allResults.push(result)
-      currentIndex = index
     })
 
     // Animate completions with staggered delays
@@ -112,8 +108,6 @@ export default function MigrationProgress() {
         }, MIN_DELAY_PER_WALLET)
       })
     }
-
-    setResults(allResults)
 
     // Brief pause after last checkmark before navigating
     setTimeout(() => {
