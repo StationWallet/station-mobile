@@ -28,12 +28,10 @@ import preferences, {
 } from 'nativeModules/preferences'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
 
-import { getSkipOnboarding, setSkipOnboarding, settings } from 'utils/storage'
+import { settings } from 'utils/storage'
 import { migrateLegacyKeystore } from 'utils/legacyMigration'
-import { getWallets } from 'utils/wallet'
 
 import DebugBanner from './DebugBanner'
-import OnBoarding from './OnBoarding'
 import GlobalTopNotification from './GlobalTopNotification'
 
 import { useAlertViewState } from './AlertView'
@@ -74,27 +72,6 @@ let App = ({
     securityCheckFailed,
   } = useSecurity()
 
-  /* onboarding — skip if migration flow will handle first-launch experience */
-  const [showOnBoarding, setshowOnBoarding] = useState<boolean>(false)
-
-  useEffect(() => {
-    const checkOnboarding = async () => {
-      const skipOnboarding = await getSkipOnboarding()
-      if (skipOnboarding) {
-        setshowOnBoarding(false)
-        return
-      }
-      const wallets = await getWallets()
-      if (wallets.length > 0) {
-        await setSkipOnboarding(true)
-        setshowOnBoarding(false)
-      } else {
-        setshowOnBoarding(true)
-      }
-    }
-    checkOnboarding()
-  }, [])
-
   useEffect(() => {
     if (securityCheckFailed !== undefined) {
       SplashScreen.hideAsync()
@@ -131,9 +108,7 @@ let App = ({
                   behavior={Platform.OS === "ios" ? "padding" : "height"}
                   style={{
                     ...defaultViewStyle,
-                    backgroundColor: showOnBoarding
-                      ? '#fff'
-                      : themes?.[currentTheme]?.backgroundColor || COLORS.bg,
+                    backgroundColor: themes?.[currentTheme]?.backgroundColor || COLORS.bg,
                   }}
                 >
                   {(securityCheckFailed) &&
@@ -142,12 +117,6 @@ let App = ({
                       style={{
                         flex: 1,
                       }}
-                    />
-                  ) : showOnBoarding ? (
-                    <OnBoarding
-                      closeOnBoarding={(): void =>
-                        setshowOnBoarding(false)
-                      }
                     />
                   ) : (
                     <>

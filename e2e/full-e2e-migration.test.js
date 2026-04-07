@@ -12,17 +12,7 @@ describe('Full E2E: Migration → Decrypt → Vault Export', () => {
     await device.launchApp({ delete: true, newInstance: true });
     await device.disableSynchronization();
 
-    // Dismiss onboarding screen if present
-    try {
-      await waitFor(element(by.text('Get started')))
-        .toBeVisible()
-        .withTimeout(15000);
-      await element(by.text('Get started')).tap();
-    } catch {
-      // Already past onboarding
-    }
-
-    // Tap the "Full E2E Test" dev button on AuthMenu (use text match for Fabric compat)
+    // Tap the "Full E2E Test" dev button on AuthMenu
     await waitFor(element(by.text('Full E2E Test (dev)')))
       .toBeVisible()
       .withTimeout(30000);
