@@ -82,13 +82,14 @@ export default function MigrationSuccess() {
           entering={FadeIn.delay(1200).duration(400)}
           style={styles.buttonContainer}
         >
-          <Button
-            title="Continue"
-            theme="sapphire"
-            onPress={handleContinue}
-            containerStyle={styles.continueButton}
-            testID="continue-button"
-          />
+          <View testID="continue-button">
+            <Button
+              title="Continue"
+              theme="sapphire"
+              onPress={handleContinue}
+              containerStyle={styles.continueButton}
+            />
+          </View>
         </Animated.View>
       </View>
     </SafeAreaView>

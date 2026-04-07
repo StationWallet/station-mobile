@@ -77,13 +77,14 @@ export default function WalletDiscovery() {
             entering={FadeInDown.delay(400 + wallets.length * 150 + 200).duration(500)}
             style={styles.buttonContainer}
           >
-            <Button
-              title="Upgrade"
-              theme="sapphire"
-              onPress={() => navigation.navigate('MigrationProgress', { wallets })}
-              containerStyle={styles.upgradeButton}
-              testID="upgrade-button"
-            />
+            <View testID="upgrade-button">
+              <Button
+                title="Upgrade"
+                theme="sapphire"
+                onPress={() => navigation.navigate('MigrationProgress', { wallets })}
+                containerStyle={styles.upgradeButton}
+              />
+            </View>
           </Animated.View>
         )}
       </View>
