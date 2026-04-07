@@ -27,9 +27,7 @@ export default function MigrationSuccess() {
   const allFailed = successCount === 0
 
   const handleContinue = async () => {
-    if (!allFailed) {
-      await preferences.setBool(PreferencesEnum.vaultsUpgraded, true)
-    }
+    await preferences.setBool(PreferencesEnum.vaultsUpgraded, true)
     onMigrationComplete()
   }
 
