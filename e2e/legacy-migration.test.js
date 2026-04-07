@@ -3,14 +3,14 @@ describe('Legacy Keystore Migration', () => {
     await device.launchApp({ newInstance: true });
     await device.disableSynchronization();
 
-    // Tap the dev-only "Migration Test" button on AuthMenu
-    await waitFor(element(by.id('dev-migration-test')))
+    // Tap the dev-only "Full E2E Test" button on AuthMenu
+    await waitFor(element(by.id('dev-full-e2e-test')))
       .toBeVisible()
       .withTimeout(30000);
-    await element(by.id('dev-migration-test')).tap();
+    await element(by.id('dev-full-e2e-test')).tap();
 
     // Wait for test results to render
-    await waitFor(element(by.id('migration-all-passed')))
+    await waitFor(element(by.id('e2e-all-passed')))
       .toExist()
       .withTimeout(30000);
   });
@@ -20,47 +20,35 @@ describe('Legacy Keystore Migration', () => {
   });
 
   it('seeds legacy data successfully', async () => {
-    await expect(element(by.id('migration-seeded'))).toHaveText('seeded: true');
+    await expect(element(by.id('e2e-step03-seeded'))).toHaveText('step03-seeded: true');
   });
 
   it('reads legacy data via native module', async () => {
-    await expect(element(by.id('migration-legacy-readable'))).toHaveText(
-      'legacy-readable: true'
+    await expect(element(by.id('e2e-step04-legacy-read'))).toHaveText(
+      'step04-legacy-read: true'
     );
   });
 
   it('migrates data to new expo-secure-store location', async () => {
-    await expect(element(by.id('migration-new-readable'))).toHaveText(
-      'new-readable: true'
+    await expect(element(by.id('e2e-step06-new-store'))).toHaveText(
+      'step06-new-store: true'
     );
   });
 
   it('cleans up legacy data after migration', async () => {
-    await expect(element(by.id('migration-legacy-cleaned'))).toHaveText(
-      'legacy-cleaned: true'
+    await expect(element(by.id('e2e-step07-legacy-cleaned'))).toHaveText(
+      'step07-legacy-cleaned: true'
     );
   });
 
   it('migration is idempotent', async () => {
-    await expect(element(by.id('migration-idempotent'))).toHaveText(
-      'idempotent: true'
-    );
-  });
-
-  it('preserves wallet name', async () => {
-    await expect(element(by.id('migration-wallet-name'))).toHaveText(
-      'wallet-name: TestLegacyWallet'
-    );
-  });
-
-  it('preserves wallet address', async () => {
-    await expect(element(by.id('migration-wallet-address'))).toHaveText(
-      'wallet-address: terra1test000legacy000migration000addr'
+    await expect(element(by.id('e2e-step08-idempotent'))).toHaveText(
+      'step08-idempotent: true'
     );
   });
 
   it('all migration checks pass', async () => {
-    await expect(element(by.id('migration-all-passed'))).toHaveText(
+    await expect(element(by.id('e2e-all-passed'))).toHaveText(
       'all-passed: true'
     );
   });

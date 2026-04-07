@@ -8,10 +8,6 @@ const CryptoTestScreen = __DEV__
   ? require('../components/CryptoTestScreen').default
   : null
 
-const DevMigrationTest = __DEV__
-  ? require('../components/DevMigrationTest').default
-  : null
-
 const DevFullE2ETest = __DEV__
   ? require('../components/DevFullE2ETest').default
   : null
@@ -26,9 +22,6 @@ export default function AuthNavigator() {
       <Stack.Screen name="RecoverWallet" component={RecoverWalletStack} />
       {__DEV__ && CryptoTestScreen && (
         <Stack.Screen name="CryptoTest" component={CryptoTestScreen} />
-      )}
-      {__DEV__ && DevMigrationTest && (
-        <Stack.Screen name="MigrationTest" component={DevMigrationTest} />
       )}
       {__DEV__ && DevFullE2ETest && (
         <Stack.Screen name="FullE2ETest" component={DevFullE2ETest} />

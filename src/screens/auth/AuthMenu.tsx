@@ -20,7 +20,6 @@ const AuthMenu = ({ navigation }: any) => {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Logo area */}
         <View style={styles.logoArea}>
           <View style={styles.logoCircle}>
             <Text style={styles.logoText}>S</Text>
@@ -31,7 +30,6 @@ const AuthMenu = ({ navigation }: any) => {
           </Text>
         </View>
 
-        {/* Buttons */}
         <View style={styles.buttons}>
           <TouchableOpacity
             style={authStyles.button}
@@ -50,33 +48,22 @@ const AuthMenu = ({ navigation }: any) => {
           </TouchableOpacity>
 
           {__DEV__ && (
-            <TouchableOpacity
-              testID="dev-crypto-test"
-              style={styles.secondaryButton}
-              onPress={() => navigation.navigate('CryptoTest')}
-            >
-              <Text style={styles.secondaryButtonText}>Crypto Tests (dev)</Text>
-            </TouchableOpacity>
-          )}
-
-          {__DEV__ && (
-            <TouchableOpacity
-              testID="dev-migration-test"
-              style={styles.secondaryButton}
-              onPress={() => navigation.navigate('MigrationTest')}
-            >
-              <Text style={styles.secondaryButtonText}>Migration Tests (dev)</Text>
-            </TouchableOpacity>
-          )}
-
-          {__DEV__ && (
-            <TouchableOpacity
-              testID="dev-full-e2e-test"
-              style={styles.secondaryButton}
-              onPress={() => navigation.navigate('FullE2ETest')}
-            >
-              <Text style={styles.secondaryButtonText}>Full E2E Test (dev)</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                testID="dev-crypto-test"
+                style={styles.secondaryButton}
+                onPress={() => navigation.navigate('CryptoTest')}
+              >
+                <Text style={styles.secondaryButtonText}>Crypto Tests (dev)</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="dev-full-e2e-test"
+                style={styles.secondaryButton}
+                onPress={() => navigation.navigate('FullE2ETest')}
+              >
+                <Text style={styles.secondaryButtonText}>Full E2E Test (dev)</Text>
+              </TouchableOpacity>
+            </>
           )}
         </View>
       </ScrollView>
