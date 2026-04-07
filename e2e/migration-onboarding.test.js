@@ -1,9 +1,12 @@
 /**
  * Migration Onboarding E2E Tests
  *
- * Order matters: clean install runs first (single simulator erase),
- * then happy path seeds data on the clean state, then already-migrated
- * reuses that state. This minimizes simulator erases (slow ~20s boot).
+ * Tests the REAL upgrade path: seed legacy keystore data (simulating old
+ * Station app), kill app, relaunch (migrateLegacyKeystore runs on startup),
+ * walk through migration UI, verify vault protobuf data integrity, then
+ * confirm persistence across relaunches.
+ *
+ * This is critical — if migration produces incorrect vaults, users lose funds.
  */
 describe('Migration Onboarding Flow', () => {
 
@@ -32,23 +35,24 @@ describe('Migration Onboarding Flow', () => {
     });
   });
 
-  describe('2. Happy path — wallets detected', () => {
+  describe('2. Real upgrade path — seed, relaunch, migrate, verify', () => {
     beforeAll(async () => {
-      // Seed legacy wallet data via the Full E2E Test screen
-      // (simulator is already clean from suite 1)
+      // PHASE 1: Seed legacy keystore data (simulates old Station app)
       await device.launchApp({ delete: true, newInstance: true });
       await device.disableSynchronization();
 
-      await waitFor(element(by.text('Full E2E Test (dev)')))
+      await waitFor(element(by.text('Seed Legacy Data (dev)')))
         .toBeVisible()
         .withTimeout(30000);
-      await element(by.text('Full E2E Test (dev)')).tap();
+      await element(by.text('Seed Legacy Data (dev)')).tap();
 
-      await waitFor(element(by.text('all-passed: true')))
+      await waitFor(element(by.id('seed-done')))
         .toExist()
-        .withTimeout(90000);
+        .withTimeout(30000);
+      await expect(element(by.id('seed-status'))).toHaveText('seeded');
 
-      // Relaunch — app will now see migrated wallets + legacyDataFound=true
+      // PHASE 2: Kill and relaunch — real upgrade moment
+      // clearKeystoreWhenFirstRun() → migrateLegacyKeystore() → legacyDataFound=true
       await device.launchApp({ newInstance: true });
       await device.disableSynchronization();
     });
@@ -57,7 +61,9 @@ describe('Migration Onboarding Flow', () => {
       await device.enableSynchronization();
     });
 
-    it('shows WalletDiscovery screen with found wallets', async () => {
+    // --- Migration UI flow ---
+
+    it('shows WalletDiscovery with wallets from legacy keystore', async () => {
       await waitFor(element(by.id('wallet-card-0')))
         .toBeVisible()
         .withTimeout(30000);
@@ -67,45 +73,79 @@ describe('Migration Onboarding Flow', () => {
       await expect(element(by.id('upgrade-button'))).toExist();
     });
 
-    it('taps Upgrade and shows progress animation', async () => {
+    it('taps Upgrade and shows migration progress', async () => {
       await element(by.id('upgrade-button')).tap();
-
       await waitFor(element(by.id('progress-card-0')))
         .toBeVisible()
         .withTimeout(10000);
     });
 
-    it('navigates to success screen after migration', async () => {
+    it('navigates to success screen', async () => {
       await waitFor(element(by.id('continue-button')))
         .toBeVisible()
         .withTimeout(30000);
     });
 
-    it('shows migrated wallet names on success screen', async () => {
+    it('shows migrated wallet results', async () => {
       await expect(element(by.id('success-wallet-0'))).toBeVisible();
     });
 
+    // --- Vault data integrity verification (dev-mode inline on success screen) ---
+
+    it('vault1: exists with correct private key', async () => {
+      await waitFor(element(by.id('verify-all-passed')))
+        .toExist()
+        .withTimeout(15000);
+      await expect(element(by.id('verify-vault1-exists'))).toHaveText('vault1-exists: true');
+      await expect(element(by.id('verify-vault1-keyshare'))).toHaveText('vault1-keyshare: true');
+    });
+
+    it('vault1: correct public key derived from private key', async () => {
+      await expect(element(by.id('verify-vault1-pubkey'))).toHaveText('vault1-pubkey: true');
+      await expect(element(by.id('verify-vault1-derive-check'))).toHaveText('vault1-derive-check: true');
+    });
+
+    it('vault1: correct chain config and lib type', async () => {
+      await expect(element(by.id('verify-vault1-chain'))).toHaveText('vault1-chain: true');
+      await expect(element(by.id('verify-vault1-libtype'))).toHaveText('vault1-libtype: true');
+    });
+
+    it('vault2: exists with correct key material', async () => {
+      await expect(element(by.id('verify-vault2-exists'))).toHaveText('vault2-exists: true');
+      await expect(element(by.id('verify-vault2-pubkey'))).toHaveText('vault2-pubkey: true');
+      await expect(element(by.id('verify-vault2-keyshare'))).toHaveText('vault2-keyshare: true');
+    });
+
+    it('ledger vault: exists with no key material', async () => {
+      await expect(element(by.id('verify-ledger-exists'))).toHaveText('ledger-exists: true');
+      await expect(element(by.id('verify-ledger-no-keyshares'))).toHaveText('ledger-no-keyshares: true');
+      await expect(element(by.id('verify-ledger-no-pubkey'))).toHaveText('ledger-no-pubkey: true');
+    });
+
+    it('all vault integrity checks pass', async () => {
+      await expect(element(by.id('verify-all-passed'))).toHaveText('all-passed: true');
+    });
+
+    // --- Complete migration ---
+
     it('taps Continue to complete migration', async () => {
       await element(by.id('continue-button')).tap();
-      // Let the async preference write (vaultsUpgraded=true) flush to keychain
       await new Promise(r => setTimeout(r, 1000));
     });
   });
 
-  describe('3. Already migrated — vaultsUpgraded is true', () => {
+  describe('3. Persistence — migration not shown again', () => {
     beforeAll(async () => {
-      // Relaunch preserving state from suite 2 (vaultsUpgraded set on mount)
       await device.launchApp({ newInstance: true });
       await device.disableSynchronization();
+      await new Promise(r => setTimeout(r, 3000));
     });
 
     afterAll(async () => {
       await device.enableSynchronization();
     });
 
-    it('skips migration flow on relaunch', async () => {
-      // Wait for the app to settle, then confirm migration screen is absent
-      await new Promise(r => setTimeout(r, 3000));
+    it('vaultsUpgraded persists — migration flow is skipped', async () => {
       await expect(element(by.id('wallet-card-0'))).not.toExist();
     });
   });

@@ -104,6 +104,7 @@ export default function WalletHome() {
   return (
     <SafeAreaView style={styles.container}>
     <ScrollView
+      testID="wallet-home-scroll"
       style={{ flex: 1 }}
       contentContainerStyle={styles.content}
       refreshControl={
@@ -168,6 +169,15 @@ export default function WalletHome() {
         <TouchableOpacity style={styles.managementRow} onPress={handleRemove}>
           <Text style={styles.removeText}>Remove Wallet</Text>
         </TouchableOpacity>
+        {__DEV__ && (
+          <TouchableOpacity
+            testID="dev-verify-vault"
+            style={styles.managementRow}
+            onPress={() => navigation.navigate('VerifyVault')}
+          >
+            <Text style={styles.managementText}>Verify Vault (dev)</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ScrollView>
     </SafeAreaView>

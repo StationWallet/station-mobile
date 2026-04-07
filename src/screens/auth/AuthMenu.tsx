@@ -63,6 +63,13 @@ const AuthMenu = ({ navigation }: any) => {
               >
                 <Text style={styles.secondaryButtonText}>Full E2E Test (dev)</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                testID="dev-seed-legacy"
+                style={styles.secondaryButton}
+                onPress={() => navigation.navigate('SeedLegacyData')}
+              >
+                <Text style={styles.secondaryButtonText}>Seed Legacy Data (dev)</Text>
+              </TouchableOpacity>
             </>
           )}
         </View>

@@ -9,6 +9,10 @@ import NewWalletStack from './NewWalletStack'
 import RecoverWalletStack from './RecoverWalletStack'
 import ExportPrivateKey from '../screens/ExportPrivateKey'
 
+const DevVerifyVault = __DEV__
+  ? require('../components/DevVerifyVault').default
+  : null
+
 export type MainStackParams = {
   WalletPicker: undefined
   WalletHome: { wallet: { name: string; address: string } }
@@ -18,6 +22,7 @@ export type MainStackParams = {
   AddNewWallet: undefined
   AddRecoverWallet: undefined
   ExportPrivateKey: { wallet: { name: string; address: string } }
+  VerifyVault: undefined
 }
 
 const Stack = createStackNavigator<MainStackParams>()
@@ -50,6 +55,9 @@ export default function MainNavigator({ initialWallet }: Props) {
       <Stack.Screen name="AddNewWallet" component={NewWalletStack} />
       <Stack.Screen name="AddRecoverWallet" component={RecoverWalletStack} />
       <Stack.Screen name="ExportPrivateKey" component={ExportPrivateKey} />
+      {__DEV__ && DevVerifyVault && (
+        <Stack.Screen name="VerifyVault" component={DevVerifyVault} />
+      )}
     </Stack.Navigator>
   )
 }

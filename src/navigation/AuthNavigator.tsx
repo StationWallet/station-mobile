@@ -12,6 +12,14 @@ const DevFullE2ETest = __DEV__
   ? require('../components/DevFullE2ETest').default
   : null
 
+const DevSeedLegacyData = __DEV__
+  ? require('../components/DevSeedLegacyData').default
+  : null
+
+const DevVerifyVault = __DEV__
+  ? require('../components/DevVerifyVault').default
+  : null
+
 const Stack = createStackNavigator()
 
 export default function AuthNavigator() {
@@ -25,6 +33,12 @@ export default function AuthNavigator() {
       )}
       {__DEV__ && DevFullE2ETest && (
         <Stack.Screen name="FullE2ETest" component={DevFullE2ETest} />
+      )}
+      {__DEV__ && DevSeedLegacyData && (
+        <Stack.Screen name="SeedLegacyData" component={DevSeedLegacyData} />
+      )}
+      {__DEV__ && DevVerifyVault && (
+        <Stack.Screen name="VerifyVault" component={DevVerifyVault} />
       )}
     </Stack.Navigator>
   )

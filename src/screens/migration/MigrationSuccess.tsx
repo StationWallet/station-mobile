@@ -18,6 +18,10 @@ import { useMigrationComplete } from 'navigation/MigrationContext'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 import type { MigrationResult } from 'services/migrateToVault'
 
+const DevVerifyVault = __DEV__
+  ? require('components/DevVerifyVault').default
+  : null
+
 export default function MigrationSuccess() {
   const { params } = useRoute<RouteProp<MigrationStackParams, 'MigrationSuccess'>>()
   const onMigrationComplete = useMigrationComplete()
@@ -90,6 +94,8 @@ export default function MigrationSuccess() {
             testID="continue-button"
           />
         </Animated.View>
+
+        {__DEV__ && DevVerifyVault && <DevVerifyVault />}
       </View>
     </SafeAreaView>
   )
