@@ -92,7 +92,21 @@ describe('Migration Onboarding Flow', () => {
     });
   });
 
-  // Note: "vaultsUpgraded" persistence across app kills is verified
-  // manually. Detox kills the process before the async keychain write
-  // from handleContinue can flush, making automated verification unreliable.
+  describe('3. Already migrated — vaultsUpgraded is true', () => {
+    beforeAll(async () => {
+      // Relaunch preserving state from suite 2 (vaultsUpgraded set on mount)
+      await device.launchApp({ newInstance: true });
+      await device.disableSynchronization();
+    });
+
+    afterAll(async () => {
+      await device.enableSynchronization();
+    });
+
+    it('skips migration flow on relaunch', async () => {
+      // Wait for the app to settle, then confirm migration screen is absent
+      await new Promise(r => setTimeout(r, 3000));
+      await expect(element(by.id('wallet-card-0'))).not.toExist();
+    });
+  });
 });

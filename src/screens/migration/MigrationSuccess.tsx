@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { View, StyleSheet } from 'react-native'
 import Animated, {
   FadeIn,
@@ -26,8 +26,13 @@ export default function MigrationSuccess() {
   const successCount = results.filter((r) => r.success).length
   const allFailed = successCount === 0
 
-  const handleContinue = async () => {
-    await preferences.setBool(PreferencesEnum.vaultsUpgraded, true)
+  // Write the flag eagerly when this screen mounts (not just on tap)
+  // so it persists even if the app is killed before the user taps Continue
+  useEffect(() => {
+    preferences.setBool(PreferencesEnum.vaultsUpgraded, true)
+  }, [])
+
+  const handleContinue = () => {
     onMigrationComplete()
   }
 
