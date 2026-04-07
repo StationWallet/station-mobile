@@ -3,7 +3,6 @@ import { View, StyleSheet } from 'react-native'
 import Animated, {
   FadeInDown,
   FadeIn,
-  SlideInDown,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
@@ -28,11 +27,18 @@ export default function WalletDiscovery() {
   const [wallets, setWallets] = useState<MigrationWallet[]>([])
   const [ready, setReady] = useState(false)
 
+  const [error, setError] = useState(false)
+
   useEffect(() => {
-    discoverLegacyWallets().then((found) => {
-      setWallets(found)
-      setReady(true)
-    })
+    discoverLegacyWallets()
+      .then((found) => {
+        setWallets(found)
+        setReady(true)
+      })
+      .catch(() => {
+        setError(true)
+        setReady(true)
+      })
   }, [])
 
   return (
@@ -47,11 +53,19 @@ export default function WalletDiscovery() {
           </Text>
         </Animated.View>
 
+        {error && (
+          <View style={styles.errorCard}>
+            <Text style={styles.errorText} fontType="book">
+              Something went wrong reading your wallets. Please restart the app and try again.
+            </Text>
+          </View>
+        )}
+
         <View style={styles.walletList}>
           {wallets.map((wallet, index) => (
             <Animated.View
               key={wallet.name}
-              entering={SlideInDown.delay(400 + index * 150).springify().damping(15)}
+              entering={FadeInDown.delay(400 + index * 150).duration(400)}
               style={styles.walletCard}
               testID={`wallet-card-${index}`}
             >
@@ -77,14 +91,13 @@ export default function WalletDiscovery() {
             entering={FadeInDown.delay(400 + wallets.length * 150 + 200).duration(500)}
             style={styles.buttonContainer}
           >
-            <View testID="upgrade-button">
-              <Button
-                title="Upgrade"
-                theme="sapphire"
-                onPress={() => navigation.navigate('MigrationProgress', { wallets })}
-                containerStyle={styles.upgradeButton}
-              />
-            </View>
+            <Button
+              title="Upgrade"
+              theme="sapphire"
+              onPress={() => navigation.navigate('MigrationProgress', { wallets })}
+              containerStyle={styles.upgradeButton}
+              testID="upgrade-button"
+            />
           </Animated.View>
         )}
       </View>
@@ -114,6 +127,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: VULTISIG.textSecondary,
     lineHeight: 22,
+  },
+  errorCard: {
+    backgroundColor: 'rgba(255, 92, 92, 0.1)',
+    borderRadius: VULTISIG.radiusMd,
+    padding: 16,
+    marginBottom: 16,
+  },
+  errorText: {
+    fontSize: 14,
+    color: VULTISIG.error,
+    lineHeight: 20,
   },
   walletList: {
     flex: 1,

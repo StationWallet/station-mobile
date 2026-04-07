@@ -4,7 +4,6 @@ import Animated, {
   FadeIn,
   FadeInDown,
   BounceIn,
-  SlideInDown,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { RouteProp, useRoute } from '@react-navigation/native'
@@ -23,26 +22,31 @@ export default function MigrationSuccess() {
   const onMigrationComplete = useMigrationComplete()
   const results: MigrationResult[] = params.results
 
+  const successCount = results.filter((r) => r.success).length
+  const allFailed = successCount === 0
+
   const handleContinue = async () => {
-    await preferences.setBool(PreferencesEnum.vaultsUpgraded, true)
+    if (!allFailed) {
+      await preferences.setBool(PreferencesEnum.vaultsUpgraded, true)
+    }
     onMigrationComplete()
   }
-
-  const successCount = results.filter((r) => r.success).length
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Animated.View entering={BounceIn.delay(200).duration(600)} style={styles.iconContainer}>
-          <Text style={styles.icon}>{'✓'}</Text>
+        <Animated.View entering={BounceIn.delay(200).duration(600)} style={[styles.iconContainer, allFailed && styles.iconContainerFailed]}>
+          <Text style={styles.icon}>{allFailed ? '!' : '✓'}</Text>
         </Animated.View>
 
         <Animated.View entering={FadeIn.delay(500).duration(500)}>
           <Text style={styles.title} fontType="bold">
-            Wallets Upgraded
+            {allFailed ? 'Migration Failed' : 'Wallets Upgraded'}
           </Text>
           <Text style={styles.subtitle} fontType="book">
-            {successCount} {successCount === 1 ? 'wallet' : 'wallets'} successfully migrated to Vultisig format.
+            {allFailed
+              ? 'Unable to migrate your wallets. Please restart the app to try again.'
+              : `${successCount} ${successCount === 1 ? 'wallet' : 'wallets'} successfully migrated to Vultisig format.`}
           </Text>
         </Animated.View>
 
@@ -67,7 +71,7 @@ export default function MigrationSuccess() {
         </Animated.View>
 
         <Animated.View
-          entering={SlideInDown.delay(900).springify().damping(14)}
+          entering={FadeInDown.delay(900).duration(400)}
           style={styles.vaultieCard}
         >
           <Text style={styles.vaultieTitle} fontType="bold">
@@ -82,14 +86,13 @@ export default function MigrationSuccess() {
           entering={FadeIn.delay(1200).duration(400)}
           style={styles.buttonContainer}
         >
-          <View testID="continue-button">
-            <Button
-              title="Continue"
-              theme="sapphire"
-              onPress={handleContinue}
-              containerStyle={styles.continueButton}
-            />
-          </View>
+          <Button
+            title="Continue"
+            theme="sapphire"
+            onPress={handleContinue}
+            containerStyle={styles.continueButton}
+            testID="continue-button"
+          />
         </Animated.View>
       </View>
     </SafeAreaView>
@@ -115,6 +118,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
+  },
+  iconContainerFailed: {
+    backgroundColor: VULTISIG.error,
   },
   icon: {
     fontSize: 36,
