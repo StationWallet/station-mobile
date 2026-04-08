@@ -4,7 +4,7 @@ import * as SecureStore from 'expo-secure-store'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
-import { getAuthData, removeAuthData, AuthDataValueType, LedgerDataValueType } from 'utils/authData'
+import { getAuthData, upsertAuthData, AuthDataValueType, LedgerDataValueType } from 'utils/authData'
 import { decrypt } from 'utils/crypto'
 import { derivePublicKeyHex, buildVaultProto } from './vaultProto'
 import type { KeyImportResult } from './dklsKeyImport'
@@ -166,7 +166,22 @@ export async function storeFastVault(
     throw new Error('Vault verification failed: stored data does not match')
   }
 
-  await removeAuthData({ walletName })
+  // Strip key material but keep the wallet entry so it remains in the wallet list.
+  // The address is needed for display; encryptedKey and password are the sensitive data.
+  const authData = await getAuthData()
+  if (authData && authData[walletName] && !authData[walletName].ledger) {
+    const entry = authData[walletName] as AuthDataValueType
+    await upsertAuthData({
+      authData: {
+        [walletName]: {
+          address: entry.address,
+          encryptedKey: '',
+          password: '',
+          ledger: false,
+        },
+      },
+    })
+  }
 }
 
 /**

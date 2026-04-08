@@ -228,6 +228,58 @@ describe('Fast Vault Migration', () => {
     });
   });
 
+  describe('Post-migration — wallets visible and exportable', () => {
+    beforeAll(async () => {
+      await device.launchApp({
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
+      await device.disableSynchronization();
+      await new Promise(r => setTimeout(r, 3000));
+    });
+
+    afterAll(async () => {
+      await device.enableSynchronization();
+    });
+
+    it('should show migrated wallet on WalletHome', async () => {
+      // After migration, app should land on WalletHome for a migrated wallet
+      await waitFor(element(by.text('LUNA')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
+
+    it('should show Export Vault Share option', async () => {
+      await waitFor(element(by.text('Export Vault Share')))
+        .toBeVisible()
+        .withTimeout(5000);
+    });
+
+    it('should show all wallets in wallet picker', async () => {
+      // Tap Switch/All Wallets to see the full list
+      let tapped = false;
+      try {
+        await element(by.text('Switch Wallet')).tap();
+        tapped = true;
+      } catch (_) {}
+      if (!tapped) {
+        await element(by.text('All Wallets')).tap();
+      }
+
+      await waitFor(element(by.text('Select Wallet')))
+        .toBeVisible()
+        .withTimeout(5000);
+
+      // Should see both migrated wallets (not just the ledger)
+      await waitFor(element(by.text('TestWallet1')))
+        .toBeVisible()
+        .withTimeout(5000);
+      await waitFor(element(by.text('TestWallet2')))
+        .toBeVisible()
+        .withTimeout(5000);
+    });
+  });
+
   describe('Persistence — migration not shown again', () => {
     beforeAll(async () => {
       await device.launchApp({
