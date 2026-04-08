@@ -192,9 +192,9 @@ export async function importKeyToFastVault(options: {
 
   const cipherKey = deriveCipherKey(hexEncryptionKey)
 
-  // Batch endpoint uses setupKey="" for ecdsa, which maps to the default setup-message endpoint
+  // Batch endpoint uses setupKey="" for ecdsa — upload to default setup-message endpoint (no messageId)
   const encryptedSetup = encryptAesGcm(importResult.setupMessage, cipherKey)
-  await uploadSetupMessage(sessionId, encryptedSetup, 'ecdsa')
+  await uploadSetupMessage(sessionId, encryptedSetup)
 
   report({ step: 'ecdsa', message: 'Running MPC protocol...', progress: 48 })
 
