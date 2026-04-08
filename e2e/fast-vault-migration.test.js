@@ -245,10 +245,9 @@ describe('Fast Vault Migration', () => {
     });
 
     it('should show all wallets and Export Vault Share', async () => {
-      // Wait for WalletHome to render — Detox sync can't detect idle with timers
-      await waitFor(element(by.text('LUNA')))
-        .toBeVisible()
-        .withTimeout(30000);
+      // Detox sync can't detect idle when app has persistent timers (balance polling).
+      // Use direct expect() after manual sleep — not waitFor() which blocks on sync.
+      await new Promise(r => setTimeout(r, 8000));
 
       // Navigate to wallet picker
       let tapped = false;
@@ -258,12 +257,15 @@ describe('Fast Vault Migration', () => {
       }
 
       if (tapped) {
-        await waitFor(element(by.text('TestWallet1'))).toBeVisible().withTimeout(5000);
+        await new Promise(r => setTimeout(r, 1000));
+        await expect(element(by.text('TestWallet1'))).toBeVisible();
         await expect(element(by.text('TestWallet2'))).toBeVisible();
 
         await element(by.text('TestWallet1')).tap();
-        await waitFor(element(by.text('Export Vault Share'))).toBeVisible().withTimeout(10000);
+        await new Promise(r => setTimeout(r, 2000));
       }
+
+      await expect(element(by.text('Export Vault Share'))).toBeVisible();
     });
   });
 
