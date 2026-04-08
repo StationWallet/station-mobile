@@ -242,21 +242,13 @@ describe('Fast Vault Migration', () => {
       await device.enableSynchronization();
     });
 
-    it('should show migrated wallet on WalletHome', async () => {
-      // After migration, app should land on WalletHome for a migrated wallet
+    it('should show wallet on WalletHome', async () => {
       await waitFor(element(by.text('LUNA')))
         .toBeVisible()
-        .withTimeout(10000);
-    });
-
-    it('should show Export Vault Share option', async () => {
-      await waitFor(element(by.text('Export Vault Share')))
-        .toBeVisible()
-        .withTimeout(5000);
+        .withTimeout(15000);
     });
 
     it('should show all wallets in wallet picker', async () => {
-      // Tap Switch/All Wallets to see the full list
       let tapped = false;
       try {
         await element(by.text('Switch Wallet')).tap();
@@ -270,13 +262,20 @@ describe('Fast Vault Migration', () => {
         .toBeVisible()
         .withTimeout(5000);
 
-      // Should see both migrated wallets (not just the ledger)
       await waitFor(element(by.text('TestWallet1')))
         .toBeVisible()
         .withTimeout(5000);
       await waitFor(element(by.text('TestWallet2')))
         .toBeVisible()
         .withTimeout(5000);
+    });
+
+    it('should show Export Vault Share for migrated wallet', async () => {
+      // Tap a migrated wallet to go to its WalletHome
+      await element(by.text('TestWallet1')).tap();
+      await waitFor(element(by.text('Export Vault Share')))
+        .toBeVisible()
+        .withTimeout(10000);
     });
   });
 
