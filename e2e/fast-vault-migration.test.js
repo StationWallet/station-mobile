@@ -230,12 +230,14 @@ describe('Fast Vault Migration', () => {
 
   describe('Post-migration — wallets visible and exportable', () => {
     beforeAll(async () => {
+      // Must re-disable sync and blacklist URLs on each relaunch
       await device.launchApp({
         newInstance: true,
         launchArgs: { detoxURLBlacklistRegex: '.*' },
       });
       await device.disableSynchronization();
-      await new Promise(r => setTimeout(r, 3000));
+      // Give app time to load wallet data from SecureStore
+      await new Promise(r => setTimeout(r, 5000));
     });
 
     afterAll(async () => {
