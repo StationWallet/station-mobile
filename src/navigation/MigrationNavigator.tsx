@@ -5,6 +5,7 @@ import WalletDiscovery from '../screens/migration/WalletDiscovery'
 import VaultEmail from '../screens/migration/VaultEmail'
 import VaultPassword from '../screens/migration/VaultPassword'
 import KeygenProgress from '../screens/migration/KeygenProgress'
+import VerifyEmail from '../screens/migration/VerifyEmail'
 import MigrationSuccess from '../screens/migration/MigrationSuccess'
 
 import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
@@ -36,6 +37,15 @@ export type MigrationStackParams = {
     email: string
     password: string
   }
+  VerifyEmail: {
+    walletName: string
+    walletIndex: number
+    totalWallets: number
+    wallets: MigrationWallet[]
+    results: MigrationResult[]
+    email: string
+    publicKey: string
+  }
   MigrationSuccess: { results: MigrationResult[] }
 }
 
@@ -54,6 +64,7 @@ export default function MigrationNavigator() {
       <Stack.Screen name="VaultEmail" component={VaultEmail} />
       <Stack.Screen name="VaultPassword" component={VaultPassword} />
       <Stack.Screen name="KeygenProgress" component={KeygenProgress} />
+      <Stack.Screen name="VerifyEmail" component={VerifyEmail} />
       <Stack.Screen name="MigrationSuccess" component={MigrationSuccess} />
     </Stack.Navigator>
   )

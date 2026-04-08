@@ -121,8 +121,15 @@ export default function KeygenProgress() {
 
       await storeFastVault(walletName, result)
 
-      const wallet = wallets[walletIndex]
-      advanceToNextWallet({ wallet, success: true })
+      navigation.navigate('VerifyEmail', {
+        walletName,
+        walletIndex,
+        totalWallets,
+        wallets,
+        results,
+        email,
+        publicKey: result.publicKey,
+      })
     } catch (err) {
       if (controller.signal.aborted) return
       const msg = err instanceof Error ? err.message : String(err)
