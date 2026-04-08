@@ -102,11 +102,12 @@ async function fetchOtpFromAgentmail(inboxEmail, knownMessageIds, maxAttempts = 
 async function migrateOneWallet(walletLabel, knownMessageIds) {
   console.log(`\n--- Migrating ${walletLabel} ---`);
 
-  // Email screen
+  // Email screen — may be pre-filled from previous wallet
   await waitFor(element(by.text('Enter your email')))
     .toBeVisible()
     .withTimeout(10000);
   await element(by.id('vault-email-input')).tap();
+  await element(by.id('vault-email-input')).clearText();
   await element(by.id('vault-email-input')).typeText(AGENTMAIL_EMAIL);
   await element(by.id('vault-email-next')).tap();
 
