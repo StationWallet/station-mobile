@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { getDecyrptedKey } from 'utils/wallet'
 import { exportVaultShare, shareVaultFile } from 'services/exportVaultShare'
+import { isVaultFastVault } from 'services/migrateToVault'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import { COLORS, MONO_FONT } from 'consts/theme'
@@ -33,7 +34,13 @@ export default function ExportPrivateKey() {
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState('')
 
+  const [isFastVault, setIsFastVault] = useState(false)
+
   const timerRef = useRef<ReturnType<typeof setTimeout>>()
+
+  useEffect(() => {
+    isVaultFastVault(wallet.name).then(setIsFastVault)
+  }, [wallet.name])
 
   useEffect(() => {
     return () => {
@@ -67,11 +74,16 @@ export default function ExportPrivateKey() {
   }, [privateKey])
 
   const handleExportVaultShare = useCallback(async () => {
-    if (!privateKey || exportPassword.length === 0) return
+    if (exportPassword.length === 0) return
+    if (!isFastVault && !privateKey) return
     setExporting(true)
     setExportError('')
     try {
-      const fileUri = await exportVaultShare(privateKey, wallet.name, exportPassword)
+      const fileUri = await exportVaultShare(
+        wallet.name,
+        exportPassword,
+        isFastVault ? undefined : privateKey ?? undefined,
+      )
       await shareVaultFile(fileUri)
       setShowExportForm(false)
       setExportPassword('')
@@ -82,7 +94,7 @@ export default function ExportPrivateKey() {
     } finally {
       setExporting(false)
     }
-  }, [privateKey, wallet.name, exportPassword])
+  }, [isFastVault, privateKey, wallet.name, exportPassword])
 
   return (
     <SafeAreaView style={styles.container}>
@@ -101,76 +113,81 @@ export default function ExportPrivateKey() {
         </Text>
       </View>
 
-      {!privateKey ? (
-        <>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter wallet password"
-            placeholderTextColor={COLORS.textSecondary}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-            autoCapitalize="none"
-          />
-          {error !== '' && <Text style={styles.errorText}>{error}</Text>}
-          <Button
-            title="Reveal Private Key"
-            onPress={handleReveal}
-            disabled={password.length === 0}
-            theme="sapphire"
-            containerStyle={styles.button}
-          />
-        </>
-      ) : (
-        <>
-          <View style={styles.qrContainer}>
-            <QRCode value={privateKey} size={200} backgroundColor={COLORS.surface} color={COLORS.textPrimary} />
-          </View>
-          <View style={styles.keyCard}>
-            <Text style={styles.keyText} selectable>
-              {privateKey}
-            </Text>
-          </View>
-          <Button
-            title={copied ? 'Copied!' : 'Copy to Clipboard'}
-            onPress={handleCopy}
-            theme="sapphire"
-            containerStyle={styles.button}
-          />
-          {!showExportForm ? (
+      {!isFastVault && (
+        !privateKey ? (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter wallet password"
+              placeholderTextColor={COLORS.textSecondary}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              autoCapitalize="none"
+            />
+            {error !== '' && <Text style={styles.errorText}>{error}</Text>}
             <Button
-              title="Export as Vault Share"
-              onPress={() => setShowExportForm(true)}
-              theme="dodgerBlue"
+              title="Reveal Private Key"
+              onPress={handleReveal}
+              disabled={password.length === 0}
+              theme="sapphire"
               containerStyle={styles.button}
             />
-          ) : (
-            <View style={styles.exportForm}>
-              <Text style={styles.exportLabel}>
-                Set a password to encrypt the vault file:
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Export password"
-                placeholderTextColor={COLORS.textSecondary}
-                secureTextEntry
-                value={exportPassword}
-                onChangeText={setExportPassword}
-                autoCapitalize="none"
-              />
-              {exportError !== '' && (
-                <Text style={styles.errorText}>{exportError}</Text>
-              )}
-              <Button
-                title={exporting ? 'Exporting...' : 'Export .vult File'}
-                onPress={handleExportVaultShare}
-                disabled={exportPassword.length === 0 || exporting}
-                theme="sapphire"
-                containerStyle={styles.button}
-              />
+          </>
+        ) : (
+          <>
+            <View style={styles.qrContainer}>
+              <QRCode value={privateKey} size={200} backgroundColor={COLORS.surface} color={COLORS.textPrimary} />
             </View>
-          )}
-        </>
+            <View style={styles.keyCard}>
+              <Text style={styles.keyText} selectable>
+                {privateKey}
+              </Text>
+            </View>
+            <Button
+              title={copied ? 'Copied!' : 'Copy to Clipboard'}
+              onPress={handleCopy}
+              theme="sapphire"
+              containerStyle={styles.button}
+            />
+          </>
+        )
+      )}
+
+      {(isFastVault || privateKey) && (
+        !showExportForm ? (
+          <Button
+            title="Export as Vault Share"
+            onPress={() => setShowExportForm(true)}
+            theme="dodgerBlue"
+            containerStyle={styles.button}
+          />
+        ) : (
+          <View style={styles.exportForm}>
+            <Text style={styles.exportLabel}>
+              Set a password to encrypt the vault file:
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Export password"
+              placeholderTextColor={COLORS.textSecondary}
+              secureTextEntry
+              value={exportPassword}
+              onChangeText={setExportPassword}
+              autoCapitalize="none"
+            />
+            {exportError !== '' && (
+              <Text style={styles.errorText}>{exportError}</Text>
+            )}
+            <Button
+              title={exporting ? 'Exporting...' : 'Export .vult File'}
+              onPress={handleExportVaultShare}
+              disabled={exportPassword.length === 0 || exporting}
+              theme="sapphire"
+              containerStyle={styles.button}
+            />
+          </View>
+        )
       )}
 
       <Button

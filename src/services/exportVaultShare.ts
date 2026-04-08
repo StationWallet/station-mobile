@@ -9,6 +9,7 @@ import * as Sharing from 'expo-sharing'
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container_pb'
 import { derivePublicKeyHex, buildVaultProto } from './vaultProto'
+import { getStoredVault, isVaultFastVault } from './migrateToVault'
 
 /**
  * Encrypts binary data with AES-256-GCM using a password.
@@ -29,20 +30,34 @@ function encryptWithPassword(data: Uint8Array, password: string): Uint8Array {
 /**
  * Exports a wallet as an encrypted .vult vault share file.
  *
- * Constructs a KeyImport vault protobuf from a raw secp256k1 private key,
- * encrypts with AES-256-GCM, wraps in VaultContainer, and writes to a
- * shareable .vult file.
+ * For DKLS fast vaults: reads the stored vault protobuf directly.
+ * For legacy vaults: constructs a KeyImport vault protobuf from the raw
+ * secp256k1 private key (privateKeyHex must be provided).
  *
- * The produced file is importable by any Vultisig app via "Import Vault Share".
+ * Encrypts with AES-256-GCM, wraps in VaultContainer, and writes to a
+ * shareable .vult file importable by any Vultisig app via "Import Vault Share".
  */
 export async function exportVaultShare(
-  privateKeyHex: string,
   walletName: string,
   exportPassword: string,
+  privateKeyHex?: string,  // Only needed for legacy vaults
 ): Promise<string> {
-  const publicKeyHex = derivePublicKeyHex(privateKeyHex)
-  const vaultProto = buildVaultProto(walletName, publicKeyHex, privateKeyHex)
-  const vaultBytes = toBinary(VaultSchema, vaultProto)
+  let vaultBytes: Uint8Array
+
+  if (await isVaultFastVault(walletName)) {
+    const stored = await getStoredVault(walletName)
+    if (!stored) {
+      throw new Error('Fast vault not found in secure storage')
+    }
+    vaultBytes = base64.decode(stored)
+  } else {
+    if (!privateKeyHex) {
+      throw new Error('privateKeyHex is required for legacy vaults')
+    }
+    const publicKeyHex = derivePublicKeyHex(privateKeyHex)
+    const vaultProto = buildVaultProto(walletName, publicKeyHex, privateKeyHex)
+    vaultBytes = toBinary(VaultSchema, vaultProto)
+  }
   const encryptedBytes = encryptWithPassword(vaultBytes, exportPassword)
 
   const container = create(VaultContainerSchema, {
