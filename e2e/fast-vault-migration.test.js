@@ -98,15 +98,36 @@ describe('Fast Vault Migration', () => {
         .withTimeout(10000);
     });
 
+    // --- VerifyEmail screen ---
+
+    it('should show email verification screen after keygen', async () => {
+      // Wait for DKLS ceremony to complete and VerifyEmail to appear (up to 3 minutes)
+      await waitFor(element(by.text('Verify your email')))
+        .toBeVisible()
+        .withTimeout(180000);
+      await expect(element(by.id('verify-code-input'))).toExist();
+      await expect(element(by.id('verify-paste'))).toBeVisible();
+    });
+
+    it('should accept 4-digit verification code', async () => {
+      await element(by.id('verify-code-input')).typeText('1234');
+      // Code auto-submits after 4 digits — either succeeds or shows alert
+      // In E2E with real server, wait for either success screen or retry
+      await waitFor(
+        element(by.text('Wallets Upgraded!')).or(element(by.text('Migration Complete'))).or(element(by.text('Verification Failed')))
+      )
+        .toBeVisible()
+        .withTimeout(30000);
+    });
+
     // --- MigrationSuccess screen ---
 
-    it('should complete migration and show success screen', async () => {
-      // Wait for DKLS key-import ceremony to complete (up to 3 minutes)
+    it('should show success screen after verification', async () => {
       await waitFor(
         element(by.text('Wallets Upgraded!')).or(element(by.text('Migration Complete')))
       )
         .toBeVisible()
-        .withTimeout(180000);
+        .withTimeout(10000);
     });
 
     it('should show migrated wallet result on success screen', async () => {
