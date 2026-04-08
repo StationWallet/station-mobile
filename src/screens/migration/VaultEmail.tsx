@@ -15,8 +15,6 @@ import type { RouteProp } from '@react-navigation/native'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import { VULTISIG } from 'consts/vultisig'
-import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
-
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'VaultEmail'>

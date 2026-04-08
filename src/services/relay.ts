@@ -1,4 +1,5 @@
 import { env } from '../config/env'
+import { sleep } from '../utils/mpcCrypto'
 
 /** Register this party on the relay server. */
 export async function joinRelaySession(sessionId: string, localPartyId: string): Promise<void> {
@@ -27,7 +28,7 @@ export async function waitForParties(
       const parties: string[] = await res.json()
       if (parties.length >= expectedCount) return parties
     }
-    await new Promise((r) => setTimeout(r, 1000))
+    await sleep(1000)
   }
   throw new Error('Timeout waiting for parties to join relay')
 }
@@ -132,7 +133,7 @@ export async function waitForComplete(
       const completePeers: string[] = await res.json()
       if (parties.every((p) => completePeers.includes(p))) return
     }
-    await new Promise((r) => setTimeout(r, delayMs))
+    await sleep(delayMs)
   }
   throw new Error('Timeout waiting for all parties to complete')
 }

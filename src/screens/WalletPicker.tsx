@@ -59,7 +59,6 @@ export default function WalletPicker() {
   }
 
   const renderItem = ({ item }: { item: LocalWallet }) => {
-    const isFast = fastVaultMap[item.name]
     const isLegacy = fastVaultMap[item.name] === false
 
     return (

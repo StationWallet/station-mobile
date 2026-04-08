@@ -32,14 +32,17 @@ export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+/** Derive AES-256 cipher key from hex encryption key. Cache this for repeated use. */
+export function deriveCipherKey(hexEncryptionKey: string): Uint8Array {
+  return sha256(hexToBytes(hexEncryptionKey))
+}
+
 /**
  * AES-256-GCM encryption for relay messages.
- * Key: SHA256(hexEncryptionKey bytes) → 32-byte cipher key.
- * Output: base64(nonce[12] + ciphertext + authTag[16]).
+ * Accepts either a hex key (derives cipher key each call) or a pre-derived cipher key.
  */
-export function encryptAesGcm(plaintext: string, hexEncryptionKey: string): string {
-  const keyBytes = hexToBytes(hexEncryptionKey)
-  const cipherKey = sha256(keyBytes)
+export function encryptAesGcm(plaintext: string, keyOrHex: string | Uint8Array): string {
+  const cipherKey = typeof keyOrHex === 'string' ? deriveCipherKey(keyOrHex) : keyOrHex
   const nonce = ExpoCrypto.getRandomBytes(12)
   const aes = gcm(cipherKey, nonce)
   const plaintextBytes = new TextEncoder().encode(plaintext)
@@ -52,12 +55,11 @@ export function encryptAesGcm(plaintext: string, hexEncryptionKey: string): stri
 
 /**
  * AES-256-GCM decryption for relay messages.
- * Input: base64(nonce[12] + ciphertext + authTag[16]).
+ * Accepts either a hex key or a pre-derived cipher key.
  */
-export function decryptAesGcm(encryptedBase64: string, hexEncryptionKey: string): string {
+export function decryptAesGcm(encryptedBase64: string, keyOrHex: string | Uint8Array): string {
+  const cipherKey = typeof keyOrHex === 'string' ? deriveCipherKey(keyOrHex) : keyOrHex
   const encrypted = base64ToBytes(encryptedBase64)
-  const keyBytes = hexToBytes(hexEncryptionKey)
-  const cipherKey = sha256(keyBytes)
   const nonce = encrypted.slice(0, 12)
   const ciphertextWithTag = encrypted.slice(12)
   const aes = gcm(cipherKey, nonce)

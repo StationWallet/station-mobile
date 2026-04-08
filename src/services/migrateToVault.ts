@@ -4,8 +4,7 @@ import * as SecureStore from 'expo-secure-store'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
-import { getAuthData, AuthDataValueType, LedgerDataValueType } from 'utils/authData'
-import { removeAuthData } from 'utils/authData'
+import { getAuthData, removeAuthData, AuthDataValueType, LedgerDataValueType } from 'utils/authData'
 import { decrypt } from 'utils/crypto'
 import { derivePublicKeyHex, buildVaultProto } from './vaultProto'
 import type { KeyImportResult } from './dklsKeyImport'
@@ -159,20 +158,14 @@ export async function storeFastVault(
     VAULT_STORE_OPTS,
   )
 
-  // Verify it reads back correctly
   const readBack = await SecureStore.getItemAsync(
     `${VAULT_KEY_PREFIX}${walletName}`,
     VAULT_STORE_OPTS,
   )
-  if (!readBack) {
-    throw new Error('Vault verification failed: could not read back stored vault')
-  }
-  const decoded = fromBinary(VaultSchema, base64.decode(readBack))
-  if (decoded.publicKeyEcdsa !== result.publicKey) {
-    throw new Error('Vault verification failed: public key mismatch')
+  if (readBack !== encoded) {
+    throw new Error('Vault verification failed: stored data does not match')
   }
 
-  // Delete legacy auth data now that vault is verified
   await removeAuthData({ walletName })
 }
 
