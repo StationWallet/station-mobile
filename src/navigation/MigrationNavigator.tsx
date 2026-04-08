@@ -17,6 +17,7 @@ export type MigrationStackParams = {
     totalWallets: number
     wallets: MigrationWallet[]
     results: MigrationResult[]
+    email?: string
   }
   VaultPassword: {
     walletName: string

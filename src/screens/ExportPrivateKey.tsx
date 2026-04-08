@@ -36,7 +36,7 @@ export default function ExportPrivateKey() {
 
   const [isFastVault, setIsFastVault] = useState(false)
 
-  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     isVaultFastVault(wallet.name).then(setIsFastVault)

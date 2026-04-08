@@ -33,9 +33,9 @@ function isValidEmail(email: string): boolean {
 export default function VaultEmail() {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
-  const { walletName, walletIndex, totalWallets, wallets, results } = route.params
+  const { walletName, walletIndex, totalWallets, wallets, results, email: prefillEmail } = route.params
 
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(prefillEmail ?? '')
   const [touched, setTouched] = useState(false)
 
   const valid = isValidEmail(email)
