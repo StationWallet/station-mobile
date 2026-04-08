@@ -10,10 +10,8 @@ import {
   signalComplete,
   waitForComplete,
 } from './relay'
-import { setupVaultWithServer } from './fastVaultServer'
-import { encryptAesGcm, decryptAesGcm, deriveCipherKey, md5HashAsync, randomHex, randomUUID, sleep, hexToBytes, bytesToHex } from '../utils/mpcCrypto'
-import { sha512 } from '@noble/hashes/sha2.js'
-import { hmac } from '@noble/hashes/hmac.js'
+import { setupBatchImport } from './fastVaultServer'
+import { encryptAesGcm, decryptAesGcm, deriveCipherKey, md5HashAsync, randomHex, randomUUID, sleep } from '../utils/mpcCrypto'
 
 export type KeyImportStep =
   | 'setup'
@@ -38,15 +36,15 @@ export type KeyImportResult = {
 }
 
 /**
- * Run the DKLS MPC message exchange loop.
- * Concurrent outbound (native → encrypt → relay) and inbound (relay → decrypt → native)
- * loops until the protocol completes or times out.
+ * Run the DKLS MPC message exchange loop with a messageId for relay routing.
+ * The batch endpoint uses "p-ecdsa" as the messageId for the ECDSA protocol.
  */
 async function runMpcProtocol(
   sessionHandle: number,
   sessionId: string,
   localPartyId: string,
   cipherKey: Uint8Array,
+  messageId: string,
   onProgress?: (progressPercent: number) => void,
   signal?: AbortSignal
 ): Promise<void> {
@@ -71,7 +69,7 @@ async function runMpcProtocol(
         while (true) {
           const receiver = await ExpoDkls.getMessageReceiver(sessionHandle, outMsg, idx)
           if (!receiver) break
-          await sendRelayMessage(sessionId, localPartyId, receiver, encrypted, hash, sequenceNo++)
+          await sendRelayMessage(sessionId, localPartyId, receiver, encrypted, hash, sequenceNo++, messageId)
           idx++
         }
         await sleep(100)
@@ -87,7 +85,7 @@ async function runMpcProtocol(
     while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
       if (signal?.aborted) throw new Error('Aborted')
       try {
-        const messages = await getRelayMessages(sessionId, localPartyId)
+        const messages = await getRelayMessages(sessionId, localPartyId, messageId)
         if (messages.length === 0) { await sleep(100); continue }
 
         for (const msg of messages) {
@@ -97,7 +95,7 @@ async function runMpcProtocol(
           const decrypted = decryptAesGcm(msg.body, cipherKey)
           const finished = await ExpoDkls.inputMessage(sessionHandle, decrypted)
           processedMessages.add(cacheKey)
-          await deleteRelayMessage(sessionId, localPartyId, msg.hash).catch(() => {})
+          await deleteRelayMessage(sessionId, localPartyId, msg.hash, messageId).catch(() => {})
 
           if (finished) {
             isComplete = true
@@ -126,156 +124,18 @@ async function runMpcProtocol(
   onProgress?.(1.0)
 }
 
-/** ECDSA MPC protocol with a messageId for per-chain imports. */
-async function runMpcProtocolWithMessageId(
-  sessionHandle: number,
-  sessionId: string,
-  localPartyId: string,
-  cipherKey: Uint8Array,
-  messageId: string,
-  signal?: AbortSignal
-): Promise<void> {
-  let isComplete = false
-  let sequenceNo = 0
-  const processedMessages = new Set<string>()
-  const startTime = Date.now()
-  const TIMEOUT_MS = 120_000
-
-  const processOutbound = async () => {
-    while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
-      if (signal?.aborted) throw new Error('Aborted')
-      try {
-        const outMsg = await ExpoDkls.getOutboundMessage(sessionHandle)
-        if (!outMsg) { await sleep(100); continue }
-        const encrypted = encryptAesGcm(outMsg, cipherKey)
-        const hash = await md5HashAsync(outMsg)
-        let idx = 0
-        while (true) {
-          const receiver = await ExpoDkls.getMessageReceiver(sessionHandle, outMsg, idx)
-          if (!receiver) break
-          await sendRelayMessage(sessionId, localPartyId, receiver, encrypted, hash, sequenceNo++, messageId)
-          idx++
-        }
-        await sleep(100)
-      } catch (err) {
-        if (signal?.aborted) throw err
-        await sleep(200)
-      }
-    }
-  }
-
-  const processInbound = async () => {
-    while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
-      if (signal?.aborted) throw new Error('Aborted')
-      try {
-        const messages = await getRelayMessages(sessionId, localPartyId, messageId)
-        if (messages.length === 0) { await sleep(100); continue }
-        for (const msg of messages) {
-          const cacheKey = `${msg.from}-${msg.hash}`
-          if (processedMessages.has(cacheKey)) continue
-          const decrypted = decryptAesGcm(msg.body, cipherKey)
-          const finished = await ExpoDkls.inputMessage(sessionHandle, decrypted)
-          processedMessages.add(cacheKey)
-          await deleteRelayMessage(sessionId, localPartyId, msg.hash, messageId).catch(() => {})
-          if (finished) { isComplete = true; return }
-        }
-        await sleep(100)
-      } catch (err) {
-        if (signal?.aborted) throw err
-        await sleep(200)
-      }
-    }
-  }
-
-  await Promise.all([processOutbound(), processInbound()])
-  if (!isComplete) throw new Error(`MPC protocol (${messageId}) did not complete`)
-}
-
-/** Schnorr (EdDSA) variant of runMpcProtocol. */
-async function runMpcSchnorrProtocol(
-  sessionHandle: number,
-  sessionId: string,
-  localPartyId: string,
-  cipherKey: Uint8Array,
-  onProgress?: (progressPercent: number) => void,
-  signal?: AbortSignal
-): Promise<void> {
-  let isComplete = false
-  let sequenceNo = 0
-  const processedMessages = new Set<string>()
-  const startTime = Date.now()
-  const TIMEOUT_MS = 120_000
-
-  const processOutbound = async () => {
-    while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
-      if (signal?.aborted) throw new Error('Aborted')
-      try {
-        const outMsg = await ExpoDkls.getSchnorrOutboundMessage(sessionHandle)
-        if (!outMsg) { await sleep(100); continue }
-
-        const encrypted = encryptAesGcm(outMsg, cipherKey)
-        const hash = await md5HashAsync(outMsg)
-
-        let idx = 0
-        while (true) {
-          const receiver = await ExpoDkls.getSchnorrMessageReceiver(sessionHandle, outMsg, idx)
-          if (!receiver) break
-          await sendRelayMessage(sessionId, localPartyId, receiver, encrypted, hash, sequenceNo++, 'eddsa_key_import')
-          idx++
-        }
-        await sleep(100)
-      } catch (err) {
-        if (signal?.aborted) throw err
-        await sleep(200)
-      }
-    }
-  }
-
-  const processInbound = async () => {
-    while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
-      if (signal?.aborted) throw new Error('Aborted')
-      try {
-        const messages = await getRelayMessages(sessionId, localPartyId, 'eddsa_key_import')
-        if (messages.length === 0) { await sleep(100); continue }
-
-        for (const msg of messages) {
-          const cacheKey = `${msg.from}-${msg.hash}`
-          if (processedMessages.has(cacheKey)) continue
-
-          const decrypted = decryptAesGcm(msg.body, cipherKey)
-          const finished = await ExpoDkls.inputSchnorrMessage(sessionHandle, decrypted)
-          processedMessages.add(cacheKey)
-          await deleteRelayMessage(sessionId, localPartyId, msg.hash, 'eddsa_key_import').catch(() => {})
-
-          if (finished) {
-            isComplete = true
-            onProgress?.(1.0)
-            return
-          }
-        }
-        await sleep(100)
-      } catch (err) {
-        if (signal?.aborted) throw err
-        await sleep(200)
-      }
-    }
-  }
-
-  await Promise.all([processOutbound(), processInbound()])
-  if (!isComplete) throw new Error('Schnorr MPC protocol did not complete')
-}
-
 /**
  * Import a single secp256k1 private key into a 2-of-2 DKLS fast vault.
  *
- * Runs the DKLS key import ceremony with vultiserver via relay.
- * Returns the device's DKLS keyshare (the raw private key no longer exists).
+ * Uses the batch import endpoint (POST /vault/batch/import) with protocols: ["ecdsa"].
+ * This runs only the ECDSA round — no EdDSA, no per-chain rounds.
+ * The server handles completion signaling internally.
  */
 export async function importKeyToFastVault(options: {
   name: string
   email: string
   password: string
-  privateKeyHex: string // secp256k1 leaf key (64 hex chars)
+  privateKeyHex: string
   onProgress?: (p: KeyImportProgress) => void
   signal?: AbortSignal
 }): Promise<KeyImportResult> {
@@ -291,7 +151,7 @@ export async function importKeyToFastVault(options: {
   const sessionId = randomUUID()
   const hexEncryptionKey = randomHex(32)
   const localPartyId = `sdk-${randomHex(4)}`
-  const hexChainCode = '0'.repeat(64) // DKLS requires a chain code; zeros since this is a single-chain vault
+  const hexChainCode = '0'.repeat(64)
 
   let serverHash = 0
   for (let i = 0; i < sessionId.length; i++) {
@@ -303,7 +163,7 @@ export async function importKeyToFastVault(options: {
   report({ step: 'setup', message: 'Setting up vault...', progress: 12 })
 
   await Promise.all([
-    setupVaultWithServer({
+    setupBatchImport({
       name,
       session_id: sessionId,
       hex_encryption_key: hexEncryptionKey,
@@ -311,8 +171,7 @@ export async function importKeyToFastVault(options: {
       local_party_id: serverPartyId,
       encryption_password: password,
       email,
-      lib_type: 2,
-      chains: ['Terra'],
+      protocols: ['ecdsa'],
     }),
     joinRelaySession(sessionId, localPartyId),
   ])
@@ -327,107 +186,46 @@ export async function importKeyToFastVault(options: {
   const importResult = await ExpoDkls.createDklsKeyImportSession(
     privateKeyHex,
     hexChainCode,
-    2, // threshold = 2 for 2-of-2
+    2,
     [localPartyId, serverPartyId]
   ) as { setupMessage: string; sessionHandle: number }
 
   const cipherKey = deriveCipherKey(hexEncryptionKey)
 
+  // Batch endpoint uses setupKey="" for ecdsa, which maps to the default setup-message endpoint
   const encryptedSetup = encryptAesGcm(importResult.setupMessage, cipherKey)
-  await uploadSetupMessage(sessionId, encryptedSetup)
+  await uploadSetupMessage(sessionId, encryptedSetup, 'ecdsa')
 
   report({ step: 'ecdsa', message: 'Running MPC protocol...', progress: 48 })
 
+  // Batch endpoint uses messageId "p-ecdsa" for the ECDSA protocol
   await runMpcProtocol(
     importResult.sessionHandle,
     sessionId,
     localPartyId,
     cipherKey,
+    'p-ecdsa',
     (mpcProgress) => {
-      const stepProgress = 48 + (mpcProgress * 38) // 48% → 86%
+      const stepProgress = 48 + (mpcProgress * 38)
       report({ step: 'ecdsa', message: 'Running MPC protocol...', progress: Math.round(stepProgress) })
     },
     signal
   )
 
-  report({ step: 'finalizing', message: 'Finalizing ECDSA...', progress: 80 })
+  report({ step: 'finalizing', message: 'Extracting keyshare...', progress: 86 })
 
-  const ecdsaResult = await ExpoDkls.finishKeygen(importResult.sessionHandle)
+  const result = await ExpoDkls.finishKeygen(importResult.sessionHandle)
 
-  // Server expects an EdDSA (Schnorr) root key import after ECDSA (see vultiserver dkls.go:152).
-  // Terra doesn't use EdDSA, but the server requires this round to complete.
-  // Derive a valid ed25519 scalar via SLIP-10 + clamping (matches vultiagent-app).
-  await sleep(500) // match server's 500ms gap between rounds
-  report({ step: 'finalizing', message: 'Importing EdDSA key...', progress: 84 })
-
-  const eddsaSeed = hexToBytes(randomHex(32))
-  const ED25519_SEED = new TextEncoder().encode('ed25519 seed')
-  const I = hmac(sha512, ED25519_SEED, eddsaSeed)
-  const rawKey = new Uint8Array(I.slice(0, 32))
-  // SHA-512 + clamp (matches iOS clampThenUniformScalar)
-  const digest = sha512(rawKey)
-  const clamped = new Uint8Array(digest.slice(0, 32))
-  clamped[0]! &= 248
-  clamped[31]! &= 63
-  clamped[31]! |= 64
-  const eddsaPrivateKey = bytesToHex(clamped)
-  const eddsaImport = await ExpoDkls.createSchnorrKeyImportSession(
-    eddsaPrivateKey,
-    hexChainCode,
-    2,
-    [localPartyId, serverPartyId]
-  ) as { setupMessage: string; sessionHandle: number }
-
-  const encryptedEddsaSetup = encryptAesGcm(eddsaImport.setupMessage, cipherKey)
-  await uploadSetupMessage(sessionId, encryptedEddsaSetup, 'eddsa_key_import')
-
-  await runMpcSchnorrProtocol(
-    eddsaImport.sessionHandle,
-    sessionId,
-    localPartyId,
-    cipherKey,
-    undefined,
-    signal
-  )
-
-  await ExpoDkls.finishSchnorrKeygen(eddsaImport.sessionHandle)
-
-  // Per-chain key import for Terra (server iterates req.Chains, see dkls.go:187)
-  // Terra uses ECDSA (secp256k1) — import the same key with messageId='Terra'
-  report({ step: 'finalizing', message: 'Importing Terra key...', progress: 88 })
-
-  const terraImport = await ExpoDkls.createDklsKeyImportSession(
-    privateKeyHex,
-    hexChainCode,
-    2,
-    [localPartyId, serverPartyId]
-  ) as { setupMessage: string; sessionHandle: number }
-
-  const encryptedTerraSetup = encryptAesGcm(terraImport.setupMessage, cipherKey)
-  await uploadSetupMessage(sessionId, encryptedTerraSetup, 'Terra')
-
-  await runMpcProtocolWithMessageId(
-    terraImport.sessionHandle,
-    sessionId,
-    localPartyId,
-    cipherKey,
-    'Terra',
-    signal
-  )
-
-  await ExpoDkls.finishKeygen(terraImport.sessionHandle)
-
-  report({ step: 'finalizing', message: 'Completing...', progress: 95 })
-
+  // Signal completion — server also signals via its defer block
   await signalComplete(sessionId, localPartyId)
   await waitForComplete(sessionId, parties, 60, 1000, signal)
 
   report({ step: 'complete', message: 'Complete!', progress: 100 })
 
   return {
-    publicKey: ecdsaResult.publicKey,
-    keyshare: ecdsaResult.keyshare,
-    chainCode: ecdsaResult.chainCode,
+    publicKey: result.publicKey,
+    keyshare: result.keyshare,
+    chainCode: result.chainCode,
     localPartyId,
     serverPartyId,
   }
