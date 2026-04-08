@@ -28,10 +28,13 @@ export default function MigrationSuccess() {
   const results: MigrationResult[] = params.results
 
   const successCount = results.filter((r) => r.success).length
+  const allSucceeded = successCount === results.length
   const allFailed = successCount === 0
 
   // Write the flag eagerly when this screen mounts (not just on tap)
-  // so it persists even if the app is killed before the user taps Continue
+  // so it persists even if the app is killed before the user taps Continue.
+  // vaultsUpgraded means "user has been through the migration flow",
+  // not "all wallets are upgraded" — set it regardless of partial failure.
   useEffect(() => {
     preferences.setBool(PreferencesEnum.vaultsUpgraded, true)
   }, [])
@@ -39,6 +42,16 @@ export default function MigrationSuccess() {
   const handleContinue = () => {
     onMigrationComplete()
   }
+
+  const titleText = allFailed
+    ? 'Migration Failed'
+    : allSucceeded
+      ? 'Wallets Upgraded!'
+      : 'Migration Complete'
+
+  const subtitleText = allFailed
+    ? 'Unable to migrate your wallets. Please restart the app to try again.'
+    : `${successCount} of ${results.length} ${results.length === 1 ? 'wallet' : 'wallets'} successfully upgraded to fast vault.`
 
   return (
     <SafeAreaView style={styles.container}>
@@ -49,12 +62,10 @@ export default function MigrationSuccess() {
 
         <Animated.View entering={FadeIn.delay(500).duration(500)}>
           <Text style={styles.title} fontType="bold">
-            {allFailed ? 'Migration Failed' : 'Wallets Upgraded'}
+            {titleText}
           </Text>
           <Text style={styles.subtitle} fontType="book">
-            {allFailed
-              ? 'Unable to migrate your wallets. Please restart the app to try again.'
-              : `${successCount} ${successCount === 1 ? 'wallet' : 'wallets'} successfully migrated to Vultisig format.`}
+            {subtitleText}
           </Text>
         </Animated.View>
 
@@ -64,16 +75,27 @@ export default function MigrationSuccess() {
         >
           {results.map((result, index) => (
             <View key={result.wallet.name} style={styles.walletRow} testID={`success-wallet-${index}`}>
-              <Text style={styles.checkMark}>{result.success ? '✓' : '✗'}</Text>
-              <Text
-                style={[
-                  styles.walletName,
-                  !result.success && styles.walletNameFailed,
-                ]}
-                fontType="medium"
-              >
-                {result.wallet.name}
-              </Text>
+              {result.success ? (
+                <Text style={styles.successIcon}>✓</Text>
+              ) : (
+                <Text style={styles.warningIcon}>⚠</Text>
+              )}
+              <View style={styles.walletInfo}>
+                <Text
+                  style={[
+                    styles.walletName,
+                    !result.success && styles.walletNameLegacy,
+                  ]}
+                  fontType="medium"
+                >
+                  {result.wallet.name}
+                </Text>
+                {!result.success && (
+                  <Text style={styles.legacyLabel} fontType="book">
+                    Legacy — upgrade in wallet list
+                  </Text>
+                )}
+              </View>
             </View>
           ))}
         </Animated.View>
@@ -147,22 +169,40 @@ const styles = StyleSheet.create({
   },
   walletRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingVertical: 8,
   },
-  checkMark: {
+  successIcon: {
     fontSize: 16,
-    color: VULTISIG.accent,
+    color: VULTISIG.success,
     marginRight: 12,
     width: 24,
     textAlign: 'center',
+    marginTop: 1,
+  },
+  warningIcon: {
+    fontSize: 16,
+    color: VULTISIG.warning,
+    marginRight: 12,
+    width: 24,
+    textAlign: 'center',
+    marginTop: 1,
+  },
+  walletInfo: {
+    flex: 1,
   },
   walletName: {
     fontSize: 15,
     color: VULTISIG.textPrimary,
   },
-  walletNameFailed: {
-    color: VULTISIG.error,
+  walletNameLegacy: {
+    color: VULTISIG.warning,
+  },
+  legacyLabel: {
+    fontSize: 12,
+    color: VULTISIG.warning,
+    marginTop: 2,
+    opacity: 0.85,
   },
   buttonContainer: {
     width: '100%',
