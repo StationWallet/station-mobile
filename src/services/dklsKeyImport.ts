@@ -171,7 +171,6 @@ export async function importKeyToFastVault(options: {
       encryption_password: password,
       email,
       lib_type: 2,
-      chains: ['Terra'],
     }),
     joinRelaySession(sessionId, localPartyId),
   ])
