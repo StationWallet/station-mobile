@@ -174,14 +174,14 @@ export default function WalletHome() {
       </View>
 
       <View style={styles.management}>
-        {hasMultipleWallets && (
-          <TouchableOpacity
-            style={styles.managementRow}
-            onPress={() => navigation.navigate('WalletPicker')}
-          >
-            <Text style={styles.managementText}>Switch Wallet</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={styles.managementRow}
+          onPress={() => navigation.navigate('WalletPicker')}
+        >
+          <Text style={styles.managementText}>
+            {hasMultipleWallets ? 'Switch Wallet' : 'All Wallets'}
+          </Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.managementRow}
           onPress={() => navigation.navigate('AddWalletMenu')}
@@ -193,7 +193,9 @@ export default function WalletHome() {
             style={styles.managementRow}
             onPress={() => navigation.navigate('ExportPrivateKey', { wallet })}
           >
-            <Text style={styles.managementText}>Export Private Key</Text>
+            <Text style={styles.managementText}>
+              {isFastVault ? 'Export Vault Share' : 'Export Private Key'}
+            </Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity style={styles.managementRow} onPress={handleRemove}>
