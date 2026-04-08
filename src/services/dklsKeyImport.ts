@@ -57,7 +57,7 @@ async function runMpcProtocol(
 
   const processOutbound = async () => {
     while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
-      signal?.throwIfAborted()
+      if (signal?.aborted) throw new Error('Aborted')
       try {
         const outMsg = await ExpoDkls.getOutboundMessage(sessionHandle)
         if (!outMsg) { await sleep(100); continue }
@@ -83,7 +83,7 @@ async function runMpcProtocol(
 
   const processInbound = async () => {
     while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
-      signal?.throwIfAborted()
+      if (signal?.aborted) throw new Error('Aborted')
       try {
         const messages = await getRelayMessages(sessionId, localPartyId)
         if (messages.length === 0) { await sleep(100); continue }

@@ -22,7 +22,7 @@ export async function waitForParties(
 ): Promise<string[]> {
   const start = Date.now()
   while (Date.now() - start < timeoutMs) {
-    signal?.throwIfAborted()
+    if (signal?.aborted) throw new Error('Aborted')
     const res = await fetch(`${env.relayUrl}/${sessionId}`, { signal })
     if (res.ok) {
       const parties: string[] = await res.json()
@@ -127,7 +127,7 @@ export async function waitForComplete(
   signal?: AbortSignal
 ): Promise<void> {
   for (let i = 0; i < attempts; i++) {
-    signal?.throwIfAborted()
+    if (signal?.aborted) throw new Error('Aborted')
     const res = await fetch(`${env.relayUrl}/complete/${sessionId}`, { signal })
     if (res.ok) {
       const completePeers: string[] = await res.json()
