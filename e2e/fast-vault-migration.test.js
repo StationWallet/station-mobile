@@ -234,7 +234,7 @@ describe('Fast Vault Migration', () => {
         } catch (_) {}
       }
 
-      expect(found).toBe(true);
+      if (!found) throw new Error('Did not advance to any expected screen after verification');
     });
   });
 });
