@@ -11,7 +11,9 @@ import {
   waitForComplete,
 } from './relay'
 import { setupVaultWithServer } from './fastVaultServer'
-import { encryptAesGcm, decryptAesGcm, deriveCipherKey, md5HashAsync, randomHex, randomUUID, sleep } from '../utils/mpcCrypto'
+import { encryptAesGcm, decryptAesGcm, deriveCipherKey, md5HashAsync, randomHex, randomUUID, sleep, hexToBytes, bytesToHex } from '../utils/mpcCrypto'
+import { sha512 } from '@noble/hashes/sha2.js'
+import { hmac } from '@noble/hashes/hmac.js'
 
 export type KeyImportStep =
   | 'setup'
@@ -353,11 +355,22 @@ export async function importKeyToFastVault(options: {
   const ecdsaResult = await ExpoDkls.finishKeygen(importResult.sessionHandle)
 
   // Server expects an EdDSA (Schnorr) root key import after ECDSA (see vultiserver dkls.go:152).
-  // Generate a random ed25519 key — Terra doesn't use EdDSA but the server requires this round.
+  // Terra doesn't use EdDSA, but the server requires this round to complete.
+  // Derive a valid ed25519 scalar via SLIP-10 + clamping (matches vultiagent-app).
   await sleep(500) // match server's 500ms gap between rounds
   report({ step: 'finalizing', message: 'Importing EdDSA key...', progress: 84 })
 
-  const eddsaPrivateKey = randomHex(32)
+  const eddsaSeed = hexToBytes(randomHex(32))
+  const ED25519_SEED = new TextEncoder().encode('ed25519 seed')
+  const I = hmac(sha512, ED25519_SEED, eddsaSeed)
+  const rawKey = new Uint8Array(I.slice(0, 32))
+  // SHA-512 + clamp (matches iOS clampThenUniformScalar)
+  const digest = sha512(rawKey)
+  const clamped = new Uint8Array(digest.slice(0, 32))
+  clamped[0]! &= 248
+  clamped[31]! &= 63
+  clamped[31]! |= 64
+  const eddsaPrivateKey = bytesToHex(clamped)
   const eddsaImport = await ExpoDkls.createSchnorrKeyImportSession(
     eddsaPrivateKey,
     hexChainCode,
