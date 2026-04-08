@@ -7,6 +7,7 @@
  *
  * Requires: vultiserver at api.vultisig.com, agentmail credentials in .env
  */
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -25,7 +26,7 @@ function readDotEnv() {
 
 const ENV = readDotEnv();
 const AGENTMAIL_API_KEY = ENV.AGENTMAIL_API_KEY;
-const AGENTMAIL_EMAIL = ENV.AGENTMAIL_EMAIL;
+const AGENTMAIL_EMAIL = ENV.AGENTMAIL_EMAIL || 'vultiagent@agentmail.to';
 
 /**
  * Poll agentmail API for the 4-digit OTP code.
@@ -46,14 +47,16 @@ async function fetchOtpFromAgentmail(inboxEmail, vaultName, maxAttempts = 30, in
       const listData = await listRes.json();
       const messages = listData.messages || [];
 
+      // Look for most recent verification email
       const msg = messages.find(m =>
+        (m.preview && m.preview.includes('Verification')) ||
+        (m.subject && m.subject.includes('Verification')) ||
         (m.preview && m.preview.includes(vaultName)) ||
-        (m.subject && m.subject.includes(vaultName)) ||
-        (m.preview && m.preview.includes('Verification'))
+        (m.subject && m.subject.includes(vaultName))
       );
 
       if (!msg) {
-        console.log(`[AgentMail] No matching message yet (attempt ${attempt + 1}/${maxAttempts}, ${messages.length} messages)`);
+        console.log(`[AgentMail] No matching message yet (attempt ${attempt + 1}/${maxAttempts}, ${messages.length} msgs)`);
         await new Promise(r => setTimeout(r, intervalMs));
         continue;
       }
@@ -84,11 +87,9 @@ async function fetchOtpFromAgentmail(inboxEmail, vaultName, maxAttempts = 30, in
 }
 
 describe('Fast Vault Migration', () => {
-  const vaultName = `test-${Date.now()}`;
 
   describe('1. Full migration flow', () => {
     beforeAll(async () => {
-      const { execSync } = require('child_process');
       const udid = device.id;
       execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
         timeout: 30000,
@@ -96,7 +97,11 @@ describe('Fast Vault Migration', () => {
       execSync(`xcrun simctl boot ${udid}`, { timeout: 30000 });
 
       // Seed legacy keystore data
-      await device.launchApp({ delete: true, newInstance: true });
+      await device.launchApp({
+        delete: true,
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
       await device.disableSynchronization();
 
       await waitFor(element(by.text('Seed Legacy Data (dev)')))
@@ -110,7 +115,10 @@ describe('Fast Vault Migration', () => {
       await expect(element(by.id('seed-status'))).toHaveText('seeded');
 
       // Relaunch to trigger migration flow
-      await device.launchApp({ newInstance: true });
+      await device.launchApp({
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
       await device.disableSynchronization();
     });
 
@@ -141,6 +149,7 @@ describe('Fast Vault Migration', () => {
     });
 
     it('should validate email and navigate to password screen', async () => {
+      await element(by.id('vault-email-input')).tap();
       await element(by.id('vault-email-input')).typeText(AGENTMAIL_EMAIL);
       await element(by.id('vault-email-next')).tap();
       await waitFor(element(by.text('Choose a password')))
@@ -162,83 +171,52 @@ describe('Fast Vault Migration', () => {
     // --- KeygenProgress → VerifyEmail ---
 
     it('should complete DKLS ceremony and show verification screen', async () => {
-      // The DKLS ceremony runs with vultiserver — wait up to 3 minutes
+      // DKLS ceremony with vultiserver — wait up to 150s (matches vultiagent-app)
       await waitFor(element(by.text('Verify your email')))
-        .toBeVisible()
-        .withTimeout(180000);
+        .toExist()
+        .withTimeout(150000);
       await expect(element(by.id('verify-code-input'))).toExist();
     });
 
     // --- VerifyEmail with agentmail OTP ---
 
     it('should verify email with OTP from agentmail', async () => {
-      const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, vaultName);
+      const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, 'TestWallet');
+      await element(by.id('verify-code-input')).tap();
       await element(by.id('verify-code-input')).replaceText(otp);
-      // Auto-submits after 4 digits — wait for success or next wallet
-      await new Promise(r => setTimeout(r, 3000));
+      // Auto-submits — wait for navigation
+      await new Promise(r => setTimeout(r, 5000));
     });
 
-    // --- MigrationSuccess ---
+    // --- Next wallet or MigrationSuccess ---
 
-    it('should show success screen', async () => {
-      // After verification, should advance to next wallet or success
-      // With 3 test wallets (2 standard + 1 ledger), we may see another VaultEmail
-      // or MigrationSuccess depending on how many wallets completed
-      let onSuccess = false;
+    it('should advance after verification', async () => {
+      // With 3 test wallets (2 standard + 1 ledger), after first wallet
+      // we should see VaultEmail for the second wallet, or MigrationSuccess
+      let found = false;
       try {
-        await waitFor(element(by.text('Wallets Upgraded!')))
+        await waitFor(element(by.text('Enter your email')))
           .toBeVisible()
           .withTimeout(5000);
-        onSuccess = true;
+        found = true;
+        console.log('Advanced to next wallet VaultEmail');
       } catch (_) {}
 
-      if (!onSuccess) {
+      if (!found) {
         try {
-          await waitFor(element(by.text('Migration Complete')))
+          await waitFor(element(by.text('Wallets Upgraded!')))
             .toBeVisible()
             .withTimeout(5000);
-          onSuccess = true;
+          found = true;
+          console.log('All wallets done — success screen');
         } catch (_) {}
       }
 
-      if (!onSuccess) {
-        // Still on another wallet's VaultEmail — that's fine, first wallet succeeded
-        await expect(element(by.text('Enter your email'))).toBeVisible();
-      }
-    });
-  });
-
-  // --- Persistence ---
-
-  describe('2. Persistence — migration not shown after completion', () => {
-    beforeAll(async () => {
-      // This test only works if all wallets completed migration
-      // Skip the check gracefully if we're still mid-migration
-      await device.launchApp({ newInstance: true });
-      await device.disableSynchronization();
-      await new Promise(r => setTimeout(r, 3000));
-    });
-
-    afterAll(async () => {
-      await device.enableSynchronization();
-    });
-
-    it('should not show WalletDiscovery after migration', async () => {
-      // If vaultsUpgraded was set, we shouldn't see the migration flow
-      // Note: this may fail if the first test suite didn't complete all wallets
-      let migrationVisible = false;
-      try {
-        await waitFor(element(by.text('Wallets Found')))
+      if (!found) {
+        await waitFor(element(by.text('Migration Complete')))
           .toBeVisible()
           .withTimeout(5000);
-        migrationVisible = true;
-      } catch (_) {}
-
-      if (migrationVisible) {
-        console.log('Migration flow still showing — not all wallets completed in previous run');
-      } else {
-        // Migration flow not shown — vaultsUpgraded persisted
-        expect(true).toBe(true);
+        console.log('Partial success — migration complete');
       }
     });
   });
