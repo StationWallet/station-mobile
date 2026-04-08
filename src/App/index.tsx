@@ -1,19 +1,16 @@
-import React, { useState, useEffect, ReactElement, useCallback } from 'react'
-import { Platform } from 'react-native'
-import { LogBox, View, SafeAreaView, StatusBar, Modal, KeyboardAvoidingView } from 'react-native'
+import React, { useState, useEffect, ReactElement } from 'react'
+import { Platform, BackHandler } from 'react-native'
+import { LogBox, View, StatusBar, KeyboardAvoidingView } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import SplashScreen from 'react-native-splash-screen'
-import { RecoilRoot, useRecoilValue } from 'recoil'
-import RNExitApp from 'react-native-exit-app'
+import * as SplashScreen from 'expo-splash-screen'
+import { RecoilRoot } from 'recoil'
 import { QueryClient, QueryClientProvider } from 'react-query'
-import { AccAddress } from '@terra-money/terra.js'
 
 import {
   useAuthState,
   AuthProvider,
   useConfigState,
   ConfigProvider,
-  User,
 } from 'lib'
 
 import { UTIL } from 'consts'
@@ -21,30 +18,25 @@ import { UTIL } from 'consts'
 import { Settings } from 'types'
 import { AppProvider } from './useApp'
 
-import AppNavigator from '../navigatoin'
+import AppNavigator from '../navigation'
 
-import useSecurity from 'hooks/useSecurity'
-import useNetworks from 'hooks/useNetworks'
+import useSecurity from './useSecurity'
+import useNetworks from './useNetworks'
 
 import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
 
-import { getWallets } from 'utils/wallet'
-import { getSkipOnboarding, settings } from 'utils/storage'
-import { parseDynamicLinkURL } from 'utils/scheme'
+import { settings } from 'utils/storage'
+import { migrateLegacyKeystore } from 'utils/legacyMigration'
 
 import DebugBanner from './DebugBanner'
-import OnBoarding from './OnBoarding'
 import GlobalTopNotification from './GlobalTopNotification'
-import UnderMaintenance from './UnderMaintenance'
 
 import { useAlertViewState } from './AlertView'
-import { RN_APIS, WebViewContainer } from './WebViewContainer'
-import QRScan from '../components/QrCodeButton/QRScan'
-import AppStore from 'stores/AppStore'
 import { themes } from 'lib/contexts/useTheme'
+import { COLORS } from 'consts/theme'
 
 LogBox.ignoreLogs(['EventEmitter.removeListener'])
 
@@ -52,15 +44,12 @@ const queryClient = new QueryClient()
 
 let App = ({
   settings: { lang, chain, currency, theme },
-  user,
 }: {
   settings: Settings
-  user?: User[]
 }): ReactElement => {
   /* drawer */
   const alertViewProps = useAlertViewState()
   const { networks } = useNetworks()
-  const webviewComponentLoaded = useRecoilValue(AppStore.webviewComponentLoaded)
 
   const chainOption =
     (chain ? networks[chain.name] : networks.mainnet) ||
@@ -83,24 +72,13 @@ let App = ({
     securityCheckFailed,
   } = useSecurity()
 
-  /* onboarding */
-  const [showOnBoarding, setshowOnBoarding] = useState<boolean>(false)
-
-  const webviewInstance = useRecoilValue(AppStore.webviewInstance)
-
-  useEffect(() => {
-    getSkipOnboarding().then((b) => setshowOnBoarding(!b))
-  }, [])
-
-  const [isVisibleModal, setIsVisibleModal] = useState(false)
-
   useEffect(() => {
     if (securityCheckFailed !== undefined) {
-      SplashScreen.hide()
+      SplashScreen.hideAsync()
       if (securityCheckFailed) {
         const message = getSecurityErrorMessage()
 
-        UTIL.showSystemAlert(message, 'OK', () => RNExitApp.exitApp())
+        UTIL.showSystemAlert(message, 'OK', () => BackHandler.exitApp())
       }
     }
   }, [securityCheckFailed])
@@ -110,34 +88,6 @@ let App = ({
 
   /* render */
   const ready = !!(currentLang && currentChain)
-
-  const onRead = useCallback(
-    ({ data }: { data: string }): void => {
-      webviewInstance.current?.postMessage(
-        JSON.stringify({
-          reqId: isVisibleModal,
-          type: RN_APIS.QR_SCAN,
-          data: data,
-        })
-      )
-    },
-    [isVisibleModal]
-  )
-
-  const onlyIfScan = ({ data }: { data: string }): string => {
-    const linkUrl = parseDynamicLinkURL(data)
-    const appSheme =
-      data.includes('terrastation:') &&
-      !!UTIL.getParam({ url: data, key: 'payload' })
-    const readable =
-      // if kind of address
-      AccAddress.validate(data) ||
-      // if dynamic link
-      !!linkUrl ||
-      // if app scheme
-      appSheme
-    return readable ? '' : 'Not a valid QR code.'
-  }
 
   const defaultViewStyle = {
     flex: 1
@@ -150,78 +100,35 @@ let App = ({
           <ConfigProvider value={config}>
             <AuthProvider value={auth}>
               <SafeAreaProvider>
-                <SafeAreaView
-                  style={{
-                    flex: 0,
-                    backgroundColor: showOnBoarding
-                      ? '#fff' : !webviewComponentLoaded
-                        ? '#1f42b4' : themes?.[currentTheme]?.backgroundColor,
-                  }}
+                <StatusBar
+                  barStyle="light-content"
+                  backgroundColor={themes?.[currentTheme]?.backgroundColor ?? COLORS.bg}
                 />
                 <KeyboardAvoidingView
                   behavior={Platform.OS === "ios" ? "padding" : "height"}
-                  style={defaultViewStyle}
+                  style={{
+                    ...defaultViewStyle,
+                    backgroundColor: themes?.[currentTheme]?.backgroundColor || COLORS.bg,
+                  }}
                 >
-                  <SafeAreaView
-                    style={{
-                      ...defaultViewStyle,
-                      backgroundColor: showOnBoarding
-                        ? '#fff' : !webviewComponentLoaded
-                          ? '#1f42b4' : themes?.[currentTheme]?.backgroundColor,
-                    }}
-                  >
-                    <StatusBar
-                      barStyle={themes?.[currentTheme]?.textContent ?? 'light-content'}
-                      backgroundColor={themes?.[currentTheme]?.backgroundColor}
+                  {(securityCheckFailed) &&
+                  Platform.OS === 'ios' ? (
+                    <View
+                      style={{
+                        flex: 1,
+                      }}
                     />
-
-                    {(securityCheckFailed) &&
-                    Platform.OS === 'ios' ? (
-                      <View
-                        style={{
-                          flex: 1,
-                        }}
-                      />
-                    ) : showOnBoarding ? (
-                      <OnBoarding
-                        closeOnBoarding={(): void =>
-                          setshowOnBoarding(false)
-                        }
-                      />
-                    ) : (
-                      <>
-                        <View style={defaultViewStyle}>
-                          <WebViewContainer
-                            user={user}
-                            setIsVisibleModal={setIsVisibleModal}
-                          />
-                        </View>
-                        <AppNavigator />
-                        <GlobalTopNotification />
-                        <UnderMaintenance />
-                        {webviewComponentLoaded && config.chain.current.name !== 'mainnet' && (
-                          <DebugBanner
-                            title={config.chain.current.name.toUpperCase()}
-                          />
-                        )}
-                        <Modal
-                          onRequestClose={(): void => {
-                            setIsVisibleModal(false)
-                          }}
-                          transparent
-                          visible={!!isVisibleModal}
-                        >
-                          <QRScan
-                            onRead={onRead}
-                            onlyIfScan={onlyIfScan}
-                            closeModal={(): void => {
-                              setIsVisibleModal(false)
-                            }}
-                          />
-                        </Modal>
-                      </>
-                    )}
-                  </SafeAreaView>
+                  ) : (
+                    <>
+                      <AppNavigator />
+                      <GlobalTopNotification />
+                      {config.chain.current.name !== 'mainnet' && (
+                        <DebugBanner
+                          title={config.chain.current.name.toUpperCase()}
+                        />
+                      )}
+                    </>
+                  )}
                 </KeyboardAvoidingView>
               </SafeAreaProvider>
             </AuthProvider>
@@ -238,46 +145,51 @@ const clearKeystoreWhenFirstRun = async (): Promise<void> => {
   const firstRun = await preferences.getBool(PreferencesEnum.firstRun)
   if (firstRun) return
 
+  // On upgrade from old RN app, firstRun is false because it was in MMKV
+  // (now inaccessible). We check the NEW expo-secure-store location for
+  // existing data. On a genuine upgrade this will be empty (data is still
+  // in the old native keychain and hasn't been migrated yet), so the
+  // remove() below is a no-op — it only clears the new location.
+  //
+  // IMPORTANT: This function does NOT touch the old native keychain
+  // (service "_secure_storage_service"). Legacy data is preserved for
+  // migrateLegacyKeystore() which runs next.
+  const existingData = await keystore.read(KeystoreEnum.AuthData)
+  if (existingData) {
+    // Data already in new location (post-migration or fresh wallet)
+    await preferences.setBool(PreferencesEnum.firstRun, true)
+    return
+  }
+
   try {
-    keystore.remove(KeystoreEnum.AuthData)
+    // Only removes from new expo-secure-store location (no-op on upgrade)
+    await keystore.remove(KeystoreEnum.AuthData)
   } finally {
-    preferences.setBool(PreferencesEnum.firstRun, true)
+    await preferences.setBool(PreferencesEnum.firstRun, true)
   }
 }
 
 export default (): ReactElement => {
   const [local, setLocal] = useState<Settings>()
-  const [user, setUser] = useState<User[]>()
-  const [initComplete, setInitComplete] = useState(false)
 
   useEffect(() => {
-    clearKeystoreWhenFirstRun()
-
-    const migratePreferences = async (): Promise<void> => {
-      try {
-        await keystore.migratePreferences('AD')
-      } catch {}
+    const startup = async (): Promise<void> => {
+      const [, loaded] = await Promise.all([
+        clearKeystoreWhenFirstRun().then(() => migrateLegacyKeystore()),
+        settings.get(),
+      ])
+      setLocal(loaded)
     }
 
-    const init = async (): Promise<void> => {
-      await migratePreferences()
-      const local = await settings.get()
-      setLocal(local)
-      const wallets = await getWallets()
-      setUser(wallets)
-    }
-
-    init().then((): void => {
-      setInitComplete(true)
-    })
+    startup()
   }, [])
 
   return (
     <>
-      {local && initComplete ? (
+      {local ? (
         <QueryClientProvider client={queryClient}>
           <RecoilRoot>
-            <App settings={local} user={user} />
+            <App settings={local} />
           </RecoilRoot>
         </QueryClientProvider>
       ) : null}

@@ -1,13 +1,15 @@
-import React, { ReactElement, useRef, useState } from 'react'
+import React, { ReactElement, useCallback, useState } from 'react'
 import {
   Image,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
   View,
   TouchableOpacity,
   LogBox,
   StyleSheet,
+  useWindowDimensions,
 } from 'react-native'
-import Swiper from 'react-native-swiper'
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 
 import { COLOR } from 'consts'
 
@@ -49,68 +51,53 @@ const PagerContents = [
   },
 ]
 
-interface RenderSwiperProps {
-  refSwipe: React.RefObject<Swiper>
-  setLastPage: (b: boolean) => void
+const RenderSwiper = (): ReactElement => {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const { width: screenWidth } = useWindowDimensions()
+
+  const onMomentumScrollEnd = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetX = e.nativeEvent.contentOffset.x
+      const index = Math.round(offsetX / screenWidth)
+      setCurrentIndex(index)
+    },
+    [screenWidth]
+  )
+
+  return (
+    <View style={styles.swiperWrapper}>
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        style={styles.flex1}
+      >
+        {PagerContents.map((item, i) => (
+          <View key={i} style={[styles.SwiperContent, { width: screenWidth }]}>
+            <View style={styles.imageWrapper}>
+              <Image source={item.image} style={styles.SwiperContentImage} />
+            </View>
+            <View style={styles.textWrapper}>
+              <Text style={styles.SwiperContentTitle} fontType="bold">{item.title}</Text>
+              <Text style={styles.SwiperContentDesc} adjustsFontSizeToFit numberOfLines={2}>{item.description}</Text>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+      <View style={styles.dotsRow}>
+        {PagerContents.map((_, i) => (
+          <View key={i} style={i === currentIndex ? styles.SwiperDotActive : styles.SwiperDot} />
+        ))}
+      </View>
+    </View>
+  )
 }
 
-const RenderSwiper = ({
-  refSwipe,
-  setLastPage,
-}: RenderSwiperProps): ReactElement => (
-  <Swiper
-    ref={refSwipe}
-    onIndexChanged={(index): void =>
-      setLastPage(index + 1 === PagerContents.length)
-    }
-    loop={false}
-    dot={<View style={styles.SwiperDot} />}
-    activeDot={<View style={styles.SwiperDotActive} />}
-    containerStyle={{ marginBottom: '16%' }}
-    paginationStyle={{ marginBottom: '-4%' }}
-  >
-    {PagerContents.map((v, i) => (
-      <View key={i} style={styles.SwiperContent}>
-        <View
-          style={{
-            height: '60%',
-            paddingVertical: 20,
-            alignContent: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Image source={v.image} style={styles.SwiperContentImage} />
-        </View>
-        <View
-          style={{
-            minHeight: 160,
-            paddingTop: 20,
-          }}
-        >
-          <Text style={styles.SwiperContentTitle} fontType="bold">
-            {v.title}
-          </Text>
-          <Text
-            style={styles.SwiperContentDesc}
-            adjustsFontSizeToFit
-            numberOfLines={2}
-          >
-            {v.description}
-          </Text>
-        </View>
-      </View>
-    ))}
-  </Swiper>
-)
-
 const RenderButton = ({
-  refSwipe,
   closeOnBoarding,
-  isLastPage,
 }: {
-  refSwipe: React.RefObject<Swiper>
   closeOnBoarding: () => void
-  isLastPage: boolean
 }): ReactElement => {
   const enterTabs = (): void => {
     setSkipOnboarding(true)
@@ -119,50 +106,17 @@ const RenderButton = ({
 
   return (
     <View style={styles.SwiperButtonContainer}>
-      {!isLastPage ? (
-        <>
-          <TouchableOpacity
-            style={styles.SwiperButtonSkip}
-            onPress={enterTabs}
-          >
-            <Text
-              style={styles.SwiperButtonSkipText}
-              fontType={'medium'}
-            >
-              Skip
-            </Text>
-          </TouchableOpacity>
-          <View style={{ width: 15 }} />
-          <TouchableOpacity
-            style={styles.SwiperButtonNext}
-            onPress={(): void => refSwipe.current?.scrollBy(1)}
-          >
-            <Icon
-              name="arrow-right"
-              size={20}
-              color="rgb(255,255,255)"
-            />
-          </TouchableOpacity>
-        </>
-      ) : (
-        <>
-          <TouchableOpacity
-            style={styles.SwiperButtonStart}
-            onPress={enterTabs}
-          >
-            <Text
-              style={{
-                fontSize: 16,
-                lineHeight: 24,
-                color: 'rgb(255,255,255)',
-              }}
-              fontType={'medium'}
-            >
-              Get started
-            </Text>
-          </TouchableOpacity>
-        </>
-      )}
+      <TouchableOpacity
+        style={styles.SwiperButtonStart}
+        onPress={enterTabs}
+      >
+        <Text
+          style={styles.SwiperButtonText}
+          fontType={'medium'}
+        >
+          Get started
+        </Text>
+      </TouchableOpacity>
     </View>
   )
 }
@@ -172,22 +126,20 @@ const OnBoarding = ({
 }: {
   closeOnBoarding: () => void
 }): ReactElement => {
-  const [lastPage, setLastPage] = useState(false)
-  const refSwipe = useRef<Swiper>(null)
-
   return (
-    <>
-      <RenderSwiper refSwipe={refSwipe} setLastPage={setLastPage} />
-      <RenderButton
-        refSwipe={refSwipe}
-        closeOnBoarding={closeOnBoarding}
-        isLastPage={lastPage}
-      />
-    </>
+    <View style={styles.flex1}>
+      <RenderSwiper />
+      <RenderButton closeOnBoarding={closeOnBoarding} />
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  flex1: { flex: 1 },
+  swiperWrapper: { flex: 1, marginBottom: 60 },
+  imageWrapper: { height: '60%', paddingVertical: 20, alignContent: 'center', justifyContent: 'center' },
+  textWrapper: { minHeight: 160, paddingTop: 20 },
+  dotsRow: { flexDirection: 'row', justifyContent: 'center' },
   SwiperDot: {
     backgroundColor: 'rgba(32, 67, 181, 0.2)',
     width: 6,
@@ -202,7 +154,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     margin: 7,
   },
-
   SwiperContent: {
     flex: 1,
     flexDirection: 'column',
@@ -236,27 +187,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingHorizontal: 20,
   },
-  SwiperButtonSkip: {
-    flex: 1,
-    height: 50,
-    borderRadius: 25,
-    paddingVertical: 13,
-    backgroundColor: 'rgba(32, 67, 181, 0.2)',
-    alignItems: 'center',
-  },
-  SwiperButtonSkipText: {
-    color: COLOR.primary._02,
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  SwiperButtonNext: {
-    flex: 1,
-    height: 50,
-    borderRadius: 25,
-    paddingVertical: 15,
-    backgroundColor: COLOR.primary._02,
-    alignItems: 'center',
-  },
   SwiperButtonStart: {
     flex: 1,
     height: 50,
@@ -265,6 +195,11 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     backgroundColor: COLOR.primary._02,
     alignItems: 'center',
+  },
+  SwiperButtonText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: 'rgb(255,255,255)',
   },
 })
 

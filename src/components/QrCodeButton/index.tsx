@@ -23,8 +23,9 @@ import {
 import Text from '../Text'
 import Icon from '../Icon'
 
+import { Alert } from 'react-native'
+
 import QRScan from './QRScan'
-import { useAlert } from 'hooks/useAlert'
 
 export type QrCodeButtonProps = {
   /**
@@ -41,7 +42,6 @@ export type QrCodeButtonProps = {
    * @return {string} return error message
    */
   onlyIfScan?: (props: { data: string }) => string
-  stepNo?: number
   children?: ReactNode
   defaultVisible?: boolean
 }
@@ -49,14 +49,11 @@ export type QrCodeButtonProps = {
 const QrCodeButton = ({
   onRead,
   onlyIfScan,
-  stepNo,
   children,
   dataParser,
   defaultVisible = false,
 }: QrCodeButtonProps): ReactElement => {
   const [isVisibleModal, setIsVisibleModal] = useState(defaultVisible)
-
-  const { confirm } = useAlert()
 
   const onPress = async (): Promise<void> => {
     const requestResult = await requestPermission()
@@ -68,13 +65,14 @@ const QrCodeButton = ({
       }
     }
 
-    confirm({
-      title: 'Camera not authorized',
-      desc: 'Move to settings to enable camera permissions?',
-      onPressConfirm: (): void => {
-        openPermissionSettings()
-      },
-    })
+    Alert.alert(
+      'Camera not authorized',
+      'Move to settings to enable camera permissions?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Ok', onPress: () => openPermissionSettings() },
+      ]
+    )
   }
 
   const { addListener } = useNavigation()
@@ -112,7 +110,6 @@ const QrCodeButton = ({
         visible={isVisibleModal}
       >
         <QRScan
-          stepNo={stepNo}
           onRead={onRead}
           onlyIfScan={onlyIfScan}
           closeModal={(): void => {

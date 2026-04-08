@@ -1,4 +1,67 @@
 {
-  "name": "TerraStation",
-  "displayName": "TerraStation"
+  "expo": {
+    "name": "Vultisig",
+    "slug": "vultisig",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/terraStation.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/terra.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1f42b4"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "scheme": "terrastation",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3d195fcb-1b62-4088-88b8-4acb67e0eb4d",
+      "fallbackToCacheTimeout": 0
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "money.terra.station",
+      "appleTeamId": "4268K8DFX6",
+      "buildNumber": "1",
+      "entitlements": {
+        "aps-environment": "production"
+      },
+      "associatedDomains": [
+        "applinks:station.app.link",
+        "applinks:station-alternate.app.link",
+        "applinks:terrastation.page.link"
+      ]
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1f42b4"
+      },
+      "package": "money.terra.station",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-camera",
+      "expo-local-authentication",
+      "@config-plugins/detox",
+      "expo-sharing",
+      "expo-updates"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3d195fcb-1b62-4088-88b8-4acb67e0eb4d"
+      }
+    },
+    "owner": "vultisig"
+  }
 }

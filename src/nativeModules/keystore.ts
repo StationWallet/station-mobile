@@ -1,4 +1,4 @@
-import { NativeModules } from 'react-native'
+import * as SecureStore from 'expo-secure-store'
 
 // Warning. To avoid making duplicate key with wallet name,
 // enum string length should NOT be in 5 ~ 20
@@ -8,19 +8,26 @@ export enum KeystoreEnum {
 }
 
 export type KeystoreType = {
-  write(key: string, value: string): void
+  write(key: string, value: string): Promise<boolean>
   read(key: string): Promise<string>
-  remove(key: string): void
+  remove(key: string): Promise<boolean>
   migratePreferences(key: string): Promise<void>
 }
 
-const Keystore: KeystoreType = NativeModules.Keystore
+export const LEGACY_SERVICE_PREFIX = 'app.keystore'
+export const LEGACY_ACCOUNT = 'keystore'
 
-// Prevent Crashing App from native exception
+export function keychainOpts(key: string): SecureStore.SecureStoreOptions {
+  return {
+    keychainService: `${LEGACY_SERVICE_PREFIX}-${key}`,
+    keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
+  }
+}
+
 export default {
-  write: (key: string, value: string): boolean => {
+  write: async (key: string, value: string): Promise<boolean> => {
     try {
-      Keystore.write(key, value)
+      await SecureStore.setItemAsync(LEGACY_ACCOUNT, value, keychainOpts(key))
       return true
     } catch {
       return false
@@ -28,22 +35,24 @@ export default {
   },
   read: async (key: string): Promise<string> => {
     try {
-      return await Keystore.read(key)
+      const value = await SecureStore.getItemAsync(LEGACY_ACCOUNT, keychainOpts(key))
+      return value || ''
     } catch {
       return ''
     }
   },
-  remove: (key: string): boolean => {
+  remove: async (key: string): Promise<boolean> => {
     try {
-      Keystore.remove(key)
+      await SecureStore.deleteItemAsync(LEGACY_ACCOUNT, keychainOpts(key))
       return true
     } catch {
       return false
     }
   },
-  migratePreferences: async (key: string): Promise<void> => {
-    try {
-      await Keystore.migratePreferences(key)
-    } catch {}
+  migratePreferences: async (_key: string): Promise<void> => {
+    // No-op — preferences were in MMKV (now inaccessible after Expo migration).
+    // Wallet data is NOT preserved by name matching — the old keychain service was
+    // "_secure_storage_service" and the new one is "app.keystore-AD". Migration is
+    // handled entirely by migrateLegacyKeystore() in src/utils/legacyMigration.ts.
   },
 }

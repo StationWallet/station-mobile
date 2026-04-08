@@ -15,18 +15,18 @@ export const parseDynamicLinkURL = (
   }
 }
 
-export const storeScheme = (url: string): void => {
+export const storeScheme = async (url: string): Promise<void> => {
   if (url && url !== '') {
-    preferences.setString(PreferencesEnum.scheme, url)
+    await preferences.setString(PreferencesEnum.scheme, url)
   }
 }
 
-export const loadScheme = (url: string): void => {
+export const loadScheme = async (url: string): Promise<void> => {
   if (url && url !== '') {
     try {
       Linking.openURL(url)
     } finally {
-      preferences.setString(PreferencesEnum.scheme, '')
+      await preferences.setString(PreferencesEnum.scheme, '')
     }
   }
 }

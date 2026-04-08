@@ -1,0 +1,38 @@
+diff --git a/node_modules/recoil/native/index.js b/node_modules/recoil/native/index.js
+index 1d95613..e5d6508 100644
+--- a/node_modules/recoil/native/index.js
++++ b/node_modules/recoil/native/index.js
+@@ -498,19 +498,24 @@ let ReactRendererVersionMismatchWarnOnce = false; // Check if the current render
+ // change we can't simply check if `React.useSyncExternalStore()` is defined.
+ 
+ function currentRendererSupportsUseSyncExternalStore() {
++  // React 19 renamed __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED to
++  // __CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE
++  const internals = react.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED ||
++    react.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
++  if (!internals) {
++    return !!useSyncExternalStore;
++  }
+   var _ReactCurrentDispatch;
+-
+-  // $FlowFixMe[incompatible-use]
+   const {
+     ReactCurrentDispatcher,
+     ReactCurrentOwner
+-  } =
+-  /* $FlowFixMe[prop-missing] This workaround was approved as a safer mechanism
+-   * to detect if the current renderer supports useSyncExternalStore()
+-   * https://fb.workplace.com/groups/reactjs/posts/9558682330846963/ */
+-  react.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+-  const dispatcher = (_ReactCurrentDispatch = ReactCurrentDispatcher === null || ReactCurrentDispatcher === void 0 ? void 0 : ReactCurrentDispatcher.current) !== null && _ReactCurrentDispatch !== void 0 ? _ReactCurrentDispatch : ReactCurrentOwner.currentDispatcher;
+-  const isUseSyncExternalStoreSupported = dispatcher.useSyncExternalStore != null;
++  } = internals;
++  // In React 19, ReactCurrentDispatcher may not exist; fall back gracefully
++  if (!ReactCurrentDispatcher && !ReactCurrentOwner) {
++    return !!useSyncExternalStore;
++  }
++  const dispatcher = (_ReactCurrentDispatch = ReactCurrentDispatcher === null || ReactCurrentDispatcher === void 0 ? void 0 : ReactCurrentDispatcher.current) !== null && _ReactCurrentDispatch !== void 0 ? _ReactCurrentDispatch : (ReactCurrentOwner ? ReactCurrentOwner.currentDispatcher : null);
++  const isUseSyncExternalStoreSupported = dispatcher ? dispatcher.useSyncExternalStore != null : !!useSyncExternalStore;
+ 
+   if (useSyncExternalStore && !isUseSyncExternalStoreSupported && !ReactRendererVersionMismatchWarnOnce) {
+     ReactRendererVersionMismatchWarnOnce = true;

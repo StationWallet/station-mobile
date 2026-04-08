@@ -1,7 +1,6 @@
 import React, { ReactElement } from 'react'
-import { StyleProp, TextStyle, TouchableOpacity } from 'react-native'
+import { Linking, StyleProp, TextStyle, TouchableOpacity } from 'react-native'
 
-import useLinking from 'hooks/useLinking'
 import Text from './Text'
 
 const ExtLink = ({
@@ -13,10 +12,8 @@ const ExtLink = ({
   title: string | ReactElement
   textStyle?: StyleProp<TextStyle>
 }): ReactElement => {
-  const { openURL } = useLinking()
-
   const onPress = (): void => {
-    openURL(url)
+    Linking.openURL(url)
   }
   return (
     <TouchableOpacity onPress={onPress}>

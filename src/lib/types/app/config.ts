@@ -52,6 +52,11 @@ export interface Currency {
   krwRate?: string
 }
 
+export interface Rate {
+  denom: string
+  swaprate: string
+}
+
 export interface CurrencyConfig {
   current?: Currency
   list?: Currency[]
@@ -65,7 +70,7 @@ export interface ChainOptions {
   chainID: string
   lcd: string
   fcd: string
-  mantle: string
+  mantle?: string
   walletconnectID: number
 }
 

@@ -67,3 +67,18 @@ android/*.hprof
 android/app/src/main/java/money/terra/station/generated/BasePackageList.java
 
 .scannerwork
+
+# Expo
+.expo/
+ios/
+!modules/**/ios/
+android/
+!modules/**/android/
+*.tsbuildinfo
+
+# EAS credentials (secrets — never commit)
+credentials.json
+google-service-account.json
+
+# Status updates
+docs/status-update*.superpowers/

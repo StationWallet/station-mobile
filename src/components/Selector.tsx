@@ -1,4 +1,4 @@
-import React, { ReactElement, useRef } from 'react'
+import React, { ReactElement, ReactNode, useEffect, useRef } from 'react'
 import {
   TouchableOpacity,
   StyleSheet,
@@ -8,11 +8,37 @@ import {
   FlatList,
 } from 'react-native'
 import _ from 'lodash'
+import { useNavigation } from '@react-navigation/native'
+import { useSetRecoilState } from 'recoil'
 
 import { COLOR, LAYOUT } from 'consts'
+import ModalStore from 'stores/ModalStore'
 
-import { useModal } from 'hooks/useModal'
 import Text from './Text'
+
+const useModal = (): { modal: AppModal } => {
+  const setIsVisible = useSetRecoilState(ModalStore.isVisible)
+  const setModalChildren = useSetRecoilState(ModalStore.children)
+
+  const modal = {
+    open: (children: ReactNode): void => {
+      setIsVisible(true)
+      setModalChildren(children)
+    },
+    close: (): void => {
+      setIsVisible(false)
+    },
+  }
+
+  const { addListener } = useNavigation()
+  useEffect(() => {
+    return addListener('blur', (): void => {
+      modal.close()
+    })
+  }, [])
+
+  return { modal }
+}
 
 const SelectItemList = <T,>({
   list,

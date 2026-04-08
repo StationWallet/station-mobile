@@ -1,10 +1,5 @@
-import { Platform } from 'react-native'
-import {
-  checkMultiple,
-  openSettings,
-  PERMISSIONS,
-  request,
-} from 'react-native-permissions'
+import { Linking } from 'react-native'
+import { Camera } from 'expo-camera'
 
 type PermissionResult =
   | 'unavailable'
@@ -14,38 +9,27 @@ type PermissionResult =
   | 'limited'
 
 export const requestPermission = async (): Promise<PermissionResult> => {
-  const permissions =
-    Platform.OS === 'ios' ? PERMISSIONS.IOS : PERMISSIONS.ANDROID
-
-  return request(permissions.CAMERA)
+  const { status } = await Camera.requestCameraPermissionsAsync()
+  return status as PermissionResult
 }
 
 export const requestPermissionBLE = async (): Promise<PermissionResult> => {
-  if (Platform.OS === 'android') {
-    return request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION)
-  } else {
-    return 'granted'
-  }
+  // BLE permissions stubbed for POC
+  return 'granted'
 }
 
 export const openPermissionSettings = (): void => {
-  openSettings().catch(() => {
+  Linking.openSettings().catch(() => {
     // error handling
   })
 }
 
 export const checkCameraPermission = async (): Promise<PermissionResult> => {
-  const permissions =
-    Platform.OS === 'ios' ? PERMISSIONS.IOS : PERMISSIONS.ANDROID
-
-  const statuses = await checkMultiple([permissions.CAMERA])
-  return statuses[permissions.CAMERA]
+  const { status } = await Camera.getCameraPermissionsAsync()
+  return status as PermissionResult
 }
 
 export const checkFaceIdPermission = async (): Promise<PermissionResult> => {
-  if (Platform.OS !== 'ios') {
-    return 'granted'
-  }
-  const statuses = await checkMultiple([PERMISSIONS.IOS.FACE_ID])
-  return statuses[PERMISSIONS.IOS.FACE_ID]
+  // Handled by expo-local-authentication
+  return 'granted'
 }

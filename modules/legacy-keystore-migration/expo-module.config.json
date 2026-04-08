@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["LegacyKeystoreMigrationModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.legacykeystoremigration.LegacyKeystoreMigrationModule"]
+  }
+}

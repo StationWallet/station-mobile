@@ -26,6 +26,7 @@ export type ButtonProps = {
     | 'white'
     | 'transparent'
   disabled?: boolean
+  testID?: string
 }
 
 const Button = (props: ButtonProps): ReactElement => {
@@ -78,6 +79,7 @@ const Button = (props: ButtonProps): ReactElement => {
       onPress={props.onPress}
       style={[styles.container, containerStyle, props.containerStyle]}
       disabled={disabled}
+      testID={props.testID}
     >
       {typeof props.title === 'string' ? (
         <Text
