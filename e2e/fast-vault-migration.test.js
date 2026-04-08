@@ -245,31 +245,25 @@ describe('Fast Vault Migration', () => {
     });
 
     it('should show all wallets and Export Vault Share', async () => {
-      // Navigate to wallet picker — app may land on any wallet after relaunch
-      // Use try/catch since Detox sync can interfere with waitFor
-      let onWalletPicker = false;
-      try {
-        await element(by.text('Switch Wallet')).tap();
-        onWalletPicker = true;
-      } catch (_) {}
-      if (!onWalletPicker) {
-        try {
-          await element(by.text('All Wallets')).tap();
-          onWalletPicker = true;
-        } catch (_) {}
+      // Wait for WalletHome to render — Detox sync can't detect idle with timers
+      await waitFor(element(by.text('LUNA')))
+        .toBeVisible()
+        .withTimeout(30000);
+
+      // Navigate to wallet picker
+      let tapped = false;
+      try { await element(by.text('Switch Wallet')).tap(); tapped = true; } catch (_) {}
+      if (!tapped) {
+        try { await element(by.text('All Wallets')).tap(); tapped = true; } catch (_) {}
       }
 
-      if (onWalletPicker) {
-        // Verify both migrated wallets are in the list
-        await expect(element(by.text('TestWallet1'))).toBeVisible();
+      if (tapped) {
+        await waitFor(element(by.text('TestWallet1'))).toBeVisible().withTimeout(5000);
         await expect(element(by.text('TestWallet2'))).toBeVisible();
 
-        // Tap a migrated wallet and verify Export Vault Share is available
         await element(by.text('TestWallet1')).tap();
-        await new Promise(r => setTimeout(r, 2000));
+        await waitFor(element(by.text('Export Vault Share'))).toBeVisible().withTimeout(10000);
       }
-
-      await expect(element(by.text('Export Vault Share'))).toBeVisible();
     });
   });
 
