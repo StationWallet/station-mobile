@@ -105,6 +105,7 @@ export default function KeygenProgress() {
       }
 
       const standardData = authEntry as AuthDataValueType
+      // Legacy stored password (for decrypting the old key) — NOT the new vault password
       const privateKeyHex = decrypt(standardData.encryptedKey, standardData.password)
       if (!privateKeyHex) {
         throw new Error('Failed to decrypt private key')

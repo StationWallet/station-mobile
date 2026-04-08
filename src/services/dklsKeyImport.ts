@@ -158,7 +158,7 @@ export async function importKeyToFastVault(options: {
     serverHash = ((serverHash << 5) - serverHash) + sessionId.charCodeAt(i)
     serverHash = serverHash & serverHash
   }
-  const serverPartyId = `Server-${Math.abs(serverHash).toString().slice(-5)}`
+  let serverPartyId = `Server-${Math.abs(serverHash).toString().slice(-5)}`
 
   report({ step: 'setup', message: 'Setting up vault...', progress: 12 })
 
@@ -179,6 +179,15 @@ export async function importKeyToFastVault(options: {
   report({ step: 'joining', message: 'Joining relay...', progress: 20 })
   report({ step: 'waiting', message: 'Waiting for server...', progress: 28 })
   const parties = await waitForParties(sessionId, 2, 120_000, signal)
+
+  // Validate that the server joined with the expected party ID
+  const actualServerPartyId = parties.find(p => p !== localPartyId)
+  if (!actualServerPartyId) throw new Error('Could not identify server party from relay')
+  if (actualServerPartyId !== serverPartyId) {
+    console.warn(`[KeyImport] Server party ID mismatch: expected ${serverPartyId}, got ${actualServerPartyId}`)
+    serverPartyId = actualServerPartyId
+  }
+
   await startRelaySession(sessionId, parties)
 
   report({ step: 'ecdsa', message: 'Importing key...', progress: 35 })

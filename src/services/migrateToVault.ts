@@ -131,6 +131,11 @@ export async function storeFastVault(
   walletName: string,
   result: KeyImportResult,
 ): Promise<void> {
+  if (await isVaultFastVault(walletName)) {
+    console.warn(`[storeFastVault] ${walletName} already migrated, skipping`)
+    return
+  }
+
   const vault = create(VaultSchema, {
     name: walletName,
     publicKeyEcdsa: result.publicKey,
@@ -164,6 +169,16 @@ export async function storeFastVault(
   )
   if (readBack !== encoded) {
     throw new Error('Vault verification failed: stored data does not match')
+  }
+  const decoded = fromBinary(VaultSchema, base64.decode(readBack))
+  if (decoded.publicKeyEcdsa !== result.publicKey) {
+    throw new Error('Vault verification failed: public key mismatch after deserialization')
+  }
+  if (decoded.libType !== LibType.DKLS) {
+    throw new Error('Vault verification failed: libType is not DKLS')
+  }
+  if (decoded.keyShares.length === 0) {
+    throw new Error('Vault verification failed: no keyshares found')
   }
 
   // Strip key material but keep the wallet entry so it remains in the wallet list.
