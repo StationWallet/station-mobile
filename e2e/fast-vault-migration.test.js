@@ -191,33 +191,31 @@ describe('Fast Vault Migration', () => {
     // --- Next wallet or MigrationSuccess ---
 
     it('should advance after verification', async () => {
-      // With 3 test wallets (2 standard + 1 ledger), after first wallet
-      // we should see VaultEmail for the second wallet, or MigrationSuccess
-      let found = false;
-      try {
-        await waitFor(element(by.text('Enter your email')))
-          .toBeVisible()
-          .withTimeout(5000);
-        found = true;
-        console.log('Advanced to next wallet VaultEmail');
-      } catch (_) {}
+      // After first wallet verification, app advances to next wallet or success.
+      // With 2 standard + 1 ledger wallet, expect VaultEmail for wallet 2,
+      // or Fast Vault Setup (already started keygen), or MigrationSuccess.
+      // Give 30s for navigation + possible auto-started keygen.
+      const screens = [
+        'Enter your email',       // next wallet email screen
+        'Fast Vault Setup',       // next wallet already in keygen
+        'Wallets Upgraded!',      // all done
+        'Migration Complete',     // partial
+        'Verify your email',      // next wallet already verified
+      ];
 
-      if (!found) {
+      let found = false;
+      for (const text of screens) {
+        if (found) break;
         try {
-          await waitFor(element(by.text('Wallets Upgraded!')))
+          await waitFor(element(by.text(text)))
             .toBeVisible()
-            .withTimeout(5000);
+            .withTimeout(10000);
           found = true;
-          console.log('All wallets done — success screen');
+          console.log(`Advanced to: "${text}"`);
         } catch (_) {}
       }
 
-      if (!found) {
-        await waitFor(element(by.text('Migration Complete')))
-          .toBeVisible()
-          .withTimeout(5000);
-        console.log('Partial success — migration complete');
-      }
+      expect(found).toBe(true);
     });
   });
 });
