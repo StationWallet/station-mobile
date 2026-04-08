@@ -90,7 +90,23 @@ export default function WalletDiscovery() {
             <Button
               title="Upgrade"
               theme="sapphire"
-              onPress={() => navigation.navigate('MigrationProgress', { wallets })}
+              onPress={() => {
+                const firstStandard = wallets.findIndex((w) => !w.ledger)
+                if (firstStandard === -1) {
+                  // All Ledger wallets — skip straight to success
+                  navigation.navigate('MigrationSuccess', {
+                    results: wallets.map((w) => ({ wallet: w, success: true })),
+                  })
+                  return
+                }
+                navigation.navigate('VaultEmail', {
+                  walletName: wallets[firstStandard].name,
+                  walletIndex: firstStandard,
+                  totalWallets: wallets.length,
+                  wallets,
+                  results: wallets.slice(0, firstStandard).map((w) => ({ wallet: w, success: true })),
+                })
+              }}
               containerStyle={styles.upgradeButton}
               testID="upgrade-button"
             />
