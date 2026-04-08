@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   FlatList,
@@ -14,12 +14,29 @@ import { UTIL } from 'consts'
 import { COLORS } from 'consts/theme'
 import Text from 'components/Text'
 import Button from 'components/Button'
+import { isVaultFastVault } from 'services/migrateToVault'
 
 import type { MainStackParams } from 'navigation/MainNavigator'
 
 export default function WalletPicker() {
   const navigation = useNavigation<NavigationProp<MainStackParams>>()
   const { wallets } = useWalletNav()
+  const [fastVaultMap, setFastVaultMap] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    if (wallets.length === 0) return
+    Promise.all(
+      wallets.map((w) =>
+        isVaultFastVault(w.name).then((isFast) => ({ name: w.name, isFast }))
+      )
+    ).then((results) => {
+      const map: Record<string, boolean> = {}
+      results.forEach(({ name, isFast }) => {
+        map[name] = isFast
+      })
+      setFastVaultMap(map)
+    })
+  }, [wallets])
 
   const selectWallet = async (wallet: LocalWallet) => {
     await settings.set({ walletName: wallet.name })
@@ -28,16 +45,49 @@ export default function WalletPicker() {
     })
   }
 
-  const renderItem = ({ item }: { item: LocalWallet }) => (
-    <TouchableOpacity style={styles.walletRow} onPress={() => selectWallet(item)}>
-      <View style={styles.walletInfo}>
-        <Text style={styles.walletName}>{item.name}</Text>
-        <Text style={styles.walletAddress}>
-          {UTIL.truncate(item.address, [10, 6])}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  )
+  const upgradeWallet = (wallet: LocalWallet) => {
+    navigation.navigate('Migration', {
+      screen: 'VaultEmail',
+      params: {
+        walletName: wallet.name,
+        walletIndex: 0,
+        totalWallets: 1,
+        wallets: [{ name: wallet.name, address: wallet.address, ledger: false }],
+        results: [],
+      },
+    })
+  }
+
+  const renderItem = ({ item }: { item: LocalWallet }) => {
+    const isFast = fastVaultMap[item.name]
+    const isLegacy = fastVaultMap[item.name] === false
+
+    return (
+      <TouchableOpacity style={styles.walletRow} onPress={() => selectWallet(item)}>
+        <View style={styles.walletInfo}>
+          <View style={styles.walletNameRow}>
+            <Text style={styles.walletName}>{item.name}</Text>
+            {isLegacy && (
+              <View style={styles.legacyBadge}>
+                <Text style={styles.legacyBadgeText}>Legacy</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.walletAddress}>
+            {UTIL.truncate(item.address, [10, 6])}
+          </Text>
+        </View>
+        {isLegacy && (
+          <TouchableOpacity
+            style={styles.upgradeButton}
+            onPress={() => upgradeWallet(item)}
+          >
+            <Text style={styles.upgradeButtonText}>Upgrade to Fast Vault</Text>
+          </TouchableOpacity>
+        )}
+      </TouchableOpacity>
+    )
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -82,8 +132,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   walletInfo: { flex: 1 },
+  walletNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   walletName: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '600' },
   walletAddress: { color: COLORS.textSecondary, fontSize: 13, marginTop: 4 },
+  legacyBadge: {
+    backgroundColor: 'rgba(255, 179, 64, 0.2)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  legacyBadgeText: {
+    color: '#FFB340',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  upgradeButton: {
+    backgroundColor: 'rgba(255, 179, 64, 0.15)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginLeft: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 179, 64, 0.4)',
+  },
+  upgradeButtonText: {
+    color: '#FFB340',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   footer: { paddingTop: 16 },
   addButton: { width: '100%' },
 })

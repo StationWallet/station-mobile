@@ -24,6 +24,7 @@ import Button from 'components/Button'
 import Loading from 'components/Loading'
 import VaultieComingSoonCard from 'components/VaultieComingSoonCard'
 import { useWalletNav } from 'navigation/hooks'
+import { isVaultFastVault } from 'services/migrateToVault'
 
 import type { MainStackParams } from 'navigation/MainNavigator'
 
@@ -42,14 +43,17 @@ export default function WalletHome() {
   const wallet = route.params?.wallet
 
   const [isLedger, setIsLedger] = useState(true)
+  const [isFastVault, setIsFastVault] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (!wallet) return
     Promise.all([
       getAuthDataValue(wallet.name),
       settings.get(),
-    ]).then(([data, saved]) => {
+      isVaultFastVault(wallet.name),
+    ]).then(([data, saved, fastVault]) => {
       setIsLedger(data?.ledger === true)
+      setIsFastVault(fastVault)
       if (saved.walletName !== wallet.name) {
         settings.set({ walletName: wallet.name })
       }
@@ -112,10 +116,36 @@ export default function WalletHome() {
       }
     >
       <VaultieComingSoonCard />
-      <Text style={styles.walletName}>{wallet.name}</Text>
+      <View style={styles.walletNameRow}>
+        <Text style={styles.walletName}>{wallet.name}</Text>
+        {isFastVault === false && (
+          <View style={styles.legacyBadge}>
+            <Text style={styles.legacyBadgeText}>Legacy</Text>
+          </View>
+        )}
+      </View>
       <TouchableOpacity onPress={copyAddress}>
         <Text style={styles.address}>{truncated}</Text>
       </TouchableOpacity>
+      {isFastVault === false && (
+        <TouchableOpacity
+          style={styles.upgradeButton}
+          onPress={() =>
+            navigation.navigate('Migration', {
+              screen: 'VaultEmail',
+              params: {
+                walletName: wallet.name,
+                walletIndex: 0,
+                totalWallets: 1,
+                wallets: [{ name: wallet.name, address: wallet.address, ledger: false }],
+                results: [],
+              },
+            })
+          }
+        >
+          <Text style={styles.upgradeButtonText}>Upgrade to Fast Vault</Text>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.balanceCard}>
         {isLoading ? (
@@ -187,7 +217,33 @@ export default function WalletHome() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   content: { padding: 20, alignItems: 'center' },
-  walletName: { color: COLORS.textPrimary, fontSize: 20, fontWeight: '600', marginTop: 24 },
+  walletNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 24 },
+  walletName: { color: COLORS.textPrimary, fontSize: 20, fontWeight: '600' },
+  legacyBadge: {
+    backgroundColor: 'rgba(255, 179, 64, 0.2)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  legacyBadgeText: {
+    color: '#FFB340',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  upgradeButton: {
+    backgroundColor: 'rgba(255, 179, 64, 0.15)',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 179, 64, 0.4)',
+  },
+  upgradeButtonText: {
+    color: '#FFB340',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   address: { color: COLORS.textSecondary, fontSize: 14, marginTop: 8, marginBottom: 24 },
   balanceCard: {
     backgroundColor: COLORS.surface,

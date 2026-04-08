@@ -8,6 +8,8 @@ import AuthMenu from '../screens/auth/AuthMenu'
 import NewWalletStack from './NewWalletStack'
 import RecoverWalletStack from './RecoverWalletStack'
 import ExportPrivateKey from '../screens/ExportPrivateKey'
+import MigrationNavigator from './MigrationNavigator'
+import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
 
 const DevVerifyVault = __DEV__
   ? require('../components/DevVerifyVault').default
@@ -23,6 +25,16 @@ export type MainStackParams = {
   AddRecoverWallet: undefined
   ExportPrivateKey: { wallet: { name: string; address: string } }
   VerifyVault: undefined
+  Migration: {
+    screen: 'VaultEmail'
+    params: {
+      walletName: string
+      walletIndex: number
+      totalWallets: number
+      wallets: MigrationWallet[]
+      results: MigrationResult[]
+    }
+  }
 }
 
 const Stack = createStackNavigator<MainStackParams>()
@@ -58,6 +70,7 @@ export default function MainNavigator({ initialWallet }: Props) {
       {__DEV__ && DevVerifyVault && (
         <Stack.Screen name="VerifyVault" component={DevVerifyVault} />
       )}
+      <Stack.Screen name="Migration" component={MigrationNavigator} />
     </Stack.Navigator>
   )
 }
