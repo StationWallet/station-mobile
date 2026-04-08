@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["ExpoDklsModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.dkls.ExpoDklsModule"]
+  }
+}

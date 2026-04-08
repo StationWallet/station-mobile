@@ -1,0 +1,23 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.dkls'
+version = '0.7.9'
+
+android {
+  namespace "expo.modules.dkls"
+  defaultConfig {
+    versionCode 1
+    versionName "0.7.9"
+  }
+  lintOptions {
+    abortOnError false
+  }
+}
+
+dependencies {
+  implementation files('libs/dkls-release.aar')
+  implementation files('libs/goschnorr-release.aar')
+}
