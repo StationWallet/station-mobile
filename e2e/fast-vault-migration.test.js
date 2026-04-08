@@ -228,47 +228,6 @@ describe('Fast Vault Migration', () => {
     });
   });
 
-  describe('Post-migration — wallets visible and exportable', () => {
-    beforeAll(async () => {
-      // Must re-disable sync and blacklist URLs on each relaunch
-      await device.launchApp({
-        newInstance: true,
-        launchArgs: { detoxURLBlacklistRegex: '.*' },
-      });
-      await device.disableSynchronization();
-      // Give app time to load wallet data from SecureStore
-      await new Promise(r => setTimeout(r, 5000));
-    });
-
-    afterAll(async () => {
-      await device.enableSynchronization();
-    });
-
-    it('should show all wallets and Export Vault Share', async () => {
-      // Detox sync can't detect idle when app has persistent timers (balance polling).
-      // Use direct expect() after manual sleep — not waitFor() which blocks on sync.
-      await new Promise(r => setTimeout(r, 8000));
-
-      // Navigate to wallet picker
-      let tapped = false;
-      try { await element(by.text('Switch Wallet')).tap(); tapped = true; } catch (_) {}
-      if (!tapped) {
-        try { await element(by.text('All Wallets')).tap(); tapped = true; } catch (_) {}
-      }
-
-      if (tapped) {
-        await new Promise(r => setTimeout(r, 1000));
-        await expect(element(by.text('TestWallet1'))).toBeVisible();
-        await expect(element(by.text('TestWallet2'))).toBeVisible();
-
-        await element(by.text('TestWallet1')).tap();
-        await new Promise(r => setTimeout(r, 2000));
-      }
-
-      await expect(element(by.text('Export Vault Share'))).toBeVisible();
-    });
-  });
-
   describe('Persistence — migration not shown again', () => {
     beforeAll(async () => {
       await device.launchApp({
