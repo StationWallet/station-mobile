@@ -56,7 +56,7 @@ export default function VaultEmail() {
           </Text>
 
           <Text style={styles.walletLabel} fontType="book">
-            Wallet {walletIndex}/{totalWallets}: {walletName}
+            Wallet {walletIndex + 1}/{totalWallets}: {walletName}
           </Text>
 
           <Text style={styles.title} fontType="bold">

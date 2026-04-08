@@ -60,15 +60,13 @@ export default function KeygenProgress() {
   const advanceToNextWallet = useCallback(
     (newResult: MigrationResult) => {
       const updatedResults = [...results, newResult]
-      const nextIndex = walletIndex // walletIndex is 1-based, so next is walletIndex + 1 in 1-based, but array index is walletIndex (0-based)
-      // Find the next non-Ledger wallet starting after current (walletIndex is 1-based)
-      let nextWalletArrayIndex = walletIndex // this is the 0-based index of the next wallet (current is walletIndex - 1)
+      // walletIndex is 0-based; next wallet starts at walletIndex + 1
+      let nextWalletArrayIndex = walletIndex + 1
       while (nextWalletArrayIndex < wallets.length && wallets[nextWalletArrayIndex].ledger) {
-        // Skip Ledger wallets — add them with success:false to results
+        // Ledger wallets pass through — no DKLS migration needed
         updatedResults.push({
           wallet: wallets[nextWalletArrayIndex],
-          success: false,
-          error: 'Ledger wallet — skipped',
+          success: true,
         })
         nextWalletArrayIndex++
       }
@@ -82,7 +80,7 @@ export default function KeygenProgress() {
       const nextWallet = wallets[nextWalletArrayIndex]
       navigation.navigate('VaultEmail', {
         walletName: nextWallet.name,
-        walletIndex: nextWalletArrayIndex + 1,
+        walletIndex: nextWalletArrayIndex,
         totalWallets,
         wallets,
         results: updatedResults,
@@ -107,7 +105,7 @@ export default function KeygenProgress() {
       }
 
       const standardData = authEntry as AuthDataValueType
-      const privateKeyHex = decrypt(standardData.encryptedKey, password)
+      const privateKeyHex = decrypt(standardData.encryptedKey, standardData.password)
       if (!privateKeyHex) {
         throw new Error('Failed to decrypt private key')
       }
@@ -123,7 +121,7 @@ export default function KeygenProgress() {
 
       await storeFastVault(walletName, result)
 
-      const wallet = wallets[walletIndex - 1]
+      const wallet = wallets[walletIndex]
       advanceToNextWallet({ wallet, success: true })
     } catch (err) {
       if (controller.signal.aborted) return
@@ -143,7 +141,7 @@ export default function KeygenProgress() {
 
   const handleSkip = useCallback(() => {
     abortRef.current?.abort()
-    const wallet = wallets[walletIndex - 1]
+    const wallet = wallets[walletIndex]
     advanceToNextWallet({ wallet, success: false, error: 'Skipped by user' })
   }, [wallets, walletIndex, advanceToNextWallet])
 
@@ -157,7 +155,7 @@ export default function KeygenProgress() {
     <SafeAreaView style={styles.container}>
       <Animated.View entering={FadeIn.duration(400)} style={styles.content}>
         <Text style={styles.walletLabel} fontType="book">
-          Wallet {walletIndex}/{totalWallets}: {walletName}
+          Wallet {walletIndex + 1}/{totalWallets}: {walletName}
         </Text>
 
         <Text style={styles.title} fontType="bold">

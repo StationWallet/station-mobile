@@ -15,27 +15,16 @@ import type { RouteProp } from '@react-navigation/native'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import { VULTISIG } from 'consts/vultisig'
-import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
-
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-// @ts-ignore — VaultPassword added in Task 10
 type Nav = StackNavigationProp<MigrationStackParams, 'VaultPassword'>
-// @ts-ignore — VaultPassword added in Task 10
 type Route = RouteProp<MigrationStackParams, 'VaultPassword'>
 
 export default function VaultPassword() {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
   const { walletName, walletIndex, totalWallets, wallets, results, email } =
-    route.params as {
-      walletName: string
-      walletIndex: number
-      totalWallets: number
-      wallets: MigrationWallet[]
-      results: MigrationResult[]
-      email: string
-    }
+    route.params
 
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -66,7 +55,7 @@ export default function VaultPassword() {
           </Text>
 
           <Text style={styles.walletLabel} fontType="book">
-            Wallet {walletIndex}/{totalWallets}: {walletName}
+            Wallet {walletIndex + 1}/{totalWallets}: {walletName}
           </Text>
 
           <Text style={styles.title} fontType="bold">
@@ -127,7 +116,6 @@ export default function VaultPassword() {
               theme="sapphire"
               disabled={!isValid}
               onPress={() => {
-                // @ts-ignore — KeygenProgress added in Task 10
                 navigation.navigate('KeygenProgress', {
                   walletName,
                   walletIndex,
