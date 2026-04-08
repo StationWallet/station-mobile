@@ -63,18 +63,18 @@ export default function WalletPicker() {
 
     return (
       <TouchableOpacity style={styles.walletRow} onPress={() => selectWallet(item)}>
-        <View style={styles.walletInfo}>
-          <View style={styles.walletNameRow}>
+        <View style={styles.walletTopRow}>
+          <View style={styles.walletInfo}>
             <Text style={styles.walletName}>{item.name}</Text>
-            {isLegacy && (
-              <View style={styles.legacyBadge}>
-                <Text style={styles.legacyBadgeText}>Legacy</Text>
-              </View>
-            )}
+            <Text style={styles.walletAddress}>
+              {UTIL.truncate(item.address, [10, 6])}
+            </Text>
           </View>
-          <Text style={styles.walletAddress}>
-            {UTIL.truncate(item.address, [10, 6])}
-          </Text>
+          {isLegacy && (
+            <View style={styles.legacyBadge}>
+              <Text style={styles.legacyBadgeText}>Legacy</Text>
+            </View>
+          )}
         </View>
         {isLegacy && (
           <TouchableOpacity
@@ -130,8 +130,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  walletTopRow: { flexDirection: 'row', alignItems: 'center' },
   walletInfo: { flex: 1 },
-  walletNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   walletName: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '600' },
   walletAddress: { color: COLORS.textSecondary, fontSize: 13, marginTop: 4 },
   legacyBadge: {
@@ -149,6 +149,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 179, 64, 0.15)',
     borderRadius: 8,
     paddingHorizontal: 12,
+    marginTop: 12,
+    alignItems: 'center',
     paddingVertical: 8,
     marginLeft: 12,
     borderWidth: 1,
