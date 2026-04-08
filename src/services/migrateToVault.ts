@@ -1,11 +1,14 @@
-import { toBinary } from '@bufbuild/protobuf'
+import { toBinary, fromBinary, create } from '@bufbuild/protobuf'
 import { base64 } from '@scure/base'
 import * as SecureStore from 'expo-secure-store'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
+import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
 import { getAuthData, AuthDataValueType, LedgerDataValueType } from 'utils/authData'
+import { removeAuthData } from 'utils/authData'
 import { decrypt } from 'utils/crypto'
 import { derivePublicKeyHex, buildVaultProto } from './vaultProto'
+import type { KeyImportResult } from './dklsKeyImport'
 
 const VAULT_KEY_PREFIX = 'VAULT-'
 
@@ -119,6 +122,72 @@ export async function getStoredVault(walletName: string): Promise<string | null>
     `${VAULT_KEY_PREFIX}${walletName}`,
     VAULT_STORE_OPTS,
   )
+}
+
+/**
+ * Stores a DKLS fast vault and deletes the legacy auth data entry.
+ * Only deletes legacy data after verifying the vault reads back correctly.
+ */
+export async function storeFastVault(
+  walletName: string,
+  result: KeyImportResult,
+): Promise<void> {
+  const vault = create(VaultSchema, {
+    name: walletName,
+    publicKeyEcdsa: result.publicKey,
+    publicKeyEddsa: '',
+    signers: [result.localPartyId, result.serverPartyId],
+    localPartyId: result.localPartyId,
+    hexChainCode: result.chainCode,
+    resharePrefix: '',
+    libType: LibType.DKLS,
+    keyShares: [{ publicKey: result.publicKey, keyshare: result.keyshare }],
+    chainPublicKeys: [{ chain: 'Terra', publicKey: result.publicKey, isEddsa: false }],
+    createdAt: {
+      seconds: BigInt(Math.floor(Date.now() / 1000)),
+      nanos: 0,
+    },
+    publicKeyMldsa44: '',
+  })
+
+  const vaultBytes = toBinary(VaultSchema, vault)
+  const encoded = base64.encode(vaultBytes)
+
+  await SecureStore.setItemAsync(
+    `${VAULT_KEY_PREFIX}${walletName}`,
+    encoded,
+    VAULT_STORE_OPTS,
+  )
+
+  // Verify it reads back correctly
+  const readBack = await SecureStore.getItemAsync(
+    `${VAULT_KEY_PREFIX}${walletName}`,
+    VAULT_STORE_OPTS,
+  )
+  if (!readBack) {
+    throw new Error('Vault verification failed: could not read back stored vault')
+  }
+  const decoded = fromBinary(VaultSchema, base64.decode(readBack))
+  if (decoded.publicKeyEcdsa !== result.publicKey) {
+    throw new Error('Vault verification failed: public key mismatch')
+  }
+
+  // Delete legacy auth data now that vault is verified
+  await removeAuthData({ walletName })
+}
+
+/**
+ * Check if a stored vault is a DKLS fast vault (vs legacy KEYIMPORT).
+ */
+export async function isVaultFastVault(walletName: string): Promise<boolean> {
+  const stored = await getStoredVault(walletName)
+  if (!stored) return false
+  try {
+    const decoded = fromBinary(VaultSchema, base64.decode(stored))
+    return decoded.libType === LibType.DKLS
+  } catch {
+    return false
+  }
 }
 
 export { VAULT_KEY_PREFIX }

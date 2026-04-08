@@ -2,14 +2,39 @@ import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 
 import WalletDiscovery from '../screens/migration/WalletDiscovery'
-import MigrationProgress from '../screens/migration/MigrationProgress'
+import VaultEmail from '../screens/migration/VaultEmail'
+import VaultPassword from '../screens/migration/VaultPassword'
+import KeygenProgress from '../screens/migration/KeygenProgress'
 import MigrationSuccess from '../screens/migration/MigrationSuccess'
 
 import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
 
 export type MigrationStackParams = {
   WalletDiscovery: undefined
-  MigrationProgress: { wallets: MigrationWallet[] }
+  VaultEmail: {
+    walletName: string
+    walletIndex: number
+    totalWallets: number
+    wallets: MigrationWallet[]
+    results: MigrationResult[]
+  }
+  VaultPassword: {
+    walletName: string
+    walletIndex: number
+    totalWallets: number
+    wallets: MigrationWallet[]
+    results: MigrationResult[]
+    email: string
+  }
+  KeygenProgress: {
+    walletName: string
+    walletIndex: number
+    totalWallets: number
+    wallets: MigrationWallet[]
+    results: MigrationResult[]
+    email: string
+    password: string
+  }
   MigrationSuccess: { results: MigrationResult[] }
 }
 
@@ -25,7 +50,9 @@ export default function MigrationNavigator() {
       }}
     >
       <Stack.Screen name="WalletDiscovery" component={WalletDiscovery} />
-      <Stack.Screen name="MigrationProgress" component={MigrationProgress} />
+      <Stack.Screen name="VaultEmail" component={VaultEmail} />
+      <Stack.Screen name="VaultPassword" component={VaultPassword} />
+      <Stack.Screen name="KeygenProgress" component={KeygenProgress} />
       <Stack.Screen name="MigrationSuccess" component={MigrationSuccess} />
     </Stack.Navigator>
   )
