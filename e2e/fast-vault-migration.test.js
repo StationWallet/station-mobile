@@ -32,7 +32,20 @@ const AGENTMAIL_EMAIL = ENV.AGENTMAIL_EMAIL || 'vultiagent@agentmail.to';
  * Poll agentmail API for the 4-digit OTP code.
  * Matches vultiagent-app's fetchOtpFromApi pattern.
  */
-async function fetchOtpFromAgentmail(inboxEmail, vaultName, maxAttempts = 30, intervalMs = 3000) {
+/** Snapshot existing message IDs so we can ignore them when looking for new OTPs. */
+async function getExistingMessageIds(inboxEmail) {
+  try {
+    const res = await fetch(
+      `https://api.agentmail.to/v0/inboxes/${encodeURIComponent(inboxEmail)}/messages`,
+      { headers: { Authorization: `Bearer ${AGENTMAIL_API_KEY}` } }
+    );
+    if (!res.ok) return new Set();
+    const data = await res.json();
+    return new Set((data.messages || []).map(m => m.message_id));
+  } catch { return new Set(); }
+}
+
+async function fetchOtpFromAgentmail(inboxEmail, knownMessageIds, maxAttempts = 30, intervalMs = 3000) {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       const listRes = await fetch(
@@ -45,18 +58,18 @@ async function fetchOtpFromAgentmail(inboxEmail, vaultName, maxAttempts = 30, in
         continue;
       }
       const listData = await listRes.json();
-      const messages = listData.messages || [];
+      const messages = (listData.messages || []);
 
-      // Look for most recent verification email
-      const msg = messages.find(m =>
+      // Only look at messages we haven't seen before
+      const newMessages = messages.filter(m => !knownMessageIds.has(m.message_id));
+
+      const msg = newMessages.find(m =>
         (m.preview && m.preview.includes('Verification')) ||
-        (m.subject && m.subject.includes('Verification')) ||
-        (m.preview && m.preview.includes(vaultName)) ||
-        (m.subject && m.subject.includes(vaultName))
+        (m.subject && m.subject.includes('Verification'))
       );
 
       if (!msg) {
-        console.log(`[AgentMail] No matching message yet (attempt ${attempt + 1}/${maxAttempts}, ${messages.length} msgs)`);
+        console.log(`[AgentMail] No new verification email yet (attempt ${attempt + 1}/${maxAttempts}, ${newMessages.length} new of ${messages.length} total)`);
         await new Promise(r => setTimeout(r, intervalMs));
         continue;
       }
@@ -74,7 +87,7 @@ async function fetchOtpFromAgentmail(inboxEmail, vaultName, maxAttempts = 30, in
       const match = text.match(/Verification Code:\s*(\d{4,6})|\b(\d{4})\b/);
       if (match) {
         const code = match[1] || match[2];
-        console.log(`[AgentMail] Found OTP: ${code}`);
+        console.log(`[AgentMail] Found OTP: ${code} (message_id: ${msg.message_id})`);
         return code;
       }
       console.log(`[AgentMail] Message found but no code extracted`);
@@ -87,6 +100,8 @@ async function fetchOtpFromAgentmail(inboxEmail, vaultName, maxAttempts = 30, in
 }
 
 describe('Fast Vault Migration', () => {
+  // Track existing agentmail messages so we only look at new ones for OTP
+  let knownMessageIds = new Set();
 
   describe('1. Full migration flow', () => {
     beforeAll(async () => {
@@ -160,6 +175,10 @@ describe('Fast Vault Migration', () => {
     // --- VaultPassword ---
 
     it('should accept matching passwords and proceed to keygen', async () => {
+      // Snapshot existing agentmail messages BEFORE keygen starts
+      knownMessageIds = await getExistingMessageIds(AGENTMAIL_EMAIL);
+      console.log(`[AgentMail] Snapshotted ${knownMessageIds.size} existing messages`);
+
       await element(by.id('vault-password-input')).typeText('testpass123');
       await element(by.id('vault-password-confirm')).typeText('testpass123');
       await element(by.id('vault-password-continue')).tap();
@@ -181,7 +200,7 @@ describe('Fast Vault Migration', () => {
     // --- VerifyEmail with agentmail OTP ---
 
     it('should verify email with OTP from agentmail', async () => {
-      const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, 'TestWallet');
+      const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, knownMessageIds);
       await element(by.id('verify-code-input')).tap();
       await element(by.id('verify-code-input')).replaceText(otp);
       // Auto-submits — wait for navigation
