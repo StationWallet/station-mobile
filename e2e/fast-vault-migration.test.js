@@ -10,142 +10,11 @@
  * Requires: vultiserver at api.vultisig.com, agentmail credentials in .env
  */
 const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-
-function readDotEnv() {
-  try {
-    const envPath = path.resolve(__dirname, '..', '.env');
-    const content = fs.readFileSync(envPath, 'utf8');
-    const vars = {};
-    for (const line of content.split('\n')) {
-      const match = line.match(/^([^#=]+)=(.*)$/);
-      if (match) vars[match[1].trim()] = match[2].trim();
-    }
-    return vars;
-  } catch { return {}; }
-}
-
-const ENV = readDotEnv();
-const AGENTMAIL_API_KEY = ENV.AGENTMAIL_API_KEY;
-const AGENTMAIL_EMAIL = ENV.AGENTMAIL_EMAIL || 'vultiagent@agentmail.to';
-const VAULT_PASSWORD = 'testpass123';
-
-async function getExistingMessageIds(inboxEmail) {
-  try {
-    const res = await fetch(
-      `https://api.agentmail.to/v0/inboxes/${encodeURIComponent(inboxEmail)}/messages`,
-      { headers: { Authorization: `Bearer ${AGENTMAIL_API_KEY}` } }
-    );
-    if (!res.ok) return new Set();
-    const data = await res.json();
-    return new Set((data.messages || []).map(m => m.message_id));
-  } catch { return new Set(); }
-}
-
-async function fetchOtpFromAgentmail(inboxEmail, knownMessageIds, maxAttempts = 30, intervalMs = 3000) {
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    try {
-      const listRes = await fetch(
-        `https://api.agentmail.to/v0/inboxes/${encodeURIComponent(inboxEmail)}/messages`,
-        { headers: { Authorization: `Bearer ${AGENTMAIL_API_KEY}` } }
-      );
-      if (!listRes.ok) {
-        await new Promise(r => setTimeout(r, intervalMs));
-        continue;
-      }
-      const listData = await listRes.json();
-      const messages = (listData.messages || []);
-      const newMessages = messages.filter(m => !knownMessageIds.has(m.message_id));
-
-      const msg = newMessages.find(m =>
-        (m.preview && m.preview.includes('Verification')) ||
-        (m.subject && m.subject.includes('Verification'))
-      );
-
-      if (!msg) {
-        console.log(`[AgentMail] Waiting for new OTP (attempt ${attempt + 1}/${maxAttempts}, ${newMessages.length} new of ${messages.length} total)`);
-        await new Promise(r => setTimeout(r, intervalMs));
-        continue;
-      }
-
-      const msgRes = await fetch(
-        `https://api.agentmail.to/v0/inboxes/${encodeURIComponent(inboxEmail)}/messages/${msg.message_id}`,
-        { headers: { Authorization: `Bearer ${AGENTMAIL_API_KEY}` } }
-      );
-      if (!msgRes.ok) {
-        await new Promise(r => setTimeout(r, intervalMs));
-        continue;
-      }
-      const msgData = await msgRes.json();
-      const text = msgData.text || msgData.extracted_text || msgData.html || '';
-      const match = text.match(/Verification Code:\s*(\d{4,6})|\b(\d{4})\b/);
-      if (match) {
-        const code = match[1] || match[2];
-        console.log(`[AgentMail] Found OTP: ${code}`);
-        // Add to known so we don't pick it up again for wallet 2
-        knownMessageIds.add(msg.message_id);
-        return code;
-      }
-    } catch (err) {
-      console.log(`[AgentMail] Error: ${err.message}`);
-    }
-    await new Promise(r => setTimeout(r, intervalMs));
-  }
-  throw new Error(`Failed to fetch OTP after ${maxAttempts} attempts`);
-}
-
-/**
- * Walk one wallet through: email → password → keygen → verify email.
- * Assumes the VaultEmail screen is already visible.
- */
-async function migrateOneWallet(walletLabel, knownMessageIds) {
-  console.log(`\n--- Migrating ${walletLabel} ---`);
-
-  // Email screen — may be pre-filled from previous wallet
-  await waitFor(element(by.text('Enter your email')))
-    .toBeVisible()
-    .withTimeout(10000);
-  await element(by.id('vault-email-input')).tap();
-  await element(by.id('vault-email-input')).clearText();
-  await element(by.id('vault-email-input')).typeText(AGENTMAIL_EMAIL);
-  await element(by.id('vault-email-next')).tap();
-
-  // Password screen
-  await waitFor(element(by.text('Choose a password')))
-    .toBeVisible()
-    .withTimeout(10000);
-
-  // Snapshot agentmail BEFORE keygen starts
-  const preKeygenIds = await getExistingMessageIds(AGENTMAIL_EMAIL);
-  // Merge with known so we skip all prior messages
-  for (const id of preKeygenIds) knownMessageIds.add(id);
-  console.log(`[AgentMail] ${knownMessageIds.size} known messages before keygen`);
-
-  await element(by.id('vault-password-input')).typeText(VAULT_PASSWORD);
-  await element(by.id('vault-password-confirm')).typeText(VAULT_PASSWORD);
-  await element(by.id('vault-password-continue')).tap();
-
-  // Keygen screen
-  await waitFor(element(by.text('Fast Vault Setup')))
-    .toBeVisible()
-    .withTimeout(10000);
-
-  // Wait for DKLS ceremony → VerifyEmail (up to 150s)
-  await waitFor(element(by.text('Verify your email')))
-    .toExist()
-    .withTimeout(150000);
-
-  // Fetch OTP and enter it
-  const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, knownMessageIds);
-  await waitFor(element(by.id('verify-code-input'))).toExist().withTimeout(5000);
-  await element(by.id('verify-code-input')).tap();
-  await element(by.id('verify-code-input')).replaceText(otp);
-
-  // Wait for navigation after auto-submit
-  await new Promise(r => setTimeout(r, 5000));
-  console.log(`--- ${walletLabel} complete ---\n`);
-}
+const {
+  AGENTMAIL_EMAIL,
+  getExistingMessageIds,
+  migrateOneWallet,
+} = require('./helpers/agentmail');
 
 describe('Fast Vault Migration', () => {
   let knownMessageIds = new Set();
@@ -222,9 +91,128 @@ describe('Fast Vault Migration', () => {
         .withTimeout(15000);
     });
 
+    it('should show migration success with vault verification', async () => {
+      // DevVerifyVault is rendered on MigrationSuccess in dev mode.
+      // Wait for all checks to complete.
+      await waitFor(element(by.id('verify-vault1-exists')))
+        .toExist()
+        .withTimeout(15000);
+
+      // Wait for all-passed to render
+      await waitFor(element(by.id('verify-all-passed')))
+        .toExist()
+        .withTimeout(10000);
+    });
+
+    it('DKLS keyshares are loadable by native module', async () => {
+      // DevVerifyVault loads each DKLS keyshare via ExpoDkls.loadKeyshare()
+      // If loadable, the keyshare is structurally valid for signing.
+      await waitFor(element(by.id('verify-vault1-keyshare-loadable')))
+        .toExist()
+        .withTimeout(10000);
+      await expect(element(by.id('verify-vault1-keyshare-loadable')))
+        .toHaveText('vault1-keyshare-loadable: true');
+      await expect(element(by.id('verify-vault1-keyshare-has-keyid')))
+        .toHaveText('vault1-keyshare-has-keyid: true');
+
+      await waitFor(element(by.id('verify-vault2-keyshare-loadable')))
+        .toExist()
+        .withTimeout(5000);
+      await expect(element(by.id('verify-vault2-keyshare-loadable')))
+        .toHaveText('vault2-keyshare-loadable: true');
+    });
+
+    it('DKLS vaults have correct structure', async () => {
+      await expect(element(by.id('verify-vault1-vault-type')))
+        .toHaveText('vault1-vault-type: DKLS');
+      await expect(element(by.id('verify-vault1-signers')))
+        .toHaveText('vault1-signers: true');
+      await expect(element(by.id('verify-vault1-local-party')))
+        .toHaveText('vault1-local-party: true');
+    });
+
+    it('all vault verification checks pass', async () => {
+      await expect(element(by.id('verify-all-passed')))
+        .toHaveText('all-passed: true');
+    });
+
     it('should dismiss migration and show main app', async () => {
       await element(by.id('continue-button')).tap();
       await new Promise(r => setTimeout(r, 2000));
+    });
+  });
+
+  describe('Export DKLS vault', () => {
+    beforeAll(async () => {
+      // Relaunch and navigate to WalletHome
+      await device.launchApp({ newInstance: true });
+      await device.disableSynchronization();
+
+      // Wait for either WalletPicker or WalletHome
+      await waitFor(element(by.text('TestWallet1')))
+        .toBeVisible()
+        .withTimeout(15000);
+
+      // If we see "Select Wallet" title, we're on WalletPicker — tap the wallet
+      try {
+        await expect(element(by.text('Select Wallet'))).toBeVisible();
+        await element(by.text('TestWallet1')).tap();
+        await new Promise(r => setTimeout(r, 2000));
+      } catch {
+        // Already on WalletHome
+      }
+    });
+
+    afterAll(async () => {
+      await device.enableSynchronization();
+    });
+
+    it('should show Export Vault Share and navigate to export screen', async () => {
+      // WalletHome should show the wallet name
+      await waitFor(element(by.text('TestWallet1')))
+        .toBeVisible()
+        .withTimeout(10000);
+
+      // Swipe up to reveal the export button (below the fold)
+      await element(by.id('wallet-home-scroll')).swipe('up', 'slow', 0.7);
+      await new Promise(r => setTimeout(r, 1000));
+
+      // For DKLS vault, button text should say "Export Vault Share"
+      await waitFor(element(by.text('Export Vault Share')))
+        .toBeVisible()
+        .withTimeout(10000);
+
+      // Tap to navigate to export screen
+      await element(by.text('Export Vault Share')).tap();
+
+      // ExportPrivateKey screen: "Export as Vault Share" button visible directly
+      await waitFor(element(by.text('Export as Vault Share')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
+
+    it('should show export password form when tapping Export as Vault Share', async () => {
+      await element(by.text('Export as Vault Share')).tap();
+
+      // Export form should appear with password input
+      await waitFor(element(by.text('Set a password to encrypt the vault file:')))
+        .toBeVisible()
+        .withTimeout(5000);
+    });
+
+    it('should not show raw private key reveal for DKLS vault', async () => {
+      // The "Reveal Private Key" button should NOT be present for fast vaults
+      let revealVisible = false;
+      try {
+        await waitFor(element(by.text('Reveal Private Key')))
+          .toBeVisible()
+          .withTimeout(2000);
+        revealVisible = true;
+      } catch {}
+
+      if (revealVisible) {
+        throw new Error('Raw key reveal should be hidden for DKLS vaults');
+      }
     });
   });
 
