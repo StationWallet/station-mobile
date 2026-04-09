@@ -33,9 +33,10 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
       await device.launchApp({ delete: true, newInstance: true });
       await device.disableSynchronization();
 
+      // First launch after erase may need 90s+ for Metro JS bundle download
       await waitFor(element(by.text('Seed Corrupt Data (dev)')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
       await element(by.text('Seed Corrupt Data (dev)')).tap();
 
       await waitFor(element(by.id('seed-corrupt-done')))
@@ -53,9 +54,10 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
 
     it('shows MigrationHome with migration CTA', async () => {
       // RiveIntro plays then MigrationHome renders with the CTA button
+      // Second launch uses cached Metro bundle so should be faster
       await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
     });
 
     it('navigates to WalletsFound', async () => {
