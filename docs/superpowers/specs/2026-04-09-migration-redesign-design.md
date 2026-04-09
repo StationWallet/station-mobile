@@ -214,6 +214,65 @@ Light-to-dark transition handled entirely by Rive animation (no CSS/RN style tra
 
 Blue accent for text (e.g., "Station is entering the Vultiverse") is part of the Rive animation content, not app-rendered text.
 
+## Visual Reference
+
+Figma screenshots saved to `docs/designs/migration/` are the source of truth for visual implementation. Reference these during implementation for pixel-level accuracy.
+
+| File | Screens Shown |
+|---|---|
+| `01-landing-wizard.png` | Landing (white, Station logo centered), Migration Wizard 1 (white bg, Rive USB connector, "Station is entering the Vultiverse"), Migration VIDEO frame |
+| `02-wizard2-wallets.png` | Migration Wizard 2 (dark bg, blue glow, info card, CTAs), Wallets Found (dark bg, wallet cards with balance + migrate buttons) |
+| `03-vault-flow-import-success.png` | Fast Vault flow (Name/Email/Password with top step bar), Success screens ("You are aboard, Station OG!"), Import Vault flow (file picker, decrypt password sheet) |
+
+### Key Visual Details from Figma
+
+**Color palette (dark screens):**
+- Background: deep navy (~#0B1426 or matching VULTISIG.bg)
+- Cards: slightly lighter navy (#0D1F3C) with subtle teal-tinted border
+- Primary buttons: bright blue filled (#3366FF or similar — NOT the teal accent, this is a blue)
+- Secondary buttons: outlined with same blue, transparent fill
+- Text: white primary, gray secondary
+- Blue glow effect at top of MigrationHome screen (radial gradient or Rive-rendered)
+
+**MigrationHome info card:**
+- Rounded corners (~16px), subtle border
+- Interior sections separated by spacing, not dividers
+- Lightning bolt icon (yellow/gold) next to "A new type of wallet"
+- Clock icon (teal) next to countdown text
+- Bold treatment on "Station OG" and "$VULT airdrop" within body text
+
+**WalletsFound wallet cards:**
+- Full-width cards with rounded corners
+- Wallet name (white, bold, left) + balance (white, bold, right-aligned)
+- Truncated address below name in gray
+- Two buttons at bottom of each card: "Export" (outlined, skip this) and "Migrate to a vault" (blue filled with Vultisig swirl icon)
+- Cards have dark card background with subtle border
+
+**Fast Vault creation step bar:**
+- Horizontal bar at top with circular step icons
+- Icons represent each step (vault, name, email, password)
+- Active step highlighted, completed steps checked
+- Thin connecting line between steps
+
+**MigrationSuccess:**
+- Dark background, centered layout
+- Small Vultisig icons at top (vault/email/check row)
+- Close X in top-right corner
+- OG status card with rounded corners, centered
+- Card contains "Status: Station OG" and "#XLT Airdrop Eligible" text
+- "[ Entering orbit soon... ]" in muted text below card
+- "Share your OG status" primary blue button
+- "Migrate another wallet" as text link below
+
+**ImportVault:**
+- Header bar with back chevron, "Import Vault" title, info icon right
+- Large central drop zone area with dashed/subtle border
+- Upload/link icon centered in drop zone
+- "Import your vault share" text below zone
+- File type note in gray
+- "Continue" button at bottom
+- Password sheet slides up as bottom sheet modal with lock icon
+
 ## Out of Scope
 
 - Export wallet functionality (buttons not included)
