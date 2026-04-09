@@ -57,7 +57,7 @@ export default function MigrationHome() {
         keyboardShouldPersistTaps="handled"
       >
       <Animated.View
-        entering={FadeIn.duration(600)}
+        entering={__DEV__ ? undefined : FadeIn.duration(600)}
         style={styles.content}
       >
         {/* Rive wallet animation placeholder */}
@@ -105,37 +105,39 @@ export default function MigrationHome() {
               </Text>
             </TouchableOpacity>
 
-            {__DEV__ && (
-              <View style={styles.devButtons}>
-                <TouchableOpacity
-                  testID="dev-seed-legacy"
-                  style={styles.devButton}
-                  onPress={() => navigation.navigate('SeedLegacyData')}
-                >
-                  <Text style={styles.devButtonText}>
-                    Seed Legacy Data (dev)
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  testID="dev-seed-corrupt"
-                  style={styles.devButton}
-                  onPress={() => navigation.navigate('SeedCorruptData')}
-                >
-                  <Text style={styles.devButtonText}>
-                    Seed Corrupt Data (dev)
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  testID="dev-seed-premigrated"
-                  style={styles.devButton}
-                  onPress={() => navigation.navigate('SeedPreMigrated')}
-                >
-                  <Text style={styles.devButtonText}>
-                    Seed Pre-Migrated (dev)
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
+          </View>
+        )}
+
+        {/* Dev seed buttons — outside ready gate so they render immediately for E2E tests */}
+        {__DEV__ && (
+          <View style={styles.devButtons}>
+            <TouchableOpacity
+              testID="dev-seed-legacy"
+              style={styles.devButton}
+              onPress={() => navigation.navigate('SeedLegacyData')}
+            >
+              <Text style={styles.devButtonText}>
+                Seed Legacy Data (dev)
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              testID="dev-seed-corrupt"
+              style={styles.devButton}
+              onPress={() => navigation.navigate('SeedCorruptData')}
+            >
+              <Text style={styles.devButtonText}>
+                Seed Corrupt Data (dev)
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              testID="dev-seed-premigrated"
+              style={styles.devButton}
+              onPress={() => navigation.navigate('SeedPreMigrated')}
+            >
+              <Text style={styles.devButtonText}>
+                Seed Pre-Migrated (dev)
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
       </Animated.View>
