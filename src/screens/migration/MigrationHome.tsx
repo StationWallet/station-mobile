@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
@@ -52,6 +52,10 @@ export default function MigrationHome() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
       <Animated.View
         entering={FadeIn.duration(600)}
         style={styles.content}
@@ -100,9 +104,42 @@ export default function MigrationHome() {
                 Learn more about Vault security
               </Text>
             </TouchableOpacity>
+
+            {__DEV__ && (
+              <View style={styles.devButtons}>
+                <TouchableOpacity
+                  testID="dev-seed-legacy"
+                  style={styles.devButton}
+                  onPress={() => navigation.navigate('SeedLegacyData')}
+                >
+                  <Text style={styles.devButtonText}>
+                    Seed Legacy Data (dev)
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  testID="dev-seed-corrupt"
+                  style={styles.devButton}
+                  onPress={() => navigation.navigate('SeedCorruptData')}
+                >
+                  <Text style={styles.devButtonText}>
+                    Seed Corrupt Data (dev)
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  testID="dev-seed-premigrated"
+                  style={styles.devButton}
+                  onPress={() => navigation.navigate('SeedPreMigrated')}
+                >
+                  <Text style={styles.devButtonText}>
+                    Seed Pre-Migrated (dev)
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
       </Animated.View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
@@ -111,6 +148,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: MIGRATION.bg,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   content: {
     flex: 1,
@@ -156,5 +196,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: MIGRATION.textLink,
     textDecorationLine: 'underline',
+  },
+  devButtons: {
+    marginTop: 12,
+    gap: 8,
+    width: '100%',
+  },
+  devButton: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 99,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  devButtonText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 13,
+    fontWeight: '500',
   },
 })

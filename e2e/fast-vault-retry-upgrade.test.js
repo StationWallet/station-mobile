@@ -41,7 +41,7 @@ describe('Retry Upgrade from Main UI', () => {
       await device.launchApp({ delete: true, newInstance: true });
       await device.disableSynchronization();
 
-      // After erase, app starts fresh → Auth route → AuthMenu
+      // After erase, app starts fresh → Migration route → MigrationHome (dev buttons)
       await waitFor(element(by.text('Seed Pre-Migrated (dev)')))
         .toBeVisible()
         .withTimeout(30000);

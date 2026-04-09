@@ -14,6 +14,18 @@ import MigrationSuccess from '../screens/migration/MigrationSuccess'
 
 import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
 
+const DevSeedLegacyData = __DEV__
+  ? require('../components/DevSeedLegacyData').default
+  : null
+
+const DevSeedCorruptData = __DEV__
+  ? require('../components/DevSeedCorruptData').default
+  : null
+
+const DevSeedPreMigrated = __DEV__
+  ? require('../components/DevSeedPreMigrated').default
+  : null
+
 export type MigrationStackParams = {
   RiveIntro: undefined
   MigrationHome: undefined
@@ -59,6 +71,10 @@ export type MigrationStackParams = {
     wallets?: MigrationWallet[]
     migratedWalletName?: string
   }
+  // Dev-only screens for E2E test data seeding
+  SeedLegacyData: undefined
+  SeedCorruptData: undefined
+  SeedPreMigrated: undefined
 }
 
 const Stack = createStackNavigator<MigrationStackParams>()
@@ -83,6 +99,15 @@ export default function MigrationNavigator() {
       <Stack.Screen name="VerifyEmail" component={VerifyEmail} />
       <Stack.Screen name="ImportVault" component={ImportVault} />
       <Stack.Screen name="MigrationSuccess" component={MigrationSuccess} />
+      {__DEV__ && DevSeedLegacyData && (
+        <Stack.Screen name="SeedLegacyData" component={DevSeedLegacyData} />
+      )}
+      {__DEV__ && DevSeedCorruptData && (
+        <Stack.Screen name="SeedCorruptData" component={DevSeedCorruptData} />
+      )}
+      {__DEV__ && DevSeedPreMigrated && (
+        <Stack.Screen name="SeedPreMigrated" component={DevSeedPreMigrated} />
+      )}
     </Stack.Navigator>
   )
 }
