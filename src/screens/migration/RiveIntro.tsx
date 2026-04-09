@@ -1,29 +1,22 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { View, StyleSheet, NativeModules } from 'react-native'
+import React, { useCallback, useEffect, useRef } from 'react'
+import { View, StyleSheet } from 'react-native'
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
-import { Asset } from 'expo-asset'
 
+import Text from 'components/Text'
+import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-// Detox sets DetoxManager native module. When running under Detox,
-// skip Rive to avoid blocking idle detection.
-const isDetox = NativeModules.DetoxManager != null
-
-// Lazy-load rive-react-native only when needed
-const Rive = isDetox ? null : require('rive-react-native').default
-
-// Pre-resolve asset modules (Metro asset IDs)
-const bgAssetModule = require('../../../assets/animations/agent_background_transition.riv')
-const walletAssetModule = require('../../../assets/animations/station_wallet_animation.riv')
+// TODO: Wire up Rive animations once artboard/state machine names are known.
+// The .riv files are in assets/animations/ but need Metro running to resolve.
+// For now, show a static splash that transitions from light to dark.
 
 type Nav = StackNavigationProp<MigrationStackParams, 'RiveIntro'>
 
 export default function RiveIntro() {
   const navigation = useNavigation<Nav>()
   const navigated = useRef(false)
-  const [bgUrl, setBgUrl] = useState<string | null>(null)
-  const [walletUrl, setWalletUrl] = useState<string | null>(null)
 
   const goToHome = useCallback(() => {
     if (navigated.current) return
@@ -31,57 +24,29 @@ export default function RiveIntro() {
     navigation.replace('MigrationHome')
   }, [navigation])
 
-  // Resolve .riv assets to local file URIs via expo-asset
   useEffect(() => {
-    if (!Rive) return
-    async function loadAssets() {
-      try {
-        const [bgAsset, walletAsset] = await Promise.all([
-          Asset.fromModule(bgAssetModule).downloadAsync(),
-          Asset.fromModule(walletAssetModule).downloadAsync(),
-        ])
-        setBgUrl(bgAsset.localUri ?? bgAsset.uri)
-        setWalletUrl(walletAsset.localUri ?? walletAsset.uri)
-      } catch (err) {
-        console.warn('[RiveIntro] Failed to load assets:', err)
-        goToHome()
-      }
-    }
-    loadAssets()
-  }, [goToHome])
-
-  useEffect(() => {
-    // Under Detox, skip animation and navigate immediately.
-    // Otherwise, safety timeout in case animation doesn't fire onStop.
-    const delay = isDetox ? 500 : 8000
-    const timer = setTimeout(goToHome, delay)
+    const timer = setTimeout(goToHome, 3000)
     return () => clearTimeout(timer)
   }, [goToHome])
 
-  if (!Rive) {
-    return <View style={styles.container} />
-  }
-
-  // Wait for assets to resolve before rendering Rive
-  if (!bgUrl || !walletUrl) {
-    return <View style={styles.container} />
-  }
-
   return (
     <View style={styles.container}>
-      <Rive
-        url={bgUrl}
-        style={StyleSheet.absoluteFill}
-        autoplay
-        onStop={goToHome}
+      {/* Phase 1: Station logo on white (fades out) */}
+      <Animated.View
+        entering={FadeIn.duration(500)}
+        exiting={FadeOut.delay(1500).duration(800)}
+        style={styles.lightPhase}
+      >
+        <Text style={styles.stationText} fontType="bold">
+          Station Wallet
+        </Text>
+      </Animated.View>
+
+      {/* Phase 2: Dark Vultisig background (fades in) */}
+      <Animated.View
+        entering={FadeIn.delay(1800).duration(800)}
+        style={styles.darkPhase}
       />
-      <View style={styles.walletAnimation}>
-        <Rive
-          url={walletUrl}
-          style={styles.walletRive}
-          autoplay
-        />
-      </View>
     </View>
   )
 }
@@ -91,15 +56,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  walletAnimation: {
-    position: 'absolute',
-    top: 179,
-    left: 0,
-    right: 0,
+  lightPhase: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
   },
-  walletRive: {
-    width: 300,
-    height: 300,
+  stationText: {
+    fontSize: 20,
+    color: MIGRATION.stationBlue,
+  },
+  darkPhase: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: MIGRATION.bg,
   },
 })
