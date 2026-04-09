@@ -7,6 +7,7 @@ import VaultPassword from '../screens/migration/VaultPassword'
 import KeygenProgress from '../screens/migration/KeygenProgress'
 import VerifyEmail from '../screens/migration/VerifyEmail'
 import MigrationSuccess from '../screens/migration/MigrationSuccess'
+import ImportVault from '../screens/migration/ImportVault'
 
 import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
 
@@ -50,6 +51,7 @@ export type MigrationStackParams = {
     publicKey: string
   }
   MigrationSuccess: { results: MigrationResult[] }
+  ImportVault: undefined
 }
 
 const Stack = createStackNavigator<MigrationStackParams>()
@@ -69,6 +71,7 @@ export default function MigrationNavigator() {
       <Stack.Screen name="KeygenProgress" component={KeygenProgress} />
       <Stack.Screen name="VerifyEmail" component={VerifyEmail} />
       <Stack.Screen name="MigrationSuccess" component={MigrationSuccess} />
+      <Stack.Screen name="ImportVault" component={ImportVault} />
     </Stack.Navigator>
   )
 }
