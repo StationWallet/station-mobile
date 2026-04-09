@@ -1,10 +1,14 @@
 import React, { useCallback, useEffect, useRef } from 'react'
 import { View, StyleSheet } from 'react-native'
-import Rive from 'rive-react-native'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
+
+// Lazy-load rive-react-native to prevent its native module from
+// initializing at app startup, which keeps the main run loop busy
+// and blocks Detox idle detection for ALL tests.
+const Rive = __DEV__ ? null : require('rive-react-native').default
 
 type Nav = StackNavigationProp<MigrationStackParams, 'RiveIntro'>
 
@@ -26,15 +30,9 @@ export default function RiveIntro() {
     return () => clearTimeout(timer)
   }, [goToHome])
 
-  if (__DEV__) {
-    // Simple splash in dev mode — no Rive to avoid blocking Detox
-    return (
-      <View style={styles.container}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          {/* Dev mode: skip Rive animation */}
-        </View>
-      </View>
-    )
+  if (!Rive) {
+    // Dev mode: no Rive, auto-navigate via timeout above
+    return <View style={styles.container} />
   }
 
   return (
