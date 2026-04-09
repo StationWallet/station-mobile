@@ -1,30 +1,54 @@
-import React, { useCallback, useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { View, StyleSheet, NativeModules } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
+import { Asset } from 'expo-asset'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-// Detox sets the "isDetoxSync" launch arg. When running under Detox,
-// skip Rive to avoid blocking idle detection. In normal dev mode, show it.
+// Detox sets DetoxManager native module. When running under Detox,
+// skip Rive to avoid blocking idle detection.
 const isDetox = NativeModules.DetoxManager != null
 
-// Lazy-load rive-react-native only when needed — importing it at
-// module scope causes its native runtime to initialize, which keeps
-// the main run loop busy and blocks Detox idle detection.
+// Lazy-load rive-react-native only when needed
 const Rive = isDetox ? null : require('rive-react-native').default
+
+// Pre-resolve asset modules (Metro asset IDs)
+const bgAssetModule = require('../../../assets/animations/agent_background_transition.riv')
+const walletAssetModule = require('../../../assets/animations/station_wallet_animation.riv')
 
 type Nav = StackNavigationProp<MigrationStackParams, 'RiveIntro'>
 
 export default function RiveIntro() {
   const navigation = useNavigation<Nav>()
   const navigated = useRef(false)
+  const [bgUrl, setBgUrl] = useState<string | null>(null)
+  const [walletUrl, setWalletUrl] = useState<string | null>(null)
 
   const goToHome = useCallback(() => {
     if (navigated.current) return
     navigated.current = true
     navigation.replace('MigrationHome')
   }, [navigation])
+
+  // Resolve .riv assets to local file URIs via expo-asset
+  useEffect(() => {
+    if (!Rive) return
+    async function loadAssets() {
+      try {
+        const [bgAsset, walletAsset] = await Promise.all([
+          Asset.fromModule(bgAssetModule).downloadAsync(),
+          Asset.fromModule(walletAssetModule).downloadAsync(),
+        ])
+        setBgUrl(bgAsset.localUri ?? bgAsset.uri)
+        setWalletUrl(walletAsset.localUri ?? walletAsset.uri)
+      } catch (err) {
+        console.warn('[RiveIntro] Failed to load assets:', err)
+        goToHome()
+      }
+    }
+    loadAssets()
+  }, [goToHome])
 
   useEffect(() => {
     // Under Detox, skip animation and navigate immediately.
@@ -35,24 +59,25 @@ export default function RiveIntro() {
   }, [goToHome])
 
   if (!Rive) {
-    // Detox mode: no Rive, auto-navigate via timeout above
+    return <View style={styles.container} />
+  }
+
+  // Wait for assets to resolve before rendering Rive
+  if (!bgUrl || !walletUrl) {
     return <View style={styles.container} />
   }
 
   return (
     <View style={styles.container}>
-      {/* Background layer: white-to-dark-blue transition */}
       <Rive
-        source={require('../../../assets/animations/agent_background_transition.riv')}
+        url={bgUrl}
         style={StyleSheet.absoluteFill}
         autoplay
         onStop={goToHome}
       />
-
-      {/* Foreground layer: wallet connector animation */}
       <View style={styles.walletAnimation}>
         <Rive
-          source={require('../../../assets/animations/station_wallet_animation.riv')}
+          url={walletUrl}
           style={styles.walletRive}
           autoplay
         />
