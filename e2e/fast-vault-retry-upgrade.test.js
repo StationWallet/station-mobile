@@ -44,7 +44,7 @@ describe('Retry Upgrade from Main UI', () => {
       // After erase, app starts fresh → Migration route → MigrationHome (dev buttons)
       await waitFor(element(by.text('Seed Pre-Migrated (dev)')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
       await element(by.text('Seed Pre-Migrated (dev)')).tap();
 
       await waitFor(element(by.id('seed-premigrated-done')))

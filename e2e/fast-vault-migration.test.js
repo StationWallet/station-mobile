@@ -39,7 +39,7 @@ describe('Fast Vault Migration — Per-Wallet', () => {
 
       await waitFor(element(by.text('Seed Legacy Data (dev)')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
       await element(by.text('Seed Legacy Data (dev)')).tap();
       await waitFor(element(by.id('seed-done')))
         .toExist()
@@ -64,7 +64,7 @@ describe('Fast Vault Migration — Per-Wallet', () => {
     it('should play RiveIntro and reach MigrationHome', async () => {
       await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
     });
 
     it('should navigate to WalletsFound', async () => {

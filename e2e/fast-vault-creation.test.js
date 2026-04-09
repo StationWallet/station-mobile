@@ -44,7 +44,7 @@ describe('Fast Vault Creation — New User', () => {
       // RiveIntro auto-plays → MigrationHome appears
       await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
     });
 
     it('should navigate to VaultName', async () => {

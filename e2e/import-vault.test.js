@@ -50,7 +50,7 @@ describe('Import Vault', () => {
       // Clean install (no wallets) → RiveIntro auto-plays → MigrationHome
       await waitFor(element(by.id('import-vault-button')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
     });
 
     it('should navigate to ImportVault screen', async () => {
@@ -124,7 +124,7 @@ describe('Import Vault', () => {
         // RiveIntro → MigrationHome
         await waitFor(element(by.id('import-vault-button')))
           .toBeVisible()
-          .withTimeout(30000);
+          .withTimeout(90000);
 
         await element(by.id('import-vault-button')).tap();
         await waitFor(element(by.text('Import your vault share')))

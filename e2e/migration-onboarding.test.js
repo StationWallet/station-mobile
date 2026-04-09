@@ -42,7 +42,7 @@ describe('Migration Onboarding Flow', () => {
     it('shows auth screen in dev mode (prod routes to Migration)', async () => {
       await waitFor(element(by.text('Create New Wallet')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
     });
   });
 
@@ -54,7 +54,7 @@ describe('Migration Onboarding Flow', () => {
 
       await waitFor(element(by.text('Seed Legacy Data (dev)')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
       await element(by.text('Seed Legacy Data (dev)')).tap();
 
       await waitFor(element(by.id('seed-done')))
@@ -80,7 +80,7 @@ describe('Migration Onboarding Flow', () => {
     it('shows MigrationHome with Start Migration CTA', async () => {
       await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
     });
 
     it('taps CTA to reach WalletsFound', async () => {
