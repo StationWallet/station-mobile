@@ -321,6 +321,58 @@ Design context and screenshots pulled from Figma MCP (file `puB2fsVpPrBx3Sup7gaa
 - "Migrate to a vault" button: CTA blue `#0b4eff`, 30px radius, 42px height, 175px wide, cloud-upload icon
 - Cards stacked with 12px gap
 
+## E2E Testing Strategy
+
+All existing Detox E2E tests must be updated to match the new screen structure and testIDs. Tests must continue to perform **real** vault operations — actual DKLS ceremonies against vultiserver, real OTP verification via AgentMail, protobuf integrity checks, and persistence validation.
+
+### Test Files to Update/Create
+
+| Test File | What It Tests |
+|---|---|
+| `e2e/fast-vault-migration.test.js` | **Update:** New flow — RiveIntro → MigrationHome → "Start Migration" → WalletsFound → per-wallet migrate (Email → Password → Keygen → Verify) → Success → "Migrate another wallet" → back to WalletsFound. Must handle per-wallet flow (not batch). Verify vault integrity with DevVerifyVault. |
+| `e2e/fast-vault-partial-migration.test.js` | **Update:** Same error/skip/retry flow but through new screens. Seeds corrupt data, walks through RiveIntro → MigrationHome → WalletsFound → pick wallet → fail → skip → Success. |
+| `e2e/fast-vault-retry-upgrade.test.js` | **Update:** Minimal changes — upgrade from main UI uses the restyled Email/Password/Keygen/Verify screens. Update testIDs if changed. |
+| `e2e/migration-onboarding.test.js` | **Update:** New flow for legacy wallet detection. RiveIntro plays, MigrationHome shows "Start Migration", walk through WalletsFound per-wallet flow. Vault integrity checks unchanged. |
+| `e2e/fast-vault-creation.test.js` | **New:** Clean install → RiveIntro → MigrationHome → "Create a Fast Vault" → VaultName → VaultEmail → VaultPassword → KeygenProgress → VerifyEmail → MigrationSuccess. Verifies a brand new fast vault is created (not a migration). Uses AgentMail for OTP. Checks vault protobuf integrity. |
+| `e2e/import-vault.test.js` | **New:** RiveIntro → MigrationHome → "I already have a Fast Vault" → ImportVault → pick .vult file → decrypt with password → MigrationSuccess. Requires a test .vult file to be staged in the simulator. |
+
+### Key Test Patterns (preserved from existing tests)
+
+1. **AgentMail OTP flow** — `e2e/helpers/agentmail.js` is reused. `migrateOneWallet()` helper needs updating for new screen flow (WalletsFound card tap instead of batch "Upgrade" button).
+2. **DevVerifyVault** — the dev component rendered on MigrationSuccess that checks vault protobuf integrity. Must still be rendered and all checks must pass.
+3. **Simulator erase** — tests erase the simulator before each suite to clear keychain.
+4. **Persistence** — after migration, relaunch app and verify migration flow does NOT appear.
+5. **Real DKLS ceremonies** — tests hit actual vultiserver (api.vultisig.com) for key import. No mocks.
+6. **`migrateOneWallet` helper update** — currently navigates Email → Password → Keygen → Verify sequentially. Needs update to: tap "Migrate to a vault" on WalletsFound card → Email → Password → Keygen → Verify → Success → "Migrate another wallet" (if more wallets).
+
+### New testIDs Required
+
+| Screen | testID | Element |
+|---|---|---|
+| MigrationHome | `migration-cta` | "Start Migration" / "Create a Fast Vault" button |
+| MigrationHome | `import-vault-button` | "I already have a Fast Vault" button |
+| WalletsFound | `wallet-card-{N}` | Wallet card (preserved) |
+| WalletsFound | `wallet-card-{N}-migrate` | "Migrate to a vault" button per card |
+| WalletsFound | `wallets-back` | Back button |
+| VaultName | `vault-name-input` | Name text input |
+| VaultName | `vault-name-next` | Next button |
+| VaultEmail | `vault-email-input` | Email text input (preserved) |
+| VaultEmail | `vault-email-next` | Next button (preserved) |
+| VaultPassword | `vault-password-input` | Password input (preserved) |
+| VaultPassword | `vault-password-confirm` | Confirm input (preserved) |
+| VaultPassword | `vault-password-continue` | Continue button (preserved) |
+| KeygenProgress | `keygen-skip` | Skip button (preserved) |
+| KeygenProgress | `keygen-retry` | Retry button (preserved) |
+| VerifyEmail | `verify-code-input` | Code input (preserved) |
+| VerifyEmail | `verify-paste` | Paste button (preserved) |
+| ImportVault | `import-file-picker` | File drop zone / picker trigger |
+| ImportVault | `import-continue` | Continue button |
+| ImportVault | `decrypt-password-input` | Password input in sheet |
+| ImportVault | `decrypt-continue` | Continue button in sheet |
+| MigrationSuccess | `continue-button` | Continue to wallets (preserved) |
+| MigrationSuccess | `migrate-another-wallet` | "Migrate another wallet" link |
+| MigrationSuccess | `share-og-status` | "Share your OG status" button |
+
 ## Out of Scope
 
 - Export wallet functionality (buttons not included)

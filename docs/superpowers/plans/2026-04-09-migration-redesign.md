@@ -1584,3 +1584,643 @@ Fix any TypeScript errors from removed/renamed files.
 git add -A
 git commit -m "chore: remove old wallet creation flow replaced by migration"
 ```
+
+---
+
+### Task 15: Update AgentMail Helper for Per-Wallet Flow
+
+**Files:**
+- Modify: `e2e/helpers/agentmail.js`
+
+- [ ] **Step 1: Update migrateOneWallet helper**
+
+The existing `migrateOneWallet()` assumes the VaultEmail screen is already visible and the flow advances sequentially. The new flow is per-wallet from WalletsFound:
+
+1. Tap "Migrate to a vault" on a specific wallet card
+2. VaultEmail → VaultPassword → KeygenProgress → VerifyEmail
+3. MigrationSuccess appears
+4. If more wallets: tap "Migrate another wallet" → back to WalletsFound
+
+Update `e2e/helpers/agentmail.js`:
+
+```javascript
+/**
+ * Walk one wallet through the per-wallet migration flow.
+ * Assumes WalletsFound screen is visible with the wallet card.
+ *
+ * @param {number} walletIndex - 0-based index of the wallet card
+ * @param {string} walletLabel - For logging
+ * @param {Set} knownMessageIds - AgentMail message tracking
+ * @param {boolean} hasMoreWallets - Whether to tap "Migrate another wallet" after
+ */
+async function migrateOneWalletFromCard(walletIndex, walletLabel, knownMessageIds, hasMoreWallets) {
+  console.log(`\n--- Migrating ${walletLabel} from card ${walletIndex} ---`);
+
+  // Tap the "Migrate to a vault" button on the wallet card
+  await waitFor(element(by.id(`wallet-card-${walletIndex}-migrate`)))
+    .toBeVisible()
+    .withTimeout(10000);
+  await element(by.id(`wallet-card-${walletIndex}-migrate`)).tap();
+
+  // Email screen
+  await waitFor(element(by.text('Enter your email')))
+    .toBeVisible()
+    .withTimeout(10000);
+  await element(by.id('vault-email-input')).tap();
+  await element(by.id('vault-email-input')).clearText();
+  await element(by.id('vault-email-input')).typeText(AGENTMAIL_EMAIL);
+  await element(by.id('vault-email-next')).tap();
+
+  // Password screen
+  await waitFor(element(by.text('Choose a password')))
+    .toBeVisible()
+    .withTimeout(10000);
+
+  const preKeygenIds = await getExistingMessageIds(AGENTMAIL_EMAIL);
+  for (const id of preKeygenIds) knownMessageIds.add(id);
+
+  await element(by.id('vault-password-input')).typeText(VAULT_PASSWORD);
+  await element(by.id('vault-password-confirm')).typeText(VAULT_PASSWORD);
+  await element(by.id('vault-password-continue')).tap();
+
+  // KeygenProgress → VerifyEmail
+  await waitFor(element(by.text('Verify your email')))
+    .toExist()
+    .withTimeout(150000);
+
+  const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, knownMessageIds);
+  await waitFor(element(by.id('verify-code-input'))).toExist().withTimeout(5000);
+  await element(by.id('verify-code-input')).tap();
+  await element(by.id('verify-code-input')).replaceText(otp);
+
+  // Wait for verification + navigation to MigrationSuccess
+  await waitFor(element(by.text('You are aboard, Station OG!')))
+    .toBeVisible()
+    .withTimeout(15000);
+
+  if (hasMoreWallets) {
+    // Tap "Migrate another wallet" → back to WalletsFound
+    await element(by.id('migrate-another-wallet')).tap();
+    await waitFor(element(by.text('Your wallets')))
+      .toBeVisible()
+      .withTimeout(10000);
+  }
+
+  console.log(`--- ${walletLabel} complete ---\n`);
+}
+
+module.exports = {
+  AGENTMAIL_API_KEY,
+  AGENTMAIL_EMAIL,
+  VAULT_PASSWORD,
+  getExistingMessageIds,
+  fetchOtpFromAgentmail,
+  migrateOneWallet,
+  migrateOneWalletFromCard,
+};
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add e2e/helpers/agentmail.js
+git commit -m "test: add migrateOneWalletFromCard helper for per-wallet flow"
+```
+
+---
+
+### Task 16: E2E Test — Full Per-Wallet Migration
+
+**Files:**
+- Rewrite: `e2e/fast-vault-migration.test.js`
+
+- [ ] **Step 1: Rewrite fast-vault-migration test**
+
+Rewrite `e2e/fast-vault-migration.test.js` for the new per-wallet flow:
+
+```javascript
+/**
+ * Fast Vault Migration E2E Tests — Per-Wallet Flow
+ *
+ * Seeds legacy data (2 standard + 1 ledger), walks through:
+ * RiveIntro → MigrationHome → "Start Migration" → WalletsFound →
+ * per-wallet: tap "Migrate to a vault" → Email → Password → Keygen → Verify →
+ * Success → "Migrate another wallet" → WalletsFound → next wallet.
+ *
+ * After all wallets: verify vault integrity, persistence.
+ *
+ * Requires: vultiserver at api.vultisig.com, agentmail credentials in .env
+ */
+const { execSync } = require('child_process');
+const {
+  AGENTMAIL_EMAIL,
+  getExistingMessageIds,
+  migrateOneWalletFromCard,
+} = require('./helpers/agentmail');
+
+describe('Fast Vault Migration — Per-Wallet', () => {
+  let knownMessageIds = new Set();
+
+  describe('Setup and RiveIntro', () => {
+    beforeAll(async () => {
+      const udid = device.id;
+      execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
+        timeout: 30000,
+      });
+      execSync(`xcrun simctl boot ${udid}`, { timeout: 30000 });
+
+      // Seed legacy keystore data
+      await device.launchApp({
+        delete: true,
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
+      await device.disableSynchronization();
+
+      await waitFor(element(by.text('Seed Legacy Data (dev)')))
+        .toBeVisible()
+        .withTimeout(30000);
+      await element(by.text('Seed Legacy Data (dev)')).tap();
+      await waitFor(element(by.id('seed-done')))
+        .toExist()
+        .withTimeout(30000);
+
+      // Relaunch to trigger migration flow
+      await device.launchApp({
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
+      await device.disableSynchronization();
+
+      knownMessageIds = await getExistingMessageIds(AGENTMAIL_EMAIL);
+    });
+
+    afterAll(async () => {
+      await device.enableSynchronization();
+    });
+
+    it('should play RiveIntro and reach MigrationHome', async () => {
+      // RiveIntro plays → auto-navigates to MigrationHome
+      await waitFor(element(by.id('migration-cta')))
+        .toBeVisible()
+        .withTimeout(30000);
+    });
+
+    it('should show "Start Migration" (legacy wallets found)', async () => {
+      await expect(element(by.id('migration-cta'))).toBeVisible();
+    });
+
+    it('should navigate to WalletsFound', async () => {
+      await element(by.id('migration-cta')).tap();
+      await waitFor(element(by.text('Your wallets')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
+
+    it('should show wallet cards', async () => {
+      await waitFor(element(by.id('wallet-card-0')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
+  });
+
+  describe('Per-wallet migration', () => {
+    it('should migrate wallet 1', async () => {
+      await migrateOneWalletFromCard(0, 'TestWallet1', knownMessageIds, true);
+    });
+
+    it('should migrate wallet 2', async () => {
+      await migrateOneWalletFromCard(1, 'TestWallet2', knownMessageIds, false);
+    });
+  });
+
+  describe('Vault integrity verification', () => {
+    it('should show success screen with vault verification', async () => {
+      await waitFor(element(by.text('You are aboard, Station OG!')))
+        .toBeVisible()
+        .withTimeout(15000);
+    });
+
+    it('DKLS keyshares are loadable by native module', async () => {
+      await waitFor(element(by.id('verify-vault1-keyshare-loadable')))
+        .toExist()
+        .withTimeout(15000);
+      await expect(element(by.id('verify-vault1-keyshare-loadable')))
+        .toHaveText('vault1-keyshare-loadable: true');
+
+      await waitFor(element(by.id('verify-vault2-keyshare-loadable')))
+        .toExist()
+        .withTimeout(5000);
+      await expect(element(by.id('verify-vault2-keyshare-loadable')))
+        .toHaveText('vault2-keyshare-loadable: true');
+    });
+
+    it('DKLS vaults have correct structure', async () => {
+      await expect(element(by.id('verify-vault1-vault-type')))
+        .toHaveText('vault1-vault-type: DKLS');
+      await expect(element(by.id('verify-vault1-signers')))
+        .toHaveText('vault1-signers: true');
+    });
+
+    it('all vault verification checks pass', async () => {
+      await waitFor(element(by.id('verify-all-passed')))
+        .toExist()
+        .withTimeout(10000);
+      await expect(element(by.id('verify-all-passed')))
+        .toHaveText('all-passed: true');
+    });
+  });
+
+  describe('Persistence', () => {
+    beforeAll(async () => {
+      await element(by.id('continue-button')).tap();
+      await new Promise(r => setTimeout(r, 2000));
+
+      await device.launchApp({
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
+      await device.disableSynchronization();
+      await new Promise(r => setTimeout(r, 3000));
+    });
+
+    it('should not show migration flow on relaunch', async () => {
+      let migrationShown = false;
+      try {
+        await waitFor(element(by.id('migration-cta')))
+          .toBeVisible()
+          .withTimeout(5000);
+        migrationShown = true;
+      } catch {}
+
+      if (migrationShown) {
+        throw new Error('Migration flow should not appear after successful migration');
+      }
+    });
+  });
+});
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add e2e/fast-vault-migration.test.js
+git commit -m "test: rewrite fast-vault-migration for per-wallet flow"
+```
+
+---
+
+### Task 17: E2E Test — Fast Vault Creation (New User)
+
+**Files:**
+- Create: `e2e/fast-vault-creation.test.js`
+
+- [ ] **Step 1: Create fast vault creation test**
+
+Tests the brand new user path: no legacy wallets, create a fast vault from scratch.
+
+```javascript
+/**
+ * Fast Vault Creation E2E Test — New User
+ *
+ * Clean install (no legacy wallets) → RiveIntro → MigrationHome →
+ * "Create a Fast Vault" → VaultName → VaultEmail → VaultPassword →
+ * KeygenProgress → VerifyEmail → MigrationSuccess.
+ *
+ * Verifies a brand new DKLS fast vault is created with correct structure.
+ *
+ * Requires: vultiserver at api.vultisig.com, agentmail credentials in .env
+ */
+const { execSync } = require('child_process');
+const {
+  AGENTMAIL_EMAIL,
+  VAULT_PASSWORD,
+  getExistingMessageIds,
+  fetchOtpFromAgentmail,
+} = require('./helpers/agentmail');
+
+describe('Fast Vault Creation — New User', () => {
+  let knownMessageIds = new Set();
+
+  describe('Setup — clean install', () => {
+    beforeAll(async () => {
+      const udid = device.id;
+      execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
+        timeout: 30000,
+      });
+      execSync(`xcrun simctl boot ${udid}`, { timeout: 30000 });
+
+      await device.launchApp({
+        delete: true,
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
+      await device.disableSynchronization();
+
+      knownMessageIds = await getExistingMessageIds(AGENTMAIL_EMAIL);
+    });
+
+    afterAll(async () => {
+      await device.enableSynchronization();
+    });
+
+    it('should play RiveIntro and reach MigrationHome', async () => {
+      await waitFor(element(by.id('migration-cta')))
+        .toBeVisible()
+        .withTimeout(30000);
+    });
+
+    it('should show "Create a Fast Vault" (no legacy wallets)', async () => {
+      // The CTA text should be "Create a Fast Vault" not "Start Migration"
+      await expect(element(by.id('migration-cta'))).toBeVisible();
+    });
+
+    it('should navigate to VaultName', async () => {
+      await element(by.id('migration-cta')).tap();
+      await waitFor(element(by.text('Name your vault')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
+
+    it('should enter vault name and advance', async () => {
+      await element(by.id('vault-name-input')).typeText('My Fast Vault');
+      await element(by.id('vault-name-next')).tap();
+      await waitFor(element(by.text('Enter your email')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
+
+    it('should enter email and advance', async () => {
+      await element(by.id('vault-email-input')).tap();
+      await element(by.id('vault-email-input')).typeText(AGENTMAIL_EMAIL);
+      await element(by.id('vault-email-next')).tap();
+      await waitFor(element(by.text('Choose a password')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
+
+    it('should enter password and start keygen', async () => {
+      const preKeygenIds = await getExistingMessageIds(AGENTMAIL_EMAIL);
+      for (const id of preKeygenIds) knownMessageIds.add(id);
+
+      await element(by.id('vault-password-input')).typeText(VAULT_PASSWORD);
+      await element(by.id('vault-password-confirm')).typeText(VAULT_PASSWORD);
+      await element(by.id('vault-password-continue')).tap();
+
+      // Fresh keygen → VerifyEmail
+      await waitFor(element(by.text('Verify your email')))
+        .toExist()
+        .withTimeout(150000);
+    });
+
+    it('should verify email with OTP', async () => {
+      const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, knownMessageIds);
+      await waitFor(element(by.id('verify-code-input'))).toExist().withTimeout(5000);
+      await element(by.id('verify-code-input')).tap();
+      await element(by.id('verify-code-input')).replaceText(otp);
+
+      await waitFor(element(by.text('You are aboard, Station OG!')))
+        .toBeVisible()
+        .withTimeout(15000);
+    });
+
+    it('should show success with vault verification', async () => {
+      // DevVerifyVault checks vault integrity
+      await waitFor(element(by.id('verify-all-passed')))
+        .toExist()
+        .withTimeout(15000);
+      await expect(element(by.id('verify-all-passed')))
+        .toHaveText('all-passed: true');
+    });
+
+    it('should not show "Migrate another wallet" (no wallets to migrate)', async () => {
+      let migrateAnotherVisible = false;
+      try {
+        await waitFor(element(by.id('migrate-another-wallet')))
+          .toBeVisible()
+          .withTimeout(2000);
+        migrateAnotherVisible = true;
+      } catch {}
+
+      if (migrateAnotherVisible) {
+        throw new Error('"Migrate another wallet" should not appear for new user');
+      }
+    });
+
+    it('should complete and show main app', async () => {
+      await element(by.id('continue-button')).tap();
+      await new Promise(r => setTimeout(r, 3000));
+    });
+  });
+
+  describe('Persistence', () => {
+    beforeAll(async () => {
+      await device.launchApp({
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
+      await device.disableSynchronization();
+      await new Promise(r => setTimeout(r, 3000));
+    });
+
+    it('should not show migration flow on relaunch', async () => {
+      let migrationShown = false;
+      try {
+        await waitFor(element(by.id('migration-cta')))
+          .toBeVisible()
+          .withTimeout(5000);
+        migrationShown = true;
+      } catch {}
+
+      if (migrationShown) {
+        throw new Error('Migration flow should not appear after vault creation');
+      }
+    });
+  });
+});
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add e2e/fast-vault-creation.test.js
+git commit -m "test: add E2E test for new user fast vault creation flow"
+```
+
+---
+
+### Task 18: E2E Test — Partial Migration (Skip/Retry)
+
+**Files:**
+- Rewrite: `e2e/fast-vault-partial-migration.test.js`
+
+- [ ] **Step 1: Rewrite partial migration test**
+
+Update for new flow: RiveIntro → MigrationHome → "Start Migration" → WalletsFound → tap wallet card → Email → Password → KeygenProgress fails → Skip → back to WalletsFound or Success.
+
+Same pattern as existing test but navigating through new screens with updated testIDs. Seeds corrupt data via DevSeedCorruptData, walks through the error/skip path.
+
+Key changes from existing:
+- Wait for RiveIntro → MigrationHome first
+- Tap `migration-cta` to get to WalletsFound
+- Tap `wallet-card-0-migrate` instead of `upgrade-button`
+- Success screen text changes to "You are aboard, Station OG!" (or error variant)
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add e2e/fast-vault-partial-migration.test.js
+git commit -m "test: rewrite partial migration test for per-wallet flow"
+```
+
+---
+
+### Task 19: E2E Test — Import Vault
+
+**Files:**
+- Create: `e2e/import-vault.test.js`
+
+- [ ] **Step 1: Create import vault test**
+
+Tests the "I already have a Fast Vault" → ImportVault flow. Requires staging a test `.vult` file on the simulator.
+
+```javascript
+/**
+ * Import Vault E2E Test
+ *
+ * RiveIntro → MigrationHome → "I already have a Fast Vault" →
+ * ImportVault → pick .vult file → decrypt → MigrationSuccess.
+ *
+ * Uses a pre-staged test vault file in the simulator's Documents directory.
+ * Does NOT require vultiserver (import is local decrypt only).
+ */
+const { execSync } = require('child_process');
+
+describe('Import Vault', () => {
+  describe('Setup', () => {
+    beforeAll(async () => {
+      const udid = device.id;
+      execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
+        timeout: 30000,
+      });
+      execSync(`xcrun simctl boot ${udid}`, { timeout: 30000 });
+
+      // Stage a test .vult file in the simulator's Documents directory
+      // The file should be an encrypted vault backup created by the export flow.
+      // For CI, this file is checked into e2e/fixtures/test-vault.vult
+      // Copy it to the simulator's Documents directory:
+      const docsDir = execSync(
+        `xcrun simctl get_app_container ${udid} com.station.mobile data 2>/dev/null || echo ""`,
+        { encoding: 'utf8' }
+      ).trim();
+
+      if (docsDir) {
+        execSync(`mkdir -p "${docsDir}/Documents"`, { timeout: 5000 });
+        execSync(
+          `cp e2e/fixtures/test-vault.vult "${docsDir}/Documents/"`,
+          { timeout: 5000 }
+        );
+      }
+
+      await device.launchApp({
+        delete: true,
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
+      await device.disableSynchronization();
+    });
+
+    afterAll(async () => {
+      await device.enableSynchronization();
+    });
+
+    it('should reach MigrationHome', async () => {
+      await waitFor(element(by.id('import-vault-button')))
+        .toBeVisible()
+        .withTimeout(30000);
+    });
+
+    it('should navigate to ImportVault', async () => {
+      await element(by.id('import-vault-button')).tap();
+      await waitFor(element(by.text('Import your vault share')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
+
+    // NOTE: Automating expo-document-picker in Detox is limited.
+    // On iOS simulator, the file picker opens a system dialog.
+    // For CI, consider using a Detox-staged file approach where the
+    // app auto-detects a file in Documents (similar to vultiagent's
+    // detox-import.vult pattern). The useImportFlow hook should
+    // check for staged files in dev mode.
+    //
+    // If auto-detection is implemented:
+    it('should auto-detect staged vault file', async () => {
+      // In dev mode, ImportVault screen checks for detox-import.vult
+      // and auto-selects it
+      await waitFor(element(by.id('import-continue')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
+
+    it('should show decrypt password sheet', async () => {
+      await element(by.id('import-continue')).tap();
+      await waitFor(element(by.text('Enter Vault Share Password')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
+
+    it('should decrypt and navigate to success', async () => {
+      await element(by.id('decrypt-password-input')).typeText('testpass123');
+      await element(by.id('decrypt-continue')).tap();
+
+      await waitFor(element(by.text('You are aboard, Station OG!')))
+        .toBeVisible()
+        .withTimeout(15000);
+    });
+  });
+});
+```
+
+**Note:** Automating file picker in Detox requires a staged-file approach. The vultiagent app uses `detox-import.vult` auto-detection — port that pattern.
+
+- [ ] **Step 2: Create test fixture**
+
+Create `e2e/fixtures/test-vault.vult` — a pre-encrypted vault backup file for testing. This can be generated by running the export flow in the existing app, or by using the `importVaultBackup.ts` service in reverse.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add e2e/import-vault.test.js e2e/fixtures/
+git commit -m "test: add E2E test for vault import flow"
+```
+
+---
+
+### Task 20: Update Remaining E2E Tests
+
+**Files:**
+- Modify: `e2e/migration-onboarding.test.js`
+- Modify: `e2e/fast-vault-retry-upgrade.test.js`
+
+- [ ] **Step 1: Update migration-onboarding test**
+
+Update `e2e/migration-onboarding.test.js`:
+- Clean install test: now goes to Migration (not Auth) → update assertion to check for `migration-cta` instead of "Create New Wallet"
+- Real upgrade path: wait for RiveIntro → MigrationHome → tap `migration-cta` → WalletsFound → use `migrateOneWalletFromCard` helper
+- Vault integrity checks: unchanged (DevVerifyVault still renders)
+- Persistence: unchanged
+
+- [ ] **Step 2: Update retry-upgrade test**
+
+Update `e2e/fast-vault-retry-upgrade.test.js`:
+- Minimal changes — this tests upgrade from the main UI, not the migration flow
+- Update any testIDs that changed on Email/Password/Verify screens
+- Success screen text: "You are aboard, Station OG!" instead of "Wallets Upgraded!"
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add e2e/migration-onboarding.test.js e2e/fast-vault-retry-upgrade.test.js
+git commit -m "test: update migration-onboarding and retry-upgrade tests for new flow"
+```
