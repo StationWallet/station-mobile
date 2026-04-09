@@ -216,62 +216,99 @@ Blue accent for text (e.g., "Station is entering the Vultiverse") is part of the
 
 ## Visual Reference
 
-Figma screenshots saved to `docs/designs/migration/` are the source of truth for visual implementation. Reference these during implementation for pixel-level accuracy.
+Design context and screenshots pulled from Figma MCP (file `puB2fsVpPrBx3Sup7gaa3v`, section "Migration old station" node `73621:97497`).
 
-| File | Screens Shown |
+### Figma Node IDs (for future reference)
+
+| Screen | Node ID |
 |---|---|
-| `01-landing-wizard.png` | Landing (white, Station logo centered), Migration Wizard 1 (white bg, Rive USB connector, "Station is entering the Vultiverse"), Migration VIDEO frame |
-| `02-wizard2-wallets.png` | Migration Wizard 2 (dark bg, blue glow, info card, CTAs), Wallets Found (dark bg, wallet cards with balance + migrate buttons) |
-| `03-vault-flow-import-success.png` | Fast Vault flow (Name/Email/Password with top step bar), Success screens ("You are aboard, Station OG!"), Import Vault flow (file picker, decrypt password sheet) |
+| Landing | `73621:97616` |
+| Migration Wizard 1 | `73621:97625` |
+| Migration Wizard 2 (MigrationHome) | `73621:97636` |
+| Wallets Found | `73621:97679` |
+| Fast Vault flow section | `73621:97516` |
+| Name Your Vault | `73621:97549` |
+| Enter Email | `73621:97566` |
+| Choose a Password | `73621:97583` |
+| Migration Wizard 6 (small success) | `73621:97498` |
+| You are aboard, Station OG! (full success) | `73621:97600` |
+| Import Vault section | `73621:97718` |
+| Migration VIDEO | `73621:97863` |
 
-### Key Visual Details from Figma
+### Design Tokens (from Figma CSS variables)
 
-**Color palette (dark screens):**
-- Background: deep navy (~#0B1426 or matching VULTISIG.bg)
-- Cards: slightly lighter navy (#0D1F3C) with subtle teal-tinted border
-- Primary buttons: bright blue filled (#3366FF or similar — NOT the teal accent, this is a blue)
-- Secondary buttons: outlined with same blue, transparent fill
-- Text: white primary, gray secondary
-- Blue glow effect at top of MigrationHome screen (radial gradient or Rive-rendered)
+**Colors:**
+| Token | Variable | Hex |
+|---|---|---|
+| Background | `--backgrounds/background` | `#02122b` |
+| Surface 1 | `--backgrounds/surface-1` | `#061b3a` |
+| Surface 1-2 | `--backgrounds/surface-1-2` | `#0d2240` |
+| Border light | `--borders/light` | `#11284a` |
+| Border extra-light | `--borders/extra-light` | `rgba(255,255,255,0.03)` |
+| Text primary | `--text/primary` | `#f0f4fc` |
+| Text tertiary | `--text/tertiary` | `#8295ae` |
+| Button CTA (primary) | `--buttons/cta-(primary)` | `#0b4eff` |
+| Button secondary | `--buttons/secondary` | `#11284a` |
+| Button text primary | `--text/button/primary-(light-light)` | `#f0f4fc` |
+| Button text secondary | `--text/button/secondary-(light-dark)` | `#f0f4fc` |
 
-**MigrationHome info card:**
-- Rounded corners (~16px), subtle border
-- Interior sections separated by spacing, not dividers
-- Lightning bolt icon (yellow/gold) next to "A new type of wallet"
-- Clock icon (teal) next to countdown text
-- Bold treatment on "Station OG" and "$VULT airdrop" within body text
+**Typography (Brockmann font family):**
+| Style | Font | Size | Weight | Line Height | Letter Spacing |
+|---|---|---|---|---|---|
+| Title 2 | Brockmann Medium | 22px | 500 | 24px | -0.36px |
+| Title 3 | Brockmann Medium | 17px | 500 | 20px | -0.30px |
+| Subtitle | Brockmann Medium | 15px | 500 | 17px | -0.18px |
+| Body M (Medium) | Brockmann Medium | 16px | 500 | 24px | 0 |
+| Body S (Regular) | Brockmann Regular | 14px | 400 | 20px | 0 |
+| Footnote | Brockmann Medium | 13px | 500 | 18px | 0.06px |
+| Caption | Brockmann Medium | 12px | 500 | 16px | 0.12px |
+| Button Small | Brockmann Medium | 14px | 500 | 18px | 0 |
+| Price Body L | Satoshi Medium | 20px | 500 | 20px | 0.20px |
 
-**WalletsFound wallet cards:**
-- Full-width cards with rounded corners
-- Wallet name (white, bold, left) + balance (white, bold, right-aligned)
-- Truncated address below name in gray
-- Two buttons at bottom of each card: "Export" (outlined, skip this) and "Migrate to a vault" (blue filled with Vultisig swirl icon)
-- Cards have dark card background with subtle border
+**Spacing & Radii:**
+| Element | Value |
+|---|---|
+| Button radius (pill) | `99px` |
+| Card radius | `24px` |
+| Small button radius | `30px` |
+| Card padding | `20px` |
+| Card gap (between cards) | `12px` |
+| Section horizontal padding | `16px` |
+| Card inner gap | `6px` |
+| Card button height | `42px` |
+| CTA button height | `46px` |
+| CTA button padding | `14px 32px` |
 
-**Fast Vault creation step bar:**
-- Horizontal bar at top with circular step icons
-- Icons represent each step (vault, name, email, password)
-- Active step highlighted, completed steps checked
-- Thin connecting line between steps
+**Rive Annotations (confirmed from Figma):**
+- Node `73621:97678` (200x200 at top of MigrationHome): `data-rive-annotations="station wallet animation"`
+- Node `73621:97638` (background ellipses on MigrationHome): `data-rive-annotations="agent_background_transition"`
 
-**MigrationSuccess:**
-- Dark background, centered layout
-- Small Vultisig icons at top (vault/email/check row)
-- Close X in top-right corner
-- OG status card with rounded corners, centered
-- Card contains "Status: Station OG" and "#XLT Airdrop Eligible" text
-- "[ Entering orbit soon... ]" in muted text below card
-- "Share your OG status" primary blue button
-- "Migrate another wallet" as text link below
+### Key Visual Details
 
-**ImportVault:**
-- Header bar with back chevron, "Import Vault" title, info icon right
-- Large central drop zone area with dashed/subtle border
-- Upload/link icon centered in drop zone
-- "Import your vault share" text below zone
-- File type note in gray
-- "Continue" button at bottom
-- Password sheet slides up as bottom sheet modal with lock icon
+**MigrationHome (Wizard 2):**
+- Blue radial glow background composed of 3 overlapping ellipses (Rive-rendered via `agent_background_transition`)
+- Station wallet animation (200x200) positioned at top center (`top: 92px`)
+- Title at `top: 310px`, 22px Brockmann Medium, centered
+- Info card: surface-1 bg (`#061b3a`), border-light (`#11284a`), radius 24px, 20px padding
+- Lightning bolt icon (small, ~25px) with shadow, next to "A new type of wallet" text
+- Body text 13px Brockmann Medium, tertiary color, "Station OG" and "$VULT airdrop" in primary white
+- Countdown bar: surface-1 bg, radius 24px, inner shadow, clock icon + "The window closes in [X] days." caption text
+- "Start Migration" button: blue `#0b4eff`, pill radius 99px, 14px Brockmann Medium white text, inner shadow
+- "I already have a Fast Vault" button: secondary bg `#11284a`, border extra-light, pill radius 99px, with arrow-down-circle icon
+- "Learn more about Vault security" link: 14px tertiary text, underlined
+- Animation annotation: "Dissolve blocks sequentially, 300ms per block, 600ms stagger, linear easing"
+
+**WalletsFound:**
+- Glassmorphic back button: 44x44, rounded, blur effect, chevron-left icon
+- Title "Your wallets": 22px Brockmann Medium, white, `top: 125px`
+- Subtitle: 14px Brockmann Regular, tertiary
+- Wallet cards: surface-1 bg, border-light, 24px radius, 20px padding
+- Card header: wallet name (16px Brockmann Medium) left, balance (20px Satoshi Medium) right
+- Address: 14px Brockmann Regular, tertiary
+- Divider line between address and buttons
+- Export button: surface-1-2 bg (`#0d2240`), 30px radius, 42px height, flex-1
+- "Migrate to a vault" button: CTA blue `#0b4eff`, 30px radius, 42px height, 175px wide, cloud-upload icon
+- Cards stacked with 12px gap
 
 ## Out of Scope
 
