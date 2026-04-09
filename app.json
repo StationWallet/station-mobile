@@ -55,7 +55,8 @@
       "expo-local-authentication",
       "@config-plugins/detox",
       "expo-sharing",
-      "expo-updates"
+      "expo-updates",
+      "expo-document-picker"
     ],
     "extra": {
       "eas": {

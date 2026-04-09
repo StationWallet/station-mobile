@@ -50,6 +50,7 @@
     "expo-camera": "~55.0.0",
     "expo-clipboard": "~55.0.0",
     "expo-crypto": "~55.0.10",
+    "expo-document-picker": "~55.0.12",
     "expo-file-system": "~55.0.12",
     "expo-local-authentication": "~55.0.0",
     "expo-secure-store": "~55.0.0",
@@ -84,6 +85,7 @@
     "readable-stream": "^4.0.0",
     "recoil": "^0.7.7",
     "ripemd160": "^2.0.3",
+    "rive-react-native": "^9.8.1",
     "stream-browserify": "^3.0.0"
   },
   "devDependencies": {
