@@ -1,4 +1,4 @@
-import { create, toBinary } from '@bufbuild/protobuf'
+import { create, toBinary, fromBinary } from '@bufbuild/protobuf'
 import { gcm } from '@noble/ciphers/aes.js'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { base64 } from '@scure/base'
@@ -8,7 +8,9 @@ import * as Sharing from 'expo-sharing'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container_pb'
+import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
 import { derivePublicKeyHex, buildVaultProto } from './vaultProto'
+import { getStoredVault } from './migrateToVault'
 
 /**
  * Encrypts binary data with AES-256-GCM using a password.
@@ -29,20 +31,41 @@ function encryptWithPassword(data: Uint8Array, password: string): Uint8Array {
 /**
  * Exports a wallet as an encrypted .vult vault share file.
  *
- * Constructs a KeyImport vault protobuf from a raw secp256k1 private key,
- * encrypts with AES-256-GCM, wraps in VaultContainer, and writes to a
- * shareable .vult file.
+ * For DKLS fast vaults: reads the stored vault protobuf directly.
+ * For legacy vaults: constructs a KeyImport vault protobuf from the raw
+ * secp256k1 private key (privateKeyHex must be provided).
  *
- * The produced file is importable by any Vultisig app via "Import Vault Share".
+ * Encrypts with AES-256-GCM, wraps in VaultContainer, and writes to a
+ * shareable .vult file importable by any Vultisig app via "Import Vault Share".
  */
 export async function exportVaultShare(
-  privateKeyHex: string,
   walletName: string,
   exportPassword: string,
+  privateKeyHex?: string,  // Only needed for legacy vaults
 ): Promise<string> {
-  const publicKeyHex = derivePublicKeyHex(privateKeyHex)
-  const vaultProto = buildVaultProto(walletName, publicKeyHex, privateKeyHex)
-  const vaultBytes = toBinary(VaultSchema, vaultProto)
+  let vaultBytes: Uint8Array
+
+  const stored = await getStoredVault(walletName)
+  if (stored) {
+    // Check if the stored vault is a DKLS fast vault — read directly
+    const decoded = fromBinary(VaultSchema, base64.decode(stored))
+    if (decoded.libType === LibType.DKLS) {
+      vaultBytes = base64.decode(stored)
+    } else if (privateKeyHex) {
+      const publicKeyHex = derivePublicKeyHex(privateKeyHex)
+      const vaultProto = buildVaultProto(walletName, publicKeyHex, privateKeyHex)
+      vaultBytes = toBinary(VaultSchema, vaultProto)
+    } else {
+      throw new Error('privateKeyHex is required for legacy vaults')
+    }
+  } else {
+    if (!privateKeyHex) {
+      throw new Error('No vault found and no privateKeyHex provided')
+    }
+    const publicKeyHex = derivePublicKeyHex(privateKeyHex)
+    const vaultProto = buildVaultProto(walletName, publicKeyHex, privateKeyHex)
+    vaultBytes = toBinary(VaultSchema, vaultProto)
+  }
   const encryptedBytes = encryptWithPassword(vaultBytes, exportPassword)
 
   const container = create(VaultContainerSchema, {
