@@ -16,13 +16,9 @@ import Button from 'components/Button'
 import StepProgressBar from 'components/migration/StepProgressBar'
 import GlassButton from 'components/migration/GlassButton'
 import { MIGRATION } from 'consts/migration'
+import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-type VaultNameParams = {
-  VaultName: undefined
-  VaultEmail: { walletName: string; mode: 'migrate' | 'create' }
-}
-
-type Nav = StackNavigationProp<VaultNameParams, 'VaultName'>
+type Nav = StackNavigationProp<MigrationStackParams, 'VaultName'>
 
 export default function VaultName() {
   const navigation = useNavigation<Nav>()

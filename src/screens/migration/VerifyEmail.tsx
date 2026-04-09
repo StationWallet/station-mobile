@@ -28,10 +28,10 @@ export default function VerifyEmail() {
   const route = useRoute<Route>()
   const {
     walletName,
-    walletIndex,
-    totalWallets,
-    wallets,
-    results,
+    walletIndex = 0,
+    totalWallets = 1,
+    wallets = [],
+    results = [],
     email,
     publicKey,
   } = route.params

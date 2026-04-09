@@ -35,10 +35,7 @@ export default function VaultEmail() {
   const {
     walletName,
     mode,
-    walletIndex,
-    totalWallets,
     wallets,
-    results,
     email: prefillEmail,
   } = route.params
 
@@ -112,10 +109,7 @@ export default function VaultEmail() {
               navigation.navigate('VaultPassword', {
                 walletName,
                 mode,
-                walletIndex,
-                totalWallets,
                 wallets,
-                results,
                 email,
               })
             }}

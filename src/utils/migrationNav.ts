@@ -26,7 +26,10 @@ export function advanceToNextWallet(
   }
 
   if (nextIdx >= wallets.length) {
-    navigation.navigate('MigrationSuccess', { results: updatedResults })
+    navigation.navigate('MigrationSuccess', {
+      results: updatedResults,
+      wallets,
+    })
     return
   }
 
@@ -34,10 +37,7 @@ export function advanceToNextWallet(
   navigation.navigate('VaultEmail', {
     walletName: nextWallet.name,
     mode: 'migrate',
-    walletIndex: nextIdx,
-    totalWallets,
     wallets,
-    results: updatedResults,
     email,
   })
 }

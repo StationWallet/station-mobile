@@ -10,17 +10,9 @@ import Text from 'components/Text'
 import Button from 'components/Button'
 import InfoCard from 'components/migration/InfoCard'
 import { discoverLegacyWallets, MigrationWallet } from 'services/migrateToVault'
+import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-// Minimal local type covering the screens this component navigates to.
-// Task 12 will replace this with the canonical MigrationStackParams.
-type MigrationHomeStackParams = {
-  MigrationHome: undefined
-  WalletsFound: { wallets: MigrationWallet[] }
-  VaultName: undefined
-  ImportVault: undefined
-}
-
-type Nav = StackNavigationProp<MigrationHomeStackParams, 'MigrationHome'>
+type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
 
 /** Migration deadline — 30 days from a fixed launch date. */
 const MIGRATION_DEADLINE = new Date('2026-05-09T00:00:00Z')

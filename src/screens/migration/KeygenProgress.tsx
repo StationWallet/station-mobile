@@ -32,10 +32,10 @@ export default function KeygenProgress() {
   const route = useRoute<Route>()
   const {
     walletName,
-    walletIndex,
-    totalWallets,
-    wallets,
-    results,
+    walletIndex = 0,
+    totalWallets = 1,
+    wallets = [],
+    results = [],
     email,
     password,
     mode,
@@ -128,6 +128,7 @@ export default function KeygenProgress() {
         totalWallets,
         wallets,
         results,
+        mode,
         email,
         publicKey: result.publicKey,
       })

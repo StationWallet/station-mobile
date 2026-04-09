@@ -4,15 +4,9 @@ import Rive from 'rive-react-native'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 
-// MigrationHome and RiveIntro routes will be added to MigrationStackParams
-// in Task 12 (MigrationNavigator & Route Params). For now, use a minimal
-// local type so the file compiles without depending on the full param list.
-type RiveIntroStackParams = {
-  RiveIntro: undefined
-  MigrationHome: undefined
-}
+import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-type Nav = StackNavigationProp<RiveIntroStackParams, 'RiveIntro'>
+type Nav = StackNavigationProp<MigrationStackParams, 'RiveIntro'>
 
 export default function RiveIntro() {
   const navigation = useNavigation<Nav>()

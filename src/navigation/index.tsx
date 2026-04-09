@@ -48,7 +48,7 @@ export default function AppNavigator() {
       if (loaded.length > 0 && !vaultsUpgraded && legacyDataFound) {
         setRootRoute('Migration')
       } else if (loaded.length === 0) {
-        setRootRoute('Auth')
+        setRootRoute('Migration')  // brand new users create a fast vault
       } else {
         setRootRoute('Main')
         const picked = await pickInitialWallet(loaded)

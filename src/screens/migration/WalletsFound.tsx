@@ -9,20 +9,10 @@ import Text from 'components/Text'
 import GlassButton from 'components/migration/GlassButton'
 import WalletMigrationCard from 'components/migration/WalletMigrationCard'
 import { MIGRATION } from 'consts/migration'
-import type { MigrationWallet } from 'services/migrateToVault'
+import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-type WalletsFoundParams = {
-  WalletsFound: { wallets: MigrationWallet[] }
-  VaultEmail: {
-    walletName: string
-    wallets?: MigrationWallet[]
-    mode: 'migrate' | 'create'
-    email?: string
-  }
-}
-
-type Nav = StackNavigationProp<WalletsFoundParams, 'WalletsFound'>
-type Route = RouteProp<WalletsFoundParams, 'WalletsFound'>
+type Nav = StackNavigationProp<MigrationStackParams, 'WalletsFound'>
+type Route = RouteProp<MigrationStackParams, 'WalletsFound'>
 
 export default function WalletsFound() {
   const navigation = useNavigation<Nav>()

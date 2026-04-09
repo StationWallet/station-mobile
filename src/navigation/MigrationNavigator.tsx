@@ -1,61 +1,64 @@
 import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 
+import RiveIntro from '../screens/migration/RiveIntro'
+import MigrationHome from '../screens/migration/MigrationHome'
 import WalletsFound from '../screens/migration/WalletsFound'
+import VaultName from '../screens/migration/VaultName'
 import VaultEmail from '../screens/migration/VaultEmail'
 import VaultPassword from '../screens/migration/VaultPassword'
 import KeygenProgress from '../screens/migration/KeygenProgress'
 import VerifyEmail from '../screens/migration/VerifyEmail'
-import MigrationSuccess from '../screens/migration/MigrationSuccess'
 import ImportVault from '../screens/migration/ImportVault'
+import MigrationSuccess from '../screens/migration/MigrationSuccess'
 
 import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
 
 export type MigrationStackParams = {
-  WalletsFound: { wallets: MigrationWallet[] }
+  RiveIntro: undefined
+  MigrationHome: undefined
+  WalletsFound: {
+    wallets: MigrationWallet[]
+  }
+  VaultName: undefined
   VaultEmail: {
     walletName: string
-    mode: 'migrate' | 'create'
-    walletIndex?: number
-    totalWallets?: number
     wallets?: MigrationWallet[]
-    results?: MigrationResult[]
+    mode: 'migrate' | 'create'
     email?: string
   }
   VaultPassword: {
     walletName: string
-    mode: 'migrate' | 'create'
-    walletIndex?: number
-    totalWallets?: number
     wallets?: MigrationWallet[]
-    results?: MigrationResult[]
+    mode: 'migrate' | 'create'
     email: string
   }
   KeygenProgress: {
     walletName: string
-    mode: 'migrate' | 'create'
     walletIndex?: number
     totalWallets?: number
     wallets?: MigrationWallet[]
     results?: MigrationResult[]
+    mode: 'migrate' | 'create'
     email: string
     password: string
   }
   VerifyEmail: {
     walletName: string
-    walletIndex: number
-    totalWallets: number
-    wallets: MigrationWallet[]
-    results: MigrationResult[]
+    walletIndex?: number
+    totalWallets?: number
+    wallets?: MigrationWallet[]
+    results?: MigrationResult[]
+    mode: 'migrate' | 'create'
     email: string
     publicKey: string
   }
+  ImportVault: undefined
   MigrationSuccess: {
     results?: MigrationResult[]
     wallets?: MigrationWallet[]
     migratedWalletName?: string
   }
-  ImportVault: undefined
 }
 
 const Stack = createStackNavigator<MigrationStackParams>()
@@ -63,19 +66,23 @@ const Stack = createStackNavigator<MigrationStackParams>()
 export default function MigrationNavigator() {
   return (
     <Stack.Navigator
+      initialRouteName="RiveIntro"
       screenOptions={{
         headerShown: false,
         animationEnabled: true,
         gestureEnabled: false,
       }}
     >
+      <Stack.Screen name="RiveIntro" component={RiveIntro} />
+      <Stack.Screen name="MigrationHome" component={MigrationHome} />
       <Stack.Screen name="WalletsFound" component={WalletsFound} />
+      <Stack.Screen name="VaultName" component={VaultName} />
       <Stack.Screen name="VaultEmail" component={VaultEmail} />
       <Stack.Screen name="VaultPassword" component={VaultPassword} />
       <Stack.Screen name="KeygenProgress" component={KeygenProgress} />
       <Stack.Screen name="VerifyEmail" component={VerifyEmail} />
-      <Stack.Screen name="MigrationSuccess" component={MigrationSuccess} />
       <Stack.Screen name="ImportVault" component={ImportVault} />
+      <Stack.Screen name="MigrationSuccess" component={MigrationSuccess} />
     </Stack.Navigator>
   )
 }

@@ -24,7 +24,7 @@ type Route = RouteProp<MigrationStackParams, 'VaultPassword'>
 export default function VaultPassword() {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
-  const { walletName, mode, walletIndex, totalWallets, wallets, results, email } =
+  const { walletName, mode, wallets, email } =
     route.params
 
   const [password, setPassword] = useState('')
@@ -126,13 +126,15 @@ export default function VaultPassword() {
             titleFontType="brockmann-medium"
             disabled={!isValid}
             onPress={() => {
+              const walletIndex = wallets
+                ? wallets.findIndex((w) => w.name === walletName)
+                : undefined
               navigation.navigate('KeygenProgress', {
                 walletName,
                 mode,
-                walletIndex,
-                totalWallets,
+                walletIndex: walletIndex != null && walletIndex >= 0 ? walletIndex : undefined,
+                totalWallets: wallets?.length,
                 wallets,
-                results,
                 email,
                 password,
               })
