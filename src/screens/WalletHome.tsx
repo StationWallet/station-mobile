@@ -129,6 +129,7 @@ export default function WalletHome() {
       </TouchableOpacity>
       {isFastVault === false && (
         <TouchableOpacity
+          testID="upgrade-to-fast-vault"
           style={styles.upgradeButton}
           onPress={() =>
             navigation.navigate('Migration', {
@@ -190,6 +191,7 @@ export default function WalletHome() {
         </TouchableOpacity>
         {!isLedger && (
           <TouchableOpacity
+            testID="export-key-button"
             style={styles.managementRow}
             onPress={() => navigation.navigate('ExportPrivateKey', { wallet })}
           >

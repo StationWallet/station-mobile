@@ -16,6 +16,14 @@ const DevSeedLegacyData = __DEV__
   ? require('../components/DevSeedLegacyData').default
   : null
 
+const DevSeedCorruptData = __DEV__
+  ? require('../components/DevSeedCorruptData').default
+  : null
+
+const DevSeedPreMigrated = __DEV__
+  ? require('../components/DevSeedPreMigrated').default
+  : null
+
 const DevVerifyVault = __DEV__
   ? require('../components/DevVerifyVault').default
   : null
@@ -36,6 +44,12 @@ export default function AuthNavigator() {
       )}
       {__DEV__ && DevSeedLegacyData && (
         <Stack.Screen name="SeedLegacyData" component={DevSeedLegacyData} />
+      )}
+      {__DEV__ && DevSeedCorruptData && (
+        <Stack.Screen name="SeedCorruptData" component={DevSeedCorruptData} />
+      )}
+      {__DEV__ && DevSeedPreMigrated && (
+        <Stack.Screen name="SeedPreMigrated" component={DevSeedPreMigrated} />
       )}
       {__DEV__ && DevVerifyVault && (
         <Stack.Screen name="VerifyVault" component={DevVerifyVault} />

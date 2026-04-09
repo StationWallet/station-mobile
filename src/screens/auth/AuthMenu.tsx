@@ -70,6 +70,20 @@ const AuthMenu = ({ navigation }: any) => {
               >
                 <Text style={styles.secondaryButtonText}>Seed Legacy Data (dev)</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                testID="dev-seed-corrupt"
+                style={styles.secondaryButton}
+                onPress={() => navigation.navigate('SeedCorruptData')}
+              >
+                <Text style={styles.secondaryButtonText}>Seed Corrupt Data (dev)</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="dev-seed-premigrated"
+                style={styles.secondaryButton}
+                onPress={() => navigation.navigate('SeedPreMigrated')}
+              >
+                <Text style={styles.secondaryButtonText}>Seed Pre-Migrated (dev)</Text>
+              </TouchableOpacity>
             </>
           )}
         </View>
