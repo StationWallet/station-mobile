@@ -174,6 +174,17 @@ Dark background. Content:
 
 **Discovery step:** At implementation start, load each .riv file and log available artboards, state machines, and inputs. Wire up based on discovered metadata.
 
+**Additional Rive files available in vultiagent-app** (`/Users/apotheosis/git/vultisig/vultiagent-app/assets/animations/`):
+- `vault_setup_device1.riv` — Landing screen animation (Figma annotation: `vault_setup_1device.riv`)
+- `onboarding_success.riv` — potential success screen animation
+- `keygen_fast.riv` — potential keygen progress animation
+- `creating_vault_checkmark.riv` — vault creation success checkmark
+- `connecting_with_server.riv` — server connection state
+- `import_seedphrase.riv` — seed phrase import animation
+- `splash_logo.riv` — splash/loading animation
+
+Copy from vultiagent as needed during implementation.
+
 **RiveIntro approach:**
 - Two Rive components layered (background + foreground animation)
 - Listen for animation completion event to trigger navigation
