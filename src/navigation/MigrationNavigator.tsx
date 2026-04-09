@@ -50,7 +50,11 @@ export type MigrationStackParams = {
     email: string
     publicKey: string
   }
-  MigrationSuccess: { results: MigrationResult[] }
+  MigrationSuccess: {
+    results?: MigrationResult[]
+    wallets?: MigrationWallet[]
+    migratedWalletName?: string
+  }
   ImportVault: undefined
 }
 
