@@ -7,8 +7,11 @@ import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-// TODO: Wire up Rive animations once artboard/state machine names are known
-// and native asset bundling is configured. For now, static splash.
+// TODO: Wire up Rive animations using the vultiagent pattern:
+//   import Rive from 'rive-react-native'
+//   <Rive source={require('../../../assets/animations/agent_background_transition.riv')} autoplay />
+// The .riv files are in assets/animations/ and Metro has .riv in assetExts.
+// Requires artboard/state machine names to be discovered from the .riv files.
 
 type Nav = StackNavigationProp<MigrationStackParams, 'RiveIntro'>
 
@@ -24,7 +27,7 @@ export default function RiveIntro() {
 
   useEffect(() => {
     // In dev/test builds, navigate quickly to avoid blocking Detox idle detection.
-    // In production, show splash for 3 seconds.
+    // In production, show splash for 3 seconds (will be replaced by Rive animation).
     const delay = __DEV__ ? 100 : 3000
     const timer = setTimeout(goToHome, delay)
     return () => clearTimeout(timer)
