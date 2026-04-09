@@ -1,14 +1,18 @@
 import React, { useCallback, useEffect, useRef } from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, NativeModules } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-// Lazy-load rive-react-native to prevent its native module from
-// initializing at app startup, which keeps the main run loop busy
-// and blocks Detox idle detection for ALL tests.
-const Rive = __DEV__ ? null : require('rive-react-native').default
+// Detox sets the "isDetoxSync" launch arg. When running under Detox,
+// skip Rive to avoid blocking idle detection. In normal dev mode, show it.
+const isDetox = NativeModules.DetoxManager != null
+
+// Lazy-load rive-react-native only when needed — importing it at
+// module scope causes its native runtime to initialize, which keeps
+// the main run loop busy and blocks Detox idle detection.
+const Rive = isDetox ? null : require('rive-react-native').default
 
 type Nav = StackNavigationProp<MigrationStackParams, 'RiveIntro'>
 
@@ -23,15 +27,15 @@ export default function RiveIntro() {
   }, [navigation])
 
   useEffect(() => {
-    // In dev mode, skip the Rive animation to avoid blocking Detox.
-    // In production, the Rive animation plays and onStop triggers navigation.
-    const delay = __DEV__ ? 500 : 8000
+    // Under Detox, skip animation and navigate immediately.
+    // Otherwise, safety timeout in case animation doesn't fire onStop.
+    const delay = isDetox ? 500 : 8000
     const timer = setTimeout(goToHome, delay)
     return () => clearTimeout(timer)
   }, [goToHome])
 
   if (!Rive) {
-    // Dev mode: no Rive, auto-navigate via timeout above
+    // Detox mode: no Rive, auto-navigate via timeout above
     return <View style={styles.container} />
   }
 
