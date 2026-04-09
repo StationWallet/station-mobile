@@ -20,7 +20,11 @@ describe('Migration Onboarding Flow', () => {
       });
       execSync(`xcrun simctl boot ${udid}`, { timeout: 30000 });
 
-      await device.launchApp({ delete: true, newInstance: true });
+      await device.launchApp({
+        delete: true,
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
       await device.disableSynchronization();
     });
 
@@ -38,7 +42,11 @@ describe('Migration Onboarding Flow', () => {
   describe('2. Real upgrade path — seed, relaunch, migrate, verify', () => {
     beforeAll(async () => {
       // PHASE 1: Seed legacy keystore data (simulates old Station app)
-      await device.launchApp({ delete: true, newInstance: true });
+      await device.launchApp({
+        delete: true,
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
       await device.disableSynchronization();
 
       await waitFor(element(by.text('Seed Legacy Data (dev)')))
@@ -53,7 +61,10 @@ describe('Migration Onboarding Flow', () => {
 
       // PHASE 2: Kill and relaunch — real upgrade moment
       // clearKeystoreWhenFirstRun() → migrateLegacyKeystore() → legacyDataFound=true
-      await device.launchApp({ newInstance: true });
+      await device.launchApp({
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
       await device.disableSynchronization();
     });
 
@@ -139,7 +150,10 @@ describe('Migration Onboarding Flow', () => {
 
   describe('3. Persistence — migration not shown again', () => {
     beforeAll(async () => {
-      await device.launchApp({ newInstance: true });
+      await device.launchApp({
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
       await device.disableSynchronization();
       await new Promise(r => setTimeout(r, 3000));
     });

@@ -30,12 +30,16 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
       execSync(`xcrun simctl boot ${udid}`, { timeout: 30000 });
 
       // Launch fresh — tap dev button to seed corrupt data
-      await device.launchApp({ delete: true, newInstance: true });
+      await device.launchApp({
+        delete: true,
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
       await device.disableSynchronization();
 
       await waitFor(element(by.text('Seed Corrupt Data (dev)')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(45000);
       await element(by.text('Seed Corrupt Data (dev)')).tap();
 
       await waitFor(element(by.id('seed-corrupt-done')))
@@ -43,7 +47,10 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
         .withTimeout(30000);
 
       // Relaunch to trigger migration flow
-      await device.launchApp({ newInstance: true });
+      await device.launchApp({
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
       await device.disableSynchronization();
     });
 

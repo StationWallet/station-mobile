@@ -9,7 +9,11 @@ describe('Full E2E: Migration → Decrypt → Vault Export', () => {
     });
     execSync(`xcrun simctl boot ${udid}`, { timeout: 30000 });
 
-    await device.launchApp({ delete: true, newInstance: true });
+    await device.launchApp({
+      delete: true,
+      newInstance: true,
+      launchArgs: { detoxURLBlacklistRegex: '.*' },
+    });
     await device.disableSynchronization();
 
     // Tap the "Full E2E Test" dev button on AuthMenu

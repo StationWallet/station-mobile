@@ -162,7 +162,10 @@ describe('Fast Vault Migration — Per-Wallet', () => {
   describe('Export DKLS vault', () => {
     beforeAll(async () => {
       // Relaunch and navigate to WalletHome
-      await device.launchApp({ newInstance: true });
+      await device.launchApp({
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
       await device.disableSynchronization();
 
       // Wait for either WalletPicker or WalletHome

@@ -1,6 +1,9 @@
 describe('Legacy Keystore Migration', () => {
   beforeAll(async () => {
-    await device.launchApp({ newInstance: true });
+    await device.launchApp({
+      newInstance: true,
+      launchArgs: { detoxURLBlacklistRegex: '.*' },
+    });
     await device.disableSynchronization();
 
     // Tap the dev-only "Full E2E Test" button on AuthMenu

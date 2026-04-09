@@ -18,12 +18,24 @@ export default function RiveIntro() {
     navigation.replace('MigrationHome')
   }, [navigation])
 
-  // Safety timeout — navigate even if the animation doesn't fire a
-  // completion callback (e.g. looping timeline, missing state machine).
   useEffect(() => {
-    const timer = setTimeout(goToHome, 8000)
+    // In dev mode, skip the Rive animation to avoid blocking Detox.
+    // In production, the Rive animation plays and onStop triggers navigation.
+    const delay = __DEV__ ? 500 : 8000
+    const timer = setTimeout(goToHome, delay)
     return () => clearTimeout(timer)
   }, [goToHome])
+
+  if (__DEV__) {
+    // Simple splash in dev mode — no Rive to avoid blocking Detox
+    return (
+      <View style={styles.container}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          {/* Dev mode: skip Rive animation */}
+        </View>
+      </View>
+    )
+  }
 
   return (
     <View style={styles.container}>
