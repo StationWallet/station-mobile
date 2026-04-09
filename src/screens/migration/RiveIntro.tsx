@@ -43,7 +43,7 @@ export default function RiveIntro() {
     <View style={styles.container}>
       {/* Background layer: white-to-dark-blue transition */}
       <Rive
-        resourceName="agent_background_transition"
+        source={require('../../../assets/animations/agent_background_transition.riv')}
         style={StyleSheet.absoluteFill}
         autoplay
         onStop={goToHome}
@@ -52,7 +52,7 @@ export default function RiveIntro() {
       {/* Foreground layer: wallet connector animation */}
       <View style={styles.walletAnimation}>
         <Rive
-          resourceName="station_wallet_animation"
+          source={require('../../../assets/animations/station_wallet_animation.riv')}
           style={styles.walletRive}
           autoplay
         />
