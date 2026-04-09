@@ -68,10 +68,10 @@ describe('Retry Upgrade from Main UI', () => {
     });
 
     it('should show main app (not migration flow)', async () => {
-      // Should NOT show WalletDiscovery
+      // Should NOT show MigrationHome
       let migrationShown = false;
       try {
-        await waitFor(element(by.text('Wallets Found')))
+        await waitFor(element(by.id('migration-cta')))
           .toBeVisible()
           .withTimeout(5000);
         migrationShown = true;
@@ -151,7 +151,7 @@ describe('Retry Upgrade from Main UI', () => {
     });
 
     it('should show MigrationSuccess', async () => {
-      await waitFor(element(by.text('Wallets Upgraded!')))
+      await waitFor(element(by.text('You are aboard, Station OG!')))
         .toBeVisible()
         .withTimeout(15000);
 

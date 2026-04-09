@@ -28,8 +28,8 @@ describe('Migration Onboarding Flow', () => {
       await device.enableSynchronization();
     });
 
-    it('skips migration and shows auth screen', async () => {
-      await waitFor(element(by.text('Create New Wallet')))
+    it('routes to MigrationHome (brand new users create a fast vault)', async () => {
+      await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
         .withTimeout(30000);
     });
@@ -63,31 +63,34 @@ describe('Migration Onboarding Flow', () => {
 
     // --- Migration UI flow ---
 
-    it('shows WalletDiscovery with wallets from legacy keystore', async () => {
-      await waitFor(element(by.id('wallet-card-0')))
+    it('shows MigrationHome with Start Migration CTA', async () => {
+      await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
         .withTimeout(30000);
     });
 
-    it('shows the Upgrade button', async () => {
-      await expect(element(by.id('upgrade-button'))).toExist();
-    });
-
-    it('taps Upgrade and shows migration progress', async () => {
-      await element(by.id('upgrade-button')).tap();
-      await waitFor(element(by.id('progress-card-0')))
+    it('taps CTA to reach WalletsFound', async () => {
+      await element(by.id('migration-cta')).tap();
+      await waitFor(element(by.id('wallet-card-0')))
         .toBeVisible()
         .withTimeout(10000);
     });
 
-    it('navigates to success screen', async () => {
+    it('taps Migrate on first wallet and completes migration', async () => {
+      await waitFor(element(by.id('wallet-card-0-migrate')))
+        .toBeVisible()
+        .withTimeout(10000);
+      await element(by.id('wallet-card-0-migrate')).tap();
+
+      // Migration runs automatically for legacy wallets (no email/password for bulk)
+      // Wait for success screen
       await waitFor(element(by.id('continue-button')))
         .toBeVisible()
         .withTimeout(30000);
     });
 
-    it('shows migrated wallet results', async () => {
-      await expect(element(by.id('success-wallet-0'))).toBeVisible();
+    it('shows success screen with OG message', async () => {
+      await expect(element(by.text('You are aboard, Station OG!'))).toBeVisible();
     });
 
     // --- Vault data integrity verification (dev-mode inline on success screen) ---
@@ -146,7 +149,7 @@ describe('Migration Onboarding Flow', () => {
     });
 
     it('vaultsUpgraded persists — migration flow is skipped', async () => {
-      await expect(element(by.id('wallet-card-0'))).not.toExist();
+      await expect(element(by.id('migration-cta'))).not.toExist();
     });
   });
 });
