@@ -73,9 +73,8 @@ export default function MigrationHome() {
           <InfoCard daysRemaining={daysRemaining} />
         </View>
 
-        {/* Button group */}
-        {ready && (
-          <View style={styles.buttonGroup}>
+        {/* Button group — always render, show CTA even before wallet discovery completes */}
+        <View style={styles.buttonGroup}>
             <Button
               title={hasLegacyWallets ? 'Start Migration' : 'Create a Fast Vault'}
               theme="ctaBlue"
@@ -106,7 +105,6 @@ export default function MigrationHome() {
             </TouchableOpacity>
 
           </View>
-        )}
 
         {/* Dev seed buttons — outside ready gate so they render immediately for E2E tests */}
         {__DEV__ && (
@@ -160,7 +158,7 @@ const styles = StyleSheet.create({
   },
   animationPlaceholder: {
     width: 200,
-    height: 200,
+    height: __DEV__ ? 40 : 200,
     alignSelf: 'center',
     marginTop: 92,
   },
