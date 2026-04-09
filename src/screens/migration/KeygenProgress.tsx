@@ -19,7 +19,8 @@ import { importKeyToFastVault, KeyImportResult, KeyImportProgress } from 'servic
 import { storeFastVault } from 'services/migrateToVault'
 import { getAuthDataValue, AuthDataValueType } from 'utils/authData'
 import { decrypt } from 'utils/crypto'
-import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
+import type { MigrationResult } from 'services/migrateToVault'
+import { advanceToNextWallet } from 'utils/migrationNav'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
@@ -57,35 +58,9 @@ export default function KeygenProgress() {
     })
   }, [progressValue])
 
-  const advanceToNextWallet = useCallback(
+  const advance = useCallback(
     (newResult: MigrationResult) => {
-      const updatedResults = [...results, newResult]
-      // walletIndex is 0-based; next wallet starts at walletIndex + 1
-      let nextWalletArrayIndex = walletIndex + 1
-      while (nextWalletArrayIndex < wallets.length && wallets[nextWalletArrayIndex].ledger) {
-        // Ledger wallets pass through — no DKLS migration needed
-        updatedResults.push({
-          wallet: wallets[nextWalletArrayIndex],
-          success: true,
-        })
-        nextWalletArrayIndex++
-      }
-
-      if (nextWalletArrayIndex >= wallets.length) {
-        // All wallets processed
-        navigation.navigate('MigrationSuccess', { results: updatedResults })
-        return
-      }
-
-      const nextWallet = wallets[nextWalletArrayIndex]
-      navigation.navigate('VaultEmail', {
-        walletName: nextWallet.name,
-        walletIndex: nextWalletArrayIndex,
-        totalWallets,
-        wallets,
-        results: updatedResults,
-        email,
-      })
+      advanceToNextWallet(navigation, wallets, walletIndex, totalWallets, results, email, newResult)
     },
     [navigation, results, walletIndex, wallets, totalWallets, email],
   )
@@ -136,7 +111,7 @@ export default function KeygenProgress() {
       const msg = err instanceof Error ? err.message : String(err)
       setError(msg)
     }
-  }, [walletName, email, password, wallets, walletIndex, updateProgress, advanceToNextWallet, progressValue])
+  }, [walletName, email, password, wallets, walletIndex, updateProgress, progressValue])
 
   useEffect(() => {
     runCeremony()
@@ -150,8 +125,8 @@ export default function KeygenProgress() {
   const handleSkip = useCallback(() => {
     abortRef.current?.abort()
     const wallet = wallets[walletIndex]
-    advanceToNextWallet({ wallet, success: false, error: 'Skipped by user' })
-  }, [wallets, walletIndex, advanceToNextWallet])
+    advance({ wallet, success: false, error: 'Skipped by user' })
+  }, [wallets, walletIndex, advance])
 
   const handleRetry = useCallback(() => {
     abortRef.current?.abort()

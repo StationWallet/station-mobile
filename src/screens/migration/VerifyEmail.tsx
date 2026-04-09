@@ -5,9 +5,9 @@ import {
   TextInput,
   Keyboard,
   Alert,
-  Clipboard,
   TouchableOpacity,
 } from 'react-native'
+import * as Clipboard from 'expo-clipboard'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Animated, { FadeIn } from 'react-native-reanimated'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -17,6 +17,7 @@ import type { RouteProp } from '@react-navigation/native'
 import Text from 'components/Text'
 import { VULTISIG } from 'consts/vultisig'
 import { verifyVaultEmail } from 'services/fastVaultServer'
+import { advanceToNextWallet } from 'utils/migrationNav'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'VerifyEmail'>
@@ -51,7 +52,10 @@ export default function VerifyEmail() {
 
     try {
       await verifyVaultEmail({ public_key: publicKey, code: verifyCode })
-      advanceToNextWallet({ wallet: wallets[walletIndex], success: true })
+      advanceToNextWallet(
+        navigation, wallets, walletIndex, totalWallets, results, email,
+        { wallet: wallets[walletIndex], success: true },
+      )
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       Alert.alert('Verification Failed', msg)
@@ -59,35 +63,7 @@ export default function VerifyEmail() {
       setVerifying(false)
       setTimeout(() => inputRef.current?.focus(), 100)
     }
-  }, [publicKey, verifying, wallets, walletIndex])
-
-  const advanceToNextWallet = useCallback(
-    (newResult: { wallet: typeof wallets[number]; success: boolean }) => {
-      const updatedResults = [...results, newResult]
-      let nextWalletArrayIndex = walletIndex + 1
-
-      while (nextWalletArrayIndex < wallets.length && wallets[nextWalletArrayIndex].ledger) {
-        updatedResults.push({ wallet: wallets[nextWalletArrayIndex], success: true })
-        nextWalletArrayIndex++
-      }
-
-      if (nextWalletArrayIndex >= wallets.length) {
-        navigation.navigate('MigrationSuccess', { results: updatedResults })
-        return
-      }
-
-      const nextWallet = wallets[nextWalletArrayIndex]
-      navigation.navigate('VaultEmail', {
-        walletName: nextWallet.name,
-        walletIndex: nextWalletArrayIndex,
-        totalWallets,
-        wallets,
-        results: updatedResults,
-        email,
-      })
-    },
-    [navigation, results, walletIndex, wallets, totalWallets, email],
-  )
+  }, [publicKey, verifying, wallets, walletIndex, navigation, totalWallets, results, email])
 
   const handleChangeText = useCallback((text: string) => {
     const digits = text.replace(/\D/g, '').slice(0, 4)
@@ -98,7 +74,7 @@ export default function VerifyEmail() {
   }, [handleSubmit])
 
   const handlePaste = useCallback(async () => {
-    const clip = await Clipboard.getString()
+    const clip = await Clipboard.getStringAsync()
     const digits = clip.replace(/\D/g, '').slice(0, 4)
     if (digits.length > 0) {
       setCode(digits)

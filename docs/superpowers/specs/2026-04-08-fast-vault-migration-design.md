@@ -49,6 +49,7 @@ WalletDiscovery
     → VaultEmail (step 1/2)
     → VaultPassword (step 2/2)
     → KeygenProgress (DKLS ceremony)
+    → VerifyEmail (4-digit OTP from vultiserver via agentmail)
   → MigrationSuccess
 ```
 
@@ -100,17 +101,16 @@ For each standard (non-Ledger) wallet:
 
 1. **Setup** — Generate `sessionId` (UUID), `hexEncryptionKey` (32 random bytes hex), `localPartyId` ("sdk-{random4hex}"). Use 32 zero bytes as chain code (DKLS requires the parameter; not used for HD derivation in this single-chain context).
 
-2. **Server registration** — POST to vultiserver `/vault/import` with:
+2. **Server registration** — POST to vultiserver `/vault/batch/import` with:
    - `name`: wallet name
    - `session_id`: generated UUID
    - `hex_encryption_key`: generated key
    - `hex_chain_code`: 32 zero bytes hex
-   - `local_party_id`: the device's localPartyId (e.g., "sdk-a1b2")
+   - `local_party_id`: the party ID the server should use on the relay (e.g., "Server-12345"). Despite the field name, vultiserver adopts this value as **its own** party ID when registering with the relay (`relayClient.RegisterSessionWithRetry(req.SessionID, req.LocalPartyId)` in `service/import_batch.go`). The device generates a separate `localPartyId` (e.g., "sdk-a1b2") and joins the relay independently.
    - `encryption_password`: user-provided password
    - `email`: user-provided email
-   - `lib_type`: 2 (KeyImport)
-   - `chains`: ["Terra"]
-   - The server generates its own party ID ("Server-{random}") and joins the relay session. The device discovers the server's ID by polling the relay for participants.
+   - `protocols`: ["ecdsa"] (ECDSA only — no EdDSA for Terra)
+   - The device discovers the server's party ID by polling the relay for participants and selecting the non-self party.
 
 3. **Relay join** — Register on relay, poll until server joins (2 parties), signal start.
 
@@ -134,7 +134,7 @@ For each standard (non-Ledger) wallet:
    - `publicKeyMldsa44`: empty
    - Serialize → base64 → SecureStore `VAULT-{walletName}`
 
-8. **Delete legacy data** — Read back the stored vault, validate it parses correctly and contains the expected public key. Only then delete the wallet entry from legacy auth data.
+8. **Strip legacy key material** — Read back the stored vault, validate it parses correctly and contains the expected public key. Only then strip the sensitive fields (`encryptedKey`, `password`) from the legacy auth data entry while preserving the `address` field (needed for wallet list display). The wallet entry remains in auth data but with empty key material.
 
 ### Timeouts
 

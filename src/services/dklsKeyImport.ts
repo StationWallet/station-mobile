@@ -199,43 +199,51 @@ export async function importKeyToFastVault(options: {
     [localPartyId, serverPartyId]
   ) as { setupMessage: string; sessionHandle: number }
 
-  const cipherKey = deriveCipherKey(hexEncryptionKey)
+  const sessionHandle = importResult.sessionHandle
 
-  // Batch endpoint uses setupKey="" for ecdsa — upload to default setup-message endpoint (no messageId)
-  const encryptedSetup = encryptAesGcm(importResult.setupMessage, cipherKey)
-  await uploadSetupMessage(sessionId, encryptedSetup)
+  try {
+    const cipherKey = deriveCipherKey(hexEncryptionKey)
 
-  report({ step: 'ecdsa', message: 'Running MPC protocol...', progress: 48 })
+    // Batch endpoint uses setupKey="" for ecdsa — upload to default setup-message endpoint (no messageId)
+    const encryptedSetup = encryptAesGcm(importResult.setupMessage, cipherKey)
+    await uploadSetupMessage(sessionId, encryptedSetup)
 
-  // Batch endpoint uses messageId "p-ecdsa" for the ECDSA protocol
-  await runMpcProtocol(
-    importResult.sessionHandle,
-    sessionId,
-    localPartyId,
-    cipherKey,
-    'p-ecdsa',
-    (mpcProgress) => {
-      const stepProgress = 48 + (mpcProgress * 38)
-      report({ step: 'ecdsa', message: 'Running MPC protocol...', progress: Math.round(stepProgress) })
-    },
-    signal
-  )
+    report({ step: 'ecdsa', message: 'Running MPC protocol...', progress: 48 })
 
-  report({ step: 'finalizing', message: 'Extracting keyshare...', progress: 86 })
+    // Batch endpoint uses messageId "p-ecdsa" for the ECDSA protocol
+    await runMpcProtocol(
+      sessionHandle,
+      sessionId,
+      localPartyId,
+      cipherKey,
+      'p-ecdsa',
+      (mpcProgress) => {
+        const stepProgress = 48 + (mpcProgress * 38)
+        report({ step: 'ecdsa', message: 'Running MPC protocol...', progress: Math.round(stepProgress) })
+      },
+      signal
+    )
 
-  const result = await ExpoDkls.finishKeygen(importResult.sessionHandle)
+    report({ step: 'finalizing', message: 'Extracting keyshare...', progress: 86 })
 
-  // Signal completion — server also signals via its defer block
-  await signalComplete(sessionId, localPartyId)
-  await waitForComplete(sessionId, parties, 60, 1000, signal)
+    const result = await ExpoDkls.finishKeygen(sessionHandle)
 
-  report({ step: 'complete', message: 'Complete!', progress: 100 })
+    // Signal completion — server also signals via its defer block
+    await signalComplete(sessionId, localPartyId)
+    await waitForComplete(sessionId, parties, 60, 1000, signal)
 
-  return {
-    publicKey: result.publicKey,
-    keyshare: result.keyshare,
-    chainCode: result.chainCode,
-    localPartyId,
-    serverPartyId,
+    report({ step: 'complete', message: 'Complete!', progress: 100 })
+
+    return {
+      publicKey: result.publicKey,
+      keyshare: result.keyshare,
+      chainCode: result.chainCode,
+      localPartyId,
+      serverPartyId,
+    }
+  } finally {
+    // Always free the native session handle to prevent memory leaks
+    // and clear private key material from native memory
+    try { ExpoDkls.freeKeygenSession(sessionHandle) } catch {}
   }
 }

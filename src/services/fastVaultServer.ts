@@ -1,30 +1,6 @@
 import { env } from '../config/env'
 
-/** Register a vault with vultiserver for DKLS key import. */
-export async function setupVaultWithServer(input: {
-  name: string
-  session_id: string
-  hex_encryption_key: string
-  hex_chain_code: string
-  local_party_id: string
-  encryption_password: string
-  email: string
-  lib_type: number
-  chains?: string[]
-}): Promise<void> {
-  const endpoint = input.lib_type === 2 ? '/vault/import' : '/vault/create'
-  const url = `${env.vultisigApiUrl}${endpoint}`
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  })
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`setupVaultWithServer failed: ${res.status} ${text}`)
-  }
-}
+export type MpcProtocol = 'ecdsa' | 'eddsa'
 
 /** Register a batch import with vultiserver — ECDSA only, no EdDSA required. */
 export async function setupBatchImport(input: {
@@ -35,7 +11,7 @@ export async function setupBatchImport(input: {
   local_party_id: string
   encryption_password: string
   email: string
-  protocols: string[]
+  protocols: MpcProtocol[]
   chains?: string[]
 }): Promise<void> {
   const url = `${env.vultisigApiUrl}/vault/batch/import`
