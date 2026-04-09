@@ -51,7 +51,7 @@ export default function WalletsFound() {
             <WalletMigrationCard
               name={wallet.name}
               address={wallet.address}
-              migrated={migratedNames.has(wallet.name)}
+              migrated={migratedNames.has(wallet.name) || wallet.ledger}
               onMigrate={() => {
                 navigation.navigate('VaultEmail', {
                   walletName: wallet.name,
