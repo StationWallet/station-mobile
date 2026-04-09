@@ -33,6 +33,7 @@ export function advanceToNextWallet(
   const nextWallet = wallets[nextIdx]
   navigation.navigate('VaultEmail', {
     walletName: nextWallet.name,
+    mode: 'migrate',
     walletIndex: nextIdx,
     totalWallets,
     wallets,

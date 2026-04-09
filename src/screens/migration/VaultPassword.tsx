@@ -6,7 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import Animated, { FadeInRight } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
@@ -14,7 +13,9 @@ import type { RouteProp } from '@react-navigation/native'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
-import { VULTISIG } from 'consts/vultisig'
+import StepProgressBar from 'components/migration/StepProgressBar'
+import GlassButton from 'components/migration/GlassButton'
+import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'VaultPassword'>
@@ -23,7 +24,7 @@ type Route = RouteProp<MigrationStackParams, 'VaultPassword'>
 export default function VaultPassword() {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
-  const { walletName, walletIndex, totalWallets, wallets, results, email } =
+  const { walletName, mode, walletIndex, totalWallets, wallets, results, email } =
     route.params
 
   const [password, setPassword] = useState('')
@@ -40,31 +41,37 @@ export default function VaultPassword() {
   const isValid =
     password.length >= 6 && confirm === password
 
+  // In create mode: step 0=vault, 1=name, 2=email, 3=password (currentStep=3)
+  // In migrate mode: step 0=vault, 1=email, 2=password (currentStep=2)
+  const stepBarCurrentStep = mode === 'create' ? 3 : 2
+
+  const buttonText = mode === 'create' ? 'Create vault' : 'Continue'
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Animated.View
-          entering={FadeInRight.duration(400)}
-          style={styles.content}
-        >
-          <Text style={styles.stepIndicator} fontType="medium">
-            Step 2 of 2
-          </Text>
+        {/* Toolbar */}
+        <View style={styles.toolbar}>
+          <GlassButton onPress={() => navigation.goBack()}>
+            <Text style={styles.chevron}>{'‹'}</Text>
+          </GlassButton>
+        </View>
 
-          <Text style={styles.walletLabel} fontType="book">
-            Wallet {walletIndex + 1}/{totalWallets}: {walletName}
-          </Text>
+        {/* Step progress */}
+        <StepProgressBar currentStep={stepBarCurrentStep} />
 
-          <Text style={styles.title} fontType="bold">
+        {/* Content */}
+        <View style={styles.content}>
+          <Text style={styles.title} fontType="brockmann-medium">
             Choose a password
           </Text>
 
-          <Text style={styles.subtitle} fontType="book">
-            Your password encrypts your vault on the server. Choose something
-            strong — you'll need it to sign transactions.
+          <Text style={styles.subtitle} fontType="brockmann">
+            If you want an extra layer of security, choose a password. Password
+            cannot be recovered. 🔑
           </Text>
 
           <TextInput
@@ -74,14 +81,14 @@ export default function VaultPassword() {
             onChangeText={setPassword}
             onBlur={() => setPasswordTouched(true)}
             placeholder="At least 6 characters"
-            placeholderTextColor={VULTISIG.textSecondary}
+            placeholderTextColor={MIGRATION.textTertiary}
             secureTextEntry
             autoCapitalize="none"
             autoCorrect={false}
           />
 
           {showPasswordError && (
-            <Text style={styles.errorText} fontType="book">
+            <Text style={styles.errorText} fontType="brockmann">
               Password must be at least 6 characters.
             </Text>
           )}
@@ -97,39 +104,42 @@ export default function VaultPassword() {
             onChangeText={setConfirm}
             onBlur={() => setConfirmTouched(true)}
             placeholder="Confirm password"
-            placeholderTextColor={VULTISIG.textSecondary}
+            placeholderTextColor={MIGRATION.textTertiary}
             secureTextEntry
             autoCapitalize="none"
             autoCorrect={false}
           />
 
           {showConfirmError && (
-            <Text style={styles.errorText} fontType="book">
+            <Text style={styles.errorText} fontType="brockmann">
               Passwords do not match.
             </Text>
           )}
+        </View>
 
-          <View style={styles.buttonContainer}>
-            <Button
-              testID="vault-password-continue"
-              title="Continue"
-              theme="sapphire"
-              disabled={!isValid}
-              onPress={() => {
-                navigation.navigate('KeygenProgress', {
-                  walletName,
-                  walletIndex,
-                  totalWallets,
-                  wallets,
-                  results,
-                  email,
-                  password,
-                })
-              }}
-              containerStyle={styles.continueButton}
-            />
-          </View>
-        </Animated.View>
+        {/* Button pinned to bottom */}
+        <View style={styles.buttonContainer}>
+          <Button
+            testID="vault-password-continue"
+            title={buttonText}
+            theme="ctaBlue"
+            titleFontType="brockmann-medium"
+            disabled={!isValid}
+            onPress={() => {
+              navigation.navigate('KeygenProgress', {
+                walletName,
+                mode,
+                walletIndex,
+                totalWallets,
+                wallets,
+                results,
+                email,
+                password,
+              })
+            }}
+            containerStyle={styles.continueButton}
+          />
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   )
@@ -141,63 +151,66 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: VULTISIG.bg,
+    backgroundColor: MIGRATION.bg,
+  },
+  toolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: MIGRATION.screenPadding,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  chevron: {
+    fontSize: 24,
+    color: MIGRATION.textPrimary,
+    marginTop: -2,
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 40,
-  },
-  stepIndicator: {
-    fontSize: 13,
-    color: VULTISIG.accent,
-    marginBottom: 8,
-    letterSpacing: 0.5,
-  },
-  walletLabel: {
-    fontSize: 13,
-    color: VULTISIG.textSecondary,
-    marginBottom: 24,
+    paddingTop: 24,
   },
   title: {
-    fontSize: 28,
-    color: VULTISIG.textPrimary,
+    fontSize: 22,
+    color: MIGRATION.textPrimary,
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 15,
-    color: VULTISIG.textSecondary,
-    lineHeight: 22,
+    fontSize: 14,
+    color: MIGRATION.textTertiary,
+    lineHeight: 20,
     marginBottom: 32,
   },
   input: {
-    backgroundColor: VULTISIG.card,
+    backgroundColor: MIGRATION.surface1,
     borderWidth: 1,
-    borderColor: VULTISIG.cardBorder,
-    borderRadius: VULTISIG.radiusMd,
+    borderColor: MIGRATION.borderLight,
+    borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    fontSize: 16,
-    color: VULTISIG.textPrimary,
-    fontFamily: 'Gotham-Book',
+    fontSize: 14,
+    color: MIGRATION.textPrimary,
+    fontFamily: 'Brockmann-Regular',
   },
   inputSpacing: {
     marginTop: 16,
   },
   inputError: {
-    borderColor: VULTISIG.error,
+    borderColor: '#e53e3e',
   },
   errorText: {
     fontSize: 13,
-    color: VULTISIG.error,
+    color: '#e53e3e',
     marginTop: 6,
   },
   buttonContainer: {
-    marginTop: 'auto',
+    paddingHorizontal: 24,
     paddingBottom: 24,
     paddingTop: 16,
   },
   continueButton: {
     width: '100%',
+    borderRadius: MIGRATION.radiusPill,
+    height: MIGRATION.ctaHeight,
   },
 })

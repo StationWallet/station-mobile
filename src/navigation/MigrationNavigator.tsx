@@ -14,26 +14,29 @@ export type MigrationStackParams = {
   WalletsFound: { wallets: MigrationWallet[] }
   VaultEmail: {
     walletName: string
-    walletIndex: number
-    totalWallets: number
-    wallets: MigrationWallet[]
-    results: MigrationResult[]
+    mode: 'migrate' | 'create'
+    walletIndex?: number
+    totalWallets?: number
+    wallets?: MigrationWallet[]
+    results?: MigrationResult[]
     email?: string
   }
   VaultPassword: {
     walletName: string
-    walletIndex: number
-    totalWallets: number
-    wallets: MigrationWallet[]
-    results: MigrationResult[]
+    mode: 'migrate' | 'create'
+    walletIndex?: number
+    totalWallets?: number
+    wallets?: MigrationWallet[]
+    results?: MigrationResult[]
     email: string
   }
   KeygenProgress: {
     walletName: string
-    walletIndex: number
-    totalWallets: number
-    wallets: MigrationWallet[]
-    results: MigrationResult[]
+    mode: 'migrate' | 'create'
+    walletIndex?: number
+    totalWallets?: number
+    wallets?: MigrationWallet[]
+    results?: MigrationResult[]
     email: string
     password: string
   }
