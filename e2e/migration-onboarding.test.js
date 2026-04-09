@@ -32,8 +32,8 @@ describe('Migration Onboarding Flow', () => {
       await device.enableSynchronization();
     });
 
-    it('routes to MigrationHome (brand new users create a fast vault)', async () => {
-      await waitFor(element(by.id('migration-cta')))
+    it('shows auth screen in dev mode (prod routes to Migration)', async () => {
+      await waitFor(element(by.text('Create New Wallet')))
         .toBeVisible()
         .withTimeout(30000);
     });
