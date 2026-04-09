@@ -6,9 +6,20 @@
  * walk through migration UI, verify vault protobuf data integrity, then
  * confirm persistence across relaunches.
  *
+ * Each standard wallet goes through the full per-wallet flow:
+ *   Email → Password → KeygenProgress → VerifyEmail (OTP via AgentMail) → MigrationSuccess
+ * Ledger wallets are auto-handled (no migrate button).
+ *
  * This is critical — if migration produces incorrect vaults, users lose funds.
  */
+const {
+  AGENTMAIL_EMAIL,
+  getExistingMessageIds,
+  migrateOneWalletFromCard,
+} = require('./helpers/agentmail');
+
 describe('Migration Onboarding Flow', () => {
+  let knownMessageIds = new Set();
 
   describe('1. Clean install — no legacy wallets', () => {
     beforeAll(async () => {
@@ -55,6 +66,9 @@ describe('Migration Onboarding Flow', () => {
       // clearKeystoreWhenFirstRun() → migrateLegacyKeystore() → legacyDataFound=true
       await device.launchApp({ newInstance: true });
       await device.disableSynchronization();
+
+      // Snapshot existing AgentMail messages so we only look at new OTPs
+      knownMessageIds = await getExistingMessageIds(AGENTMAIL_EMAIL);
     });
 
     afterAll(async () => {
@@ -76,18 +90,15 @@ describe('Migration Onboarding Flow', () => {
         .withTimeout(10000);
     });
 
-    it('taps Migrate on first wallet and completes migration', async () => {
-      await waitFor(element(by.id('wallet-card-0-migrate')))
-        .toBeVisible()
-        .withTimeout(10000);
-      await element(by.id('wallet-card-0-migrate')).tap();
-
-      // Migration runs automatically for legacy wallets (no email/password for bulk)
-      // Wait for success screen
-      await waitFor(element(by.id('continue-button')))
-        .toBeVisible()
-        .withTimeout(30000);
+    it('migrates wallet 1', async () => {
+      await migrateOneWalletFromCard(0, 'TestWallet1', knownMessageIds, true);
     });
+
+    it('migrates wallet 2', async () => {
+      await migrateOneWalletFromCard(1, 'TestWallet2', knownMessageIds, false);
+    });
+
+    // After wallet 2 completes, MigrationSuccess is already visible
 
     it('shows success screen with OG message', async () => {
       await expect(element(by.text('You are aboard, Station OG!'))).toBeVisible();
