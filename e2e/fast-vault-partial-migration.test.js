@@ -30,11 +30,8 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
       execSync(`xcrun simctl boot ${udid}`, { timeout: 30000 });
 
       // Launch fresh — tap dev button to seed corrupt data
-      await device.launchApp({
-        delete: true,
-        newInstance: true,
-        launchArgs: { detoxURLBlacklistRegex: '.*' },
-      });
+      // NOTE: Do NOT pass detoxURLBlacklistRegex here — it causes launchApp to hang
+      await device.launchApp({ delete: true, newInstance: true });
       await device.disableSynchronization();
 
       await waitFor(element(by.text('Seed Corrupt Data (dev)')))
