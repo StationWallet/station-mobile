@@ -1,7 +1,7 @@
 import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 
-import WalletDiscovery from '../screens/migration/WalletDiscovery'
+import WalletsFound from '../screens/migration/WalletsFound'
 import VaultEmail from '../screens/migration/VaultEmail'
 import VaultPassword from '../screens/migration/VaultPassword'
 import KeygenProgress from '../screens/migration/KeygenProgress'
@@ -11,7 +11,7 @@ import MigrationSuccess from '../screens/migration/MigrationSuccess'
 import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
 
 export type MigrationStackParams = {
-  WalletDiscovery: undefined
+  WalletsFound: { wallets: MigrationWallet[] }
   VaultEmail: {
     walletName: string
     walletIndex: number
@@ -60,7 +60,7 @@ export default function MigrationNavigator() {
         gestureEnabled: false,
       }}
     >
-      <Stack.Screen name="WalletDiscovery" component={WalletDiscovery} />
+      <Stack.Screen name="WalletsFound" component={WalletsFound} />
       <Stack.Screen name="VaultEmail" component={VaultEmail} />
       <Stack.Screen name="VaultPassword" component={VaultPassword} />
       <Stack.Screen name="KeygenProgress" component={KeygenProgress} />

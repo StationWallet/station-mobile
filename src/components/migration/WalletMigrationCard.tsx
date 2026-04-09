@@ -52,7 +52,7 @@ export default function WalletMigrationCard({
             onPress={onMigrate}
             containerStyle={styles.migrateButton}
             titleStyle={styles.migrateButtonText}
-            testID={testID ? `${testID}-migrate-btn` : undefined}
+            testID={testID ? `${testID}-migrate` : undefined}
           />
         )}
       </View>
