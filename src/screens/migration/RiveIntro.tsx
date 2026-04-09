@@ -7,11 +7,9 @@ import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-// TODO: Wire up Rive animations using the vultiagent pattern:
-//   import Rive from 'rive-react-native'
-//   <Rive source={require('../../../assets/animations/agent_background_transition.riv')} autoplay />
-// The .riv files are in assets/animations/ and Metro has .riv in assetExts.
-// Requires artboard/state machine names to be discovered from the .riv files.
+// In dev mode, skip Rive to avoid blocking Detox idle detection.
+// In production, load Rive and play the animations.
+const Rive = __DEV__ ? null : require('rive-react-native').default
 
 type Nav = StackNavigationProp<MigrationStackParams, 'RiveIntro'>
 
@@ -26,19 +24,39 @@ export default function RiveIntro() {
   }, [navigation])
 
   useEffect(() => {
-    // In dev/test builds, navigate quickly to avoid blocking Detox idle detection.
-    // In production, show splash for 3 seconds (will be replaced by Rive animation).
-    const delay = __DEV__ ? 100 : 3000
+    const delay = __DEV__ ? 100 : 8000
     const timer = setTimeout(goToHome, delay)
     return () => clearTimeout(timer)
   }, [goToHome])
 
+  // Dev mode: simple static splash
+  if (!Rive) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.stationText} fontType="bold">
+            Station Wallet
+          </Text>
+        </View>
+      </View>
+    )
+  }
+
+  // Production: Rive animations
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.stationText} fontType="bold">
-          Station Wallet
-        </Text>
+      <Rive
+        source={require('../../../assets/animations/agent_background_transition.riv')}
+        style={StyleSheet.absoluteFill}
+        autoplay
+        onStop={goToHome}
+      />
+      <View style={styles.walletAnimation}>
+        <Rive
+          source={require('../../../assets/animations/station_wallet_animation.riv')}
+          style={styles.walletRive}
+          autoplay
+        />
       </View>
     </View>
   )
@@ -57,5 +75,16 @@ const styles = StyleSheet.create({
   stationText: {
     fontSize: 20,
     color: MIGRATION.stationBlue,
+  },
+  walletAnimation: {
+    position: 'absolute',
+    top: 179,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  walletRive: {
+    width: 300,
+    height: 300,
   },
 })
