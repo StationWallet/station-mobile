@@ -1,4 +1,4 @@
-import { create, toBinary } from '@bufbuild/protobuf'
+import { create, toBinary, fromBinary } from '@bufbuild/protobuf'
 import { gcm } from '@noble/ciphers/aes.js'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { base64 } from '@scure/base'
@@ -8,8 +8,9 @@ import * as Sharing from 'expo-sharing'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container_pb'
+import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
 import { derivePublicKeyHex, buildVaultProto } from './vaultProto'
-import { getStoredVault, isVaultFastVault } from './migrateToVault'
+import { getStoredVault } from './migrateToVault'
 
 /**
  * Encrypts binary data with AES-256-GCM using a password.
@@ -44,15 +45,22 @@ export async function exportVaultShare(
 ): Promise<string> {
   let vaultBytes: Uint8Array
 
-  if (await isVaultFastVault(walletName)) {
-    const stored = await getStoredVault(walletName)
-    if (!stored) {
-      throw new Error('Fast vault not found in secure storage')
+  const stored = await getStoredVault(walletName)
+  if (stored) {
+    // Check if the stored vault is a DKLS fast vault — read directly
+    const decoded = fromBinary(VaultSchema, base64.decode(stored))
+    if (decoded.libType === LibType.DKLS) {
+      vaultBytes = base64.decode(stored)
+    } else if (privateKeyHex) {
+      const publicKeyHex = derivePublicKeyHex(privateKeyHex)
+      const vaultProto = buildVaultProto(walletName, publicKeyHex, privateKeyHex)
+      vaultBytes = toBinary(VaultSchema, vaultProto)
+    } else {
+      throw new Error('privateKeyHex is required for legacy vaults')
     }
-    vaultBytes = base64.decode(stored)
   } else {
     if (!privateKeyHex) {
-      throw new Error('privateKeyHex is required for legacy vaults')
+      throw new Error('No vault found and no privateKeyHex provided')
     }
     const publicKeyHex = derivePublicKeyHex(privateKeyHex)
     const vaultProto = buildVaultProto(walletName, publicKeyHex, privateKeyHex)
