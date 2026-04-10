@@ -2,6 +2,7 @@ import React, { useCallback, useRef, useState } from 'react'
 import {
   Animated,
   Image,
+  NativeModules,
   PanResponder,
   Pressable,
   View,
@@ -15,14 +16,15 @@ import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-// Load Rive with graceful fallback.
-// In __DEV__ (Detox tests), skip Rive entirely — its native runtime
-// keeps the iOS main run loop busy, blocking Detox idle detection.
+// Skip Rive only under Detox — its native runtime keeps the iOS main
+// run loop busy, blocking Detox idle detection. Normal dev mode loads it.
+const isDetox = NativeModules.DetoxManager != null
+
 let Rive: any = null
 let walletAnimUrl: string | null = null
 let backgroundAnimUrl: string | null = null
 
-if (!__DEV__) {
+if (!isDetox) {
   try {
     Rive = require('rive-react-native').default
     walletAnimUrl = Image.resolveAssetSource(
