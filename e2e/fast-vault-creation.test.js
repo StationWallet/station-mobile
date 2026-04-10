@@ -111,8 +111,11 @@ describe('Fast Vault Creation — New User', () => {
         // Check if error UI appeared (keygen failed)
         try {
           await expect(element(by.text('Failed'))).toExist();
-          // Keygen failed — tap Retry
-          console.log('[Keygen] Error detected, tapping Retry');
+          // Keygen failed — log error message and tap Retry
+          try {
+            const errAttrs = await element(by.id('keygen-error-text')).getAttributes();
+            console.log('[Keygen] Error:', errAttrs.text || errAttrs.label || 'unknown');
+          } catch { console.log('[Keygen] Error detected (could not read text)'); }
           await element(by.id('keygen-retry')).tap();
         } catch {}
 

@@ -179,7 +179,7 @@ export default function KeygenProgress() {
         {error && (
           <View style={styles.errorSection}>
             <View style={styles.errorCard}>
-              <Text style={styles.errorText} fontType="brockmann">
+              <Text testID="keygen-error-text" style={styles.errorText} fontType="brockmann">
                 {error}
               </Text>
             </View>
