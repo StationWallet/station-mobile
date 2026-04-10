@@ -3,7 +3,7 @@ import { MaterialIcons } from '@expo/vector-icons'
 import { StyleProp, TextStyle } from 'react-native'
 
 type IconProps = {
-  name: string
+  name: React.ComponentProps<typeof MaterialIcons>['name']
   size?: number
   color?: string
   style?: StyleProp<TextStyle>
@@ -11,7 +11,12 @@ type IconProps = {
 
 // https://material.io/resources/icons/?icon=open_in_new&style=baseline
 const Icon = (props: IconProps): ReactElement => (
-  <MaterialIcons name={props.name as any} size={props.size || 24} color={props.color} style={props.style} />
+  <MaterialIcons
+    name={props.name}
+    size={props.size || 24}
+    color={props.color}
+    style={props.style}
+  />
 )
 
 export default Icon

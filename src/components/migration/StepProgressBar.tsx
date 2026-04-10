@@ -8,12 +8,14 @@ type Props = {
 }
 
 const STEPS = [
-  { label: 'Vault', icon: '\u26CA' },   // shield/vault
-  { label: 'Email', icon: '\u2709' },    // envelope
+  { label: 'Vault', icon: '\u26CA' }, // shield/vault
+  { label: 'Email', icon: '\u2709' }, // envelope
   { label: 'Password', icon: '\uD83D\uDD12' }, // lock
 ]
 
-export default function StepProgressBar({ currentStep }: Props) {
+export default function StepProgressBar({
+  currentStep,
+}: Props): React.ReactElement {
   return (
     <View style={styles.container}>
       {STEPS.map((step, index) => {
@@ -41,7 +43,12 @@ export default function StepProgressBar({ currentStep }: Props) {
                 {isCompleted ? (
                   <Text style={styles.checkmark}>{'\u2713'}</Text>
                 ) : (
-                  <Text style={[styles.stepIcon, isActive && styles.stepIconActive]}>
+                  <Text
+                    style={[
+                      styles.stepIcon,
+                      isActive && styles.stepIconActive,
+                    ]}
+                  >
                     {step.icon}
                   </Text>
                 )}

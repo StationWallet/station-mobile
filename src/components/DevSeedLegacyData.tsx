@@ -3,11 +3,15 @@ import { Text, StyleSheet, View } from 'react-native'
 import LegacyKeystore from '../../modules/legacy-keystore-migration/src'
 import { encrypt } from 'utils/crypto'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
-import preferences, { PreferencesEnum } from 'nativeModules/preferences'
+import preferences, {
+  PreferencesEnum,
+} from 'nativeModules/preferences'
 
 // Well-known secp256k1 test vectors (not funded keys)
-const TEST_PRIVATE_KEY_1 = '0000000000000000000000000000000000000000000000000000000000000001'
-const TEST_PRIVATE_KEY_2 = '0000000000000000000000000000000000000000000000000000000000000002'
+const TEST_PRIVATE_KEY_1 =
+  '0000000000000000000000000000000000000000000000000000000000000001'
+const TEST_PRIVATE_KEY_2 =
+  '0000000000000000000000000000000000000000000000000000000000000002'
 const PASSWORD_1 = 'testPassword1!'
 const PASSWORD_2 = 'testPassword2!'
 
@@ -26,7 +30,7 @@ export default function DevSeedLegacyData(): React.ReactElement {
     seed()
   }, [])
 
-  const seed = async () => {
+  const seed = async (): Promise<void> => {
     try {
       if (!LegacyKeystore) {
         setStatus('error: native module unavailable')
@@ -37,8 +41,14 @@ export default function DevSeedLegacyData(): React.ReactElement {
       // 1. Clear everything — old keystore, new keystore, all migration flags
       await LegacyKeystore.clearAllLegacyData()
       await keystore.remove(KeystoreEnum.AuthData)
-      await preferences.setBool(PreferencesEnum.legacyKeystoreMigrated, false)
-      await preferences.setBool(PreferencesEnum.legacyDataFound, false)
+      await preferences.setBool(
+        PreferencesEnum.legacyKeystoreMigrated,
+        false
+      )
+      await preferences.setBool(
+        PreferencesEnum.legacyDataFound,
+        false
+      )
       await preferences.setBool(PreferencesEnum.vaultsUpgraded, false)
       await preferences.setBool(PreferencesEnum.firstRun, false)
 
@@ -68,34 +78,55 @@ export default function DevSeedLegacyData(): React.ReactElement {
       })
 
       // 3. Write ONLY to the old native keystore (not the new expo-secure-store)
-      const seeded = await LegacyKeystore.seedLegacyTestData('AD', authData)
-      if (!seeded) throw new Error('seedLegacyTestData returned false')
+      const seeded = await LegacyKeystore.seedLegacyTestData(
+        'AD',
+        authData
+      )
+      if (!seeded)
+        throw new Error('seedLegacyTestData returned false')
 
       // 4. Verify we can read it back from old keystore
       const readBack = await LegacyKeystore.readLegacy('AD')
-      if (readBack !== authData) throw new Error('Legacy readback mismatch')
+      if (readBack !== authData)
+        throw new Error('Legacy readback mismatch')
 
       // 5. Verify new keystore is empty (migration hasn't run yet)
       const newData = await keystore.read(KeystoreEnum.AuthData)
-      if (newData) throw new Error('New keystore should be empty before migration')
+      if (newData)
+        throw new Error(
+          'New keystore should be empty before migration'
+        )
 
       setStatus('seeded')
       setDone(true)
     } catch (e) {
-      setStatus(`error: ${e instanceof Error ? e.message : String(e)}`)
+      setStatus(
+        `error: ${e instanceof Error ? e.message : String(e)}`
+      )
       setDone(true)
     }
   }
 
   return (
     <View style={styles.container}>
-      <Text testID="seed-status" style={styles.text}>{status}</Text>
-      {done && <Text testID="seed-done" style={styles.text}>done</Text>}
+      <Text testID="seed-status" style={styles.text}>
+        {status}
+      </Text>
+      {done && (
+        <Text testID="seed-done" style={styles.text}>
+          done
+        </Text>
+      )}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#02122B' },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#02122B',
+  },
   text: { color: '#fff', fontSize: 16, marginVertical: 4 },
 })

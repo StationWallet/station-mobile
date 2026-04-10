@@ -11,13 +11,17 @@ import NewWalletStore from 'stores/NewWalletStore'
 import { COLORS } from 'consts/theme'
 import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
 
-const Step1 = ({ navigation }: any) => {
+const Step1 = ({
+  navigation,
+}: {
+  navigation: { navigate: (screen: string) => void }
+}): React.ReactElement => {
   const [name, setName] = useState('')
   const setStoreName = useSetRecoilState(NewWalletStore.name)
 
   const canProceed = name.trim().length > 0
 
-  const handleNext = () => {
+  const handleNext = (): void => {
     setStoreName(name.trim())
     navigation.navigate('NewWalletStep2')
   }
@@ -48,7 +52,10 @@ const Step1 = ({ navigation }: any) => {
         </View>
 
         <TouchableOpacity
-          style={[authStyles.button, !canProceed && authStyles.buttonDisabled]}
+          style={[
+            authStyles.button,
+            !canProceed && authStyles.buttonDisabled,
+          ]}
           onPress={handleNext}
           disabled={!canProceed}
         >

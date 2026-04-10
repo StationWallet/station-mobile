@@ -22,11 +22,10 @@ import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 type Nav = StackNavigationProp<MigrationStackParams, 'VaultPassword'>
 type Route = RouteProp<MigrationStackParams, 'VaultPassword'>
 
-export default function VaultPassword() {
+export default function VaultPassword(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
-  const { walletName, mode, wallets, email } =
-    route.params
+  const { walletName, mode, wallets, email } = route.params
 
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -34,13 +33,13 @@ export default function VaultPassword() {
   const [confirmTouched, setConfirmTouched] = useState(false)
 
   const passwordTooShort = password.length > 0 && password.length < 6
-  const passwordsDontMatch = confirm.length > 0 && confirm !== password
+  const passwordsDontMatch =
+    confirm.length > 0 && confirm !== password
 
   const showPasswordError = passwordTouched && passwordTooShort
   const showConfirmError = confirmTouched && passwordsDontMatch
 
-  const isValid =
-    password.length >= 6 && confirm === password
+  const isValid = password.length >= 6 && confirm === password
 
   const stepBarCurrentStep = mode === 'create' ? 3 : 2
   const buttonText = mode === 'create' ? 'Create vault' : 'Continue'
@@ -61,13 +60,16 @@ export default function VaultPassword() {
           </Text>
 
           <Text style={formStyles.subtitle} fontType="brockmann">
-            If you want an extra layer of security, choose a password. Password
-            cannot be recovered.
+            If you want an extra layer of security, choose a password.
+            Password cannot be recovered.
           </Text>
 
           <TextInput
             testID="vault-password-input"
-            style={[styles.input, showPasswordError && styles.inputError]}
+            style={[
+              styles.input,
+              showPasswordError && styles.inputError,
+            ]}
             value={password}
             onChangeText={setPassword}
             onBlur={() => setPasswordTouched(true)}
@@ -122,7 +124,10 @@ export default function VaultPassword() {
               navigation.navigate('KeygenProgress', {
                 walletName,
                 mode,
-                walletIndex: walletIndex != null && walletIndex >= 0 ? walletIndex : undefined,
+                walletIndex:
+                  walletIndex != null && walletIndex >= 0
+                    ? walletIndex
+                    : undefined,
                 wallets,
                 email,
                 password,

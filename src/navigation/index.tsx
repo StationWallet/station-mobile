@@ -1,5 +1,13 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native'
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react'
+import {
+  NavigationContainer,
+  DefaultTheme,
+} from '@react-navigation/native'
 
 import MainNavigator from './MainNavigator'
 import AuthNavigator from './AuthNavigator'
@@ -11,13 +19,21 @@ import { useConfig } from 'lib'
 import { themes } from 'lib/contexts/useTheme'
 import { COLORS } from 'consts/theme'
 import { WalletNavContext } from './hooks'
-import preferences, { PreferencesEnum } from 'nativeModules/preferences'
+import preferences, {
+  PreferencesEnum,
+} from 'nativeModules/preferences'
 
-export { useWalletCreated, useWalletDisconnected, useWalletNav } from './hooks'
+export {
+  useWalletCreated,
+  useWalletDisconnected,
+  useWalletNav,
+} from './hooks'
 
 type RootRoute = 'Migration' | 'Auth' | 'Main'
 
-async function pickInitialWallet(loaded: LocalWallet[]): Promise<LocalWallet | undefined> {
+async function pickInitialWallet(
+  loaded: LocalWallet[]
+): Promise<LocalWallet | undefined> {
   if (loaded.length === 1) return loaded[0]
   if (loaded.length > 1) {
     const saved = await settings.get()
@@ -26,9 +42,11 @@ async function pickInitialWallet(loaded: LocalWallet[]): Promise<LocalWallet | u
   return undefined
 }
 
-export default function AppNavigator() {
+export default function AppNavigator(): React.ReactElement | null {
   const [wallets, setWallets] = useState<LocalWallet[] | null>(null)
-  const [initialWallet, setInitialWallet] = useState<LocalWallet | undefined>(undefined)
+  const [initialWallet, setInitialWallet] = useState<
+    LocalWallet | undefined
+  >(undefined)
   const [rootRoute, setRootRoute] = useState<RootRoute | null>(null)
   const { theme } = useConfig()
   const currentTheme = theme.current
@@ -40,10 +58,14 @@ export default function AppNavigator() {
   }, [])
 
   useEffect(() => {
-    const init = async () => {
+    const init = async (): Promise<void> => {
       const loaded = await loadWallets()
-      const vaultsUpgraded = await preferences.getBool(PreferencesEnum.vaultsUpgraded)
-      const legacyDataFound = await preferences.getBool(PreferencesEnum.legacyDataFound)
+      const vaultsUpgraded = await preferences.getBool(
+        PreferencesEnum.vaultsUpgraded
+      )
+      const legacyDataFound = await preferences.getBool(
+        PreferencesEnum.legacyDataFound
+      )
 
       if (loaded.length > 0 && !vaultsUpgraded && legacyDataFound) {
         setRootRoute('Migration')
@@ -93,18 +115,29 @@ export default function AppNavigator() {
     setRootRoute('Migration')
   }, [])
 
-  const navTheme = useMemo(() => ({
-    ...DefaultTheme,
-    colors: {
-      ...DefaultTheme.colors,
-      background: themes?.[currentTheme]?.backgroundColor || COLORS.bg,
-    },
-  }), [currentTheme])
+  const navTheme = useMemo(
+    () => ({
+      ...DefaultTheme,
+      colors: {
+        ...DefaultTheme.colors,
+        background:
+          themes?.[currentTheme]?.backgroundColor || COLORS.bg,
+      },
+    }),
+    [currentTheme]
+  )
 
   if (rootRoute === null || wallets === null) return null
 
   return (
-    <WalletNavContext.Provider value={{ onWalletCreated, onWalletDisconnected, goToMigration, wallets }}>
+    <WalletNavContext.Provider
+      value={{
+        onWalletCreated,
+        onWalletDisconnected,
+        goToMigration,
+        wallets,
+      }}
+    >
       <MigrationContext.Provider value={{ onMigrationComplete }}>
         <NavigationContainer theme={navTheme}>
           {rootRoute === 'Migration' ? (

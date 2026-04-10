@@ -34,7 +34,7 @@ export const getAuthDataValue = async (
   walletName: string
 ): Promise<AuthDataValueType | LedgerDataValueType | undefined> => {
   const authData = await getAuthData()
-  
+
   return authData && authData[walletName]
 }
 

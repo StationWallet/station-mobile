@@ -12,20 +12,32 @@ import { COLORS, MONO_FONT } from 'consts/theme'
 interface Props {
   title: string
   wallet: LocalWallet
-  navigation: any
+  navigation: {
+    goBack: () => void
+    getParent: () =>
+      | {
+          navigate: (screen: string) => void
+          getState: () => { routes?: Array<{ name: string }> }
+        }
+      | undefined
+  }
 }
 
-const WalletSuccessScreen = ({ title, wallet, navigation }: Props) => {
+const WalletSuccessScreen = ({
+  title,
+  wallet,
+  navigation,
+}: Props): React.ReactElement => {
   const onWalletCreated = useWalletCreated()
   const parentState = navigation.getParent()?.getState()
   const isAddMode = parentState?.routes?.some(
-    (r: any) =>
+    (r: { name: string }) =>
       r.name === 'AddWalletMenu' ||
       r.name === 'AddNewWallet' ||
       r.name === 'AddRecoverWallet'
   )
 
-  const handleDone = async () => {
+  const handleDone = async (): Promise<void> => {
     if (isAddMode) {
       await onWalletCreated()
       navigation.getParent()?.navigate('WalletPicker')

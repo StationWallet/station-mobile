@@ -1,7 +1,11 @@
 import React, { useEffect } from 'react'
 import { View, StyleSheet, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
+import {
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import Svg, { Path, Rect } from 'react-native-svg'
 
@@ -10,15 +14,25 @@ import Button from 'components/Button'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
 import OGStatusCard from 'components/migration/OGStatusCard'
 import { MIGRATION } from 'consts/migration'
-import preferences, { PreferencesEnum } from 'nativeModules/preferences'
+import preferences, {
+  PreferencesEnum,
+} from 'nativeModules/preferences'
 import { useMigrationComplete } from 'navigation/MigrationContext'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-function CopyIcon() {
+function CopyIcon(): React.ReactElement {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Rect x={9} y={9} width={13} height={13} rx={2} stroke={MIGRATION.textPrimary} strokeWidth={1.5} />
+      <Rect
+        x={9}
+        y={9}
+        width={13}
+        height={13}
+        rx={2}
+        stroke={MIGRATION.textPrimary}
+        strokeWidth={1.5}
+      />
       <Path
         d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
         stroke={MIGRATION.textPrimary}
@@ -30,7 +44,7 @@ function CopyIcon() {
   )
 }
 
-function ChevronRight() {
+function ChevronRight(): React.ReactElement {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
       <Path
@@ -48,9 +62,13 @@ const DevVerifyVault = __DEV__
   ? require('components/DevVerifyVault').default
   : null
 
-export default function MigrationSuccess() {
-  const { params } = useRoute<RouteProp<MigrationStackParams, 'MigrationSuccess'>>()
-  const navigation = useNavigation<StackNavigationProp<MigrationStackParams, 'MigrationSuccess'>>()
+export default function MigrationSuccess(): React.ReactElement {
+  const { params } =
+    useRoute<RouteProp<MigrationStackParams, 'MigrationSuccess'>>()
+  const navigation =
+    useNavigation<
+      StackNavigationProp<MigrationStackParams, 'MigrationSuccess'>
+    >()
   const onMigrationComplete = useMigrationComplete()
 
   const wallets = params.wallets
@@ -67,14 +85,19 @@ export default function MigrationSuccess() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MigrationToolbar onBack={onMigrationComplete} testID="success-back" />
+      <MigrationToolbar
+        onBack={onMigrationComplete}
+        testID="success-back"
+      />
 
       <Text fontType="brockmann-medium" style={styles.title}>
         You are aboard, Station OG!
       </Text>
 
       <Text fontType="brockmann" style={styles.subtitle}>
-        {'Your vault is secured. No single key.\nNo single point of failure.'}
+        {
+          'Your vault is secured. No single key.\nNo single point of failure.'
+        }
       </Text>
 
       <View style={styles.cardContainer}>
@@ -90,7 +113,10 @@ export default function MigrationSuccess() {
           title={
             <View style={styles.shareRow}>
               <CopyIcon />
-              <Text fontType="brockmann-medium" style={styles.shareText}>
+              <Text
+                fontType="brockmann-medium"
+                style={styles.shareText}
+              >
                 Share your OG status
               </Text>
               <ChevronRight />
@@ -105,10 +131,18 @@ export default function MigrationSuccess() {
 
         {hasUnmigrated && (
           <TouchableOpacity
-            onPress={() => navigation.navigate('WalletsFound', { wallets, results })}
+            onPress={() =>
+              navigation.navigate('WalletsFound', {
+                wallets,
+                results,
+              })
+            }
             testID="migrate-another-wallet"
           >
-            <Text fontType="brockmann-medium" style={styles.migrateAnother}>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.migrateAnother}
+            >
               Migrate another wallet
             </Text>
           </TouchableOpacity>
@@ -119,14 +153,21 @@ export default function MigrationSuccess() {
           style={styles.continueLink}
           testID="continue-button"
         >
-          <Text fontType="brockmann-medium" style={styles.continueLinkText}>
+          <Text
+            fontType="brockmann-medium"
+            style={styles.continueLinkText}
+          >
             Continue to wallets
           </Text>
         </TouchableOpacity>
       </View>
 
       {__DEV__ && DevVerifyVault && (
-        <DevVerifyVault importedVaultName={params.importedVaultName ?? params.migratedWalletName} />
+        <DevVerifyVault
+          importedVaultName={
+            params.importedVaultName ?? params.migratedWalletName
+          }
+        />
       )}
     </SafeAreaView>
   )

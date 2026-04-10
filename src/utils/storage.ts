@@ -4,7 +4,7 @@ import { Settings } from '../types/settings'
 import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
-import { getAuthDataValue } from './authData'
+import { getAuthDataValue, AuthDataValueType } from './authData'
 
 const getSettings = async (): Promise<Settings> => {
   const settings = await preferences.getString(
@@ -76,5 +76,7 @@ export const getBioAuthPassword = async ({
   walletName: string
 }): Promise<string> => {
   const authDataValue = await getAuthDataValue(walletName)
-  return authDataValue && !authDataValue.ledger  ? authDataValue.password : ''
+  return authDataValue && !authDataValue.ledger
+    ? (authDataValue as AuthDataValueType).password
+    : ''
 }

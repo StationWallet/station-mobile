@@ -15,7 +15,7 @@ import Text from 'components/Text'
 import Button from 'components/Button'
 import { MIGRATION } from 'consts/migration'
 
-function LockIcon() {
+function LockIcon(): React.ReactElement {
   return (
     <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
       <Path
@@ -37,7 +37,7 @@ function LockIcon() {
   )
 }
 
-function EyeOpenIcon() {
+function EyeOpenIcon(): React.ReactElement {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
       <Path
@@ -60,7 +60,7 @@ function EyeOpenIcon() {
   )
 }
 
-function EyeClosedIcon() {
+function EyeClosedIcon(): React.ReactElement {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
       <Path
@@ -95,7 +95,7 @@ export default function DecryptPasswordSheet({
   onDismiss,
   error,
   loading = false,
-}: Props) {
+}: Props): React.ReactElement {
   const insets = useSafeAreaInsets()
   const inputRef = useRef<TextInput>(null)
   const [secureText, setSecureText] = useState(true)
@@ -107,13 +107,13 @@ export default function DecryptPasswordSheet({
     })
   }, [])
 
-  const handleSubmit = () => {
+  const handleSubmit = (): void => {
     if (password.trim()) {
       onSubmit(password.trim())
     }
   }
 
-  const handleDismiss = () => {
+  const handleDismiss = (): void => {
     if (!loading) {
       setPassword('')
       onDismiss()
@@ -121,12 +121,12 @@ export default function DecryptPasswordSheet({
   }
 
   const content = (
-    <Pressable
-      style={styles.overlay}
-      onPress={handleDismiss}
-    >
+    <Pressable style={styles.overlay} onPress={handleDismiss}>
       <View
-        style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 40) }]}
+        style={[
+          styles.sheet,
+          { paddingBottom: Math.max(insets.bottom, 40) },
+        ]}
         onTouchEnd={(e) => e.stopPropagation()}
       >
         <View style={styles.grabber} />
@@ -135,17 +135,11 @@ export default function DecryptPasswordSheet({
           <LockIcon />
         </View>
 
-        <Text
-          fontType="brockmann-medium"
-          style={styles.title}
-        >
+        <Text fontType="brockmann-medium" style={styles.title}>
           Enter Vault Share Password
         </Text>
 
-        <Text
-          fontType="brockmann-medium"
-          style={styles.subtitle}
-        >
+        <Text fontType="brockmann-medium" style={styles.subtitle}>
           This password was set when the vault share was exported.
         </Text>
 
@@ -163,7 +157,11 @@ export default function DecryptPasswordSheet({
             autoCorrect={false}
             style={[
               styles.input,
-              { borderColor: error ? MIGRATION.errorRed : MIGRATION.strokeInput },
+              {
+                borderColor: error
+                  ? MIGRATION.errorRed
+                  : MIGRATION.strokeInput,
+              },
             ]}
           />
           <Pressable

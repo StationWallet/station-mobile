@@ -46,7 +46,7 @@ const authStyles = StyleSheet.create({
     borderRadius: 99,
     paddingVertical: 16,
     alignItems: 'center' as const,
-    marginTop: 'auto' as any,
+    marginTop: 'auto' as const,
   },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },

@@ -35,9 +35,13 @@ export default <T>(
 
       setData(data)
     } catch (error) {
-      !axios.isCancel(error) && setError(error)
+      if (!axios.isCancel(error)) {
+        setError(error as Error | AxiosError)
+      }
     } finally {
-      mounted.current && setLoading(false)
+      if (mounted.current) {
+        setLoading(false)
+      }
     }
 
     // eslint-disable-next-line
@@ -45,7 +49,9 @@ export default <T>(
 
   useEffect(() => {
     mounted.current = true
-    immediate && execute()
+    if (immediate) {
+      execute()
+    }
     return (): void => {
       mounted.current = false
       source.cancel()

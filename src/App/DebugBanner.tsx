@@ -5,7 +5,11 @@ import Text from '../components/Text'
 import { useConfig } from 'lib'
 import { themes } from 'lib/contexts/useTheme'
 
-const DebugBanner = ({ title }: { title: string }): JSX.Element => {
+const DebugBanner = ({
+  title,
+}: {
+  title: string
+}): React.JSX.Element => {
   const { theme } = useConfig()
 
   return (

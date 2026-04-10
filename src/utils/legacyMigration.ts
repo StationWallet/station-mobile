@@ -1,6 +1,8 @@
 import * as SecureStore from 'expo-secure-store'
 import LegacyKeystore from '../../modules/legacy-keystore-migration/src'
-import preferences, { PreferencesEnum } from 'nativeModules/preferences'
+import preferences, {
+  PreferencesEnum,
+} from 'nativeModules/preferences'
 import { LEGACY_ACCOUNT, keychainOpts } from 'nativeModules/keystore'
 
 /**
@@ -32,7 +34,8 @@ export async function migrateLegacyKeystore(): Promise<void> {
     if (existingNewData) {
       // Data already in new format — mark done and return
       await preferences.setBool(
-        PreferencesEnum.legacyKeystoreMigrated, true
+        PreferencesEnum.legacyKeystoreMigrated,
+        true
       )
       return
     }
@@ -40,7 +43,8 @@ export async function migrateLegacyKeystore(): Promise<void> {
     // Native module unavailable (e.g. running in Expo Go) — skip migration
     if (!LegacyKeystore) {
       await preferences.setBool(
-        PreferencesEnum.legacyKeystoreMigrated, true
+        PreferencesEnum.legacyKeystoreMigrated,
+        true
       )
       return
     }
@@ -50,7 +54,13 @@ export async function migrateLegacyKeystore(): Promise<void> {
     const legacyData = await Promise.race([
       LegacyKeystore.readLegacy('AD'),
       new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new Error('Legacy keystore read timed out after 10s')), 10_000)
+        timer = setTimeout(
+          () =>
+            reject(
+              new Error('Legacy keystore read timed out after 10s')
+            ),
+          10_000
+        )
       }),
     ]).finally(() => clearTimeout(timer!))
     if (legacyData) {
@@ -58,7 +68,11 @@ export async function migrateLegacyKeystore(): Promise<void> {
       JSON.parse(legacyData)
 
       // Write to new expo-secure-store location
-      await SecureStore.setItemAsync(LEGACY_ACCOUNT, legacyData, keychainOpts('AD'))
+      await SecureStore.setItemAsync(
+        LEGACY_ACCOUNT,
+        legacyData,
+        keychainOpts('AD')
+      )
 
       // Mark that we found and migrated actual legacy data
       await preferences.setBool(PreferencesEnum.legacyDataFound, true)
@@ -68,12 +82,14 @@ export async function migrateLegacyKeystore(): Promise<void> {
     }
   } catch (error) {
     // Log but don't crash — the old data is still intact if migration failed
+    // eslint-disable-next-line no-console -- migration failure must be logged for debugging
     console.error('Legacy keystore migration error:', error)
     // Don't mark as done so we retry next launch
     return
   }
 
   await preferences.setBool(
-    PreferencesEnum.legacyKeystoreMigrated, true
+    PreferencesEnum.legacyKeystoreMigrated,
+    true
   )
 }

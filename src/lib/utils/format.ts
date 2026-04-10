@@ -45,7 +45,8 @@ export const denom = (denom = '', whitelist?: Whitelist): string => {
   const isValidTerra =
     UTIL.isNativeTerra(denom) && CURRENCY.currencies.includes(unit)
   const symbol =
-    AccAddress.validate(denom) && (whitelist?.[denom]?.symbol || whitelist?.[denom]?.name)
+    AccAddress.validate(denom) &&
+    (whitelist?.[denom]?.symbol || whitelist?.[denom]?.name)
 
   return (
     symbol ||

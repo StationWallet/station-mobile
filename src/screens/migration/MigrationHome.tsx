@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
@@ -9,7 +14,10 @@ import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import InfoCard from 'components/migration/InfoCard'
-import { discoverLegacyWallets, MigrationWallet } from 'services/migrateToVault'
+import {
+  discoverLegacyWallets,
+  MigrationWallet,
+} from 'services/migrateToVault'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
@@ -23,10 +31,11 @@ function computeDaysRemaining(): number {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
 }
 
-export default function MigrationHome() {
+export default function MigrationHome(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const [wallets, setWallets] = useState<MigrationWallet[]>([])
-  const [ready, setReady] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setReady used to track loading state
+  const [_ready, setReady] = useState(false)
   const daysRemaining = computeDaysRemaining()
 
   useEffect(() => {
@@ -42,7 +51,7 @@ export default function MigrationHome() {
 
   const hasLegacyWallets = wallets.length > 0
 
-  const handleCta = () => {
+  const handleCta = (): void => {
     if (hasLegacyWallets) {
       navigation.navigate('WalletsFound', { wallets })
     } else {
@@ -56,31 +65,35 @@ export default function MigrationHome() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-      <View style={styles.content}>
-        <Animated.View
-          entering={FadeIn.delay(0).duration(300)}
-          style={styles.animationPlaceholder}
-        />
+        <View style={styles.content}>
+          <Animated.View
+            entering={FadeIn.delay(0).duration(300)}
+            style={styles.animationPlaceholder}
+          />
 
-        <Animated.View entering={FadeIn.delay(600).duration(300)}>
-          <Text fontType="brockmann-medium" style={styles.title}>
-            {'Your seed phrase\nbecomes a Fast Vault'}
-          </Text>
-        </Animated.View>
+          <Animated.View entering={FadeIn.delay(600).duration(300)}>
+            <Text fontType="brockmann-medium" style={styles.title}>
+              {'Your seed phrase\nbecomes a Fast Vault'}
+            </Text>
+          </Animated.View>
 
-        <Animated.View
-          entering={FadeIn.delay(1200).duration(300)}
-          style={styles.cardWrapper}
-        >
-          <InfoCard daysRemaining={daysRemaining} />
-        </Animated.View>
+          <Animated.View
+            entering={FadeIn.delay(1200).duration(300)}
+            style={styles.cardWrapper}
+          >
+            <InfoCard daysRemaining={daysRemaining} />
+          </Animated.View>
 
-        <Animated.View
-          entering={FadeIn.delay(1800).duration(300)}
-          style={styles.buttonGroup}
-        >
+          <Animated.View
+            entering={FadeIn.delay(1800).duration(300)}
+            style={styles.buttonGroup}
+          >
             <Button
-              title={hasLegacyWallets ? 'Start Migration' : 'Create a Fast Vault'}
+              title={
+                hasLegacyWallets
+                  ? 'Start Migration'
+                  : 'Create a Fast Vault'
+              }
               theme="ctaBlue"
               titleFontType="brockmann-medium"
               onPress={handleCta}
@@ -107,42 +120,41 @@ export default function MigrationHome() {
                 Learn more about Vault security
               </Text>
             </TouchableOpacity>
-
           </Animated.View>
 
-        {/* Dev seed buttons — outside ready gate so they render immediately for E2E tests */}
-        {__DEV__ && (
-          <View style={styles.devButtons}>
-            <TouchableOpacity
-              testID="dev-seed-legacy"
-              style={styles.devButton}
-              onPress={() => navigation.navigate('SeedLegacyData')}
-            >
-              <Text style={styles.devButtonText}>
-                Seed Legacy Data (dev)
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              testID="dev-seed-corrupt"
-              style={styles.devButton}
-              onPress={() => navigation.navigate('SeedCorruptData')}
-            >
-              <Text style={styles.devButtonText}>
-                Seed Corrupt Data (dev)
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              testID="dev-seed-premigrated"
-              style={styles.devButton}
-              onPress={() => navigation.navigate('SeedPreMigrated')}
-            >
-              <Text style={styles.devButtonText}>
-                Seed Pre-Migrated (dev)
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
+          {/* Dev seed buttons — outside ready gate so they render immediately for E2E tests */}
+          {__DEV__ && (
+            <View style={styles.devButtons}>
+              <TouchableOpacity
+                testID="dev-seed-legacy"
+                style={styles.devButton}
+                onPress={() => navigation.navigate('SeedLegacyData')}
+              >
+                <Text style={styles.devButtonText}>
+                  Seed Legacy Data (dev)
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="dev-seed-corrupt"
+                style={styles.devButton}
+                onPress={() => navigation.navigate('SeedCorruptData')}
+              >
+                <Text style={styles.devButtonText}>
+                  Seed Corrupt Data (dev)
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="dev-seed-premigrated"
+                style={styles.devButton}
+                onPress={() => navigation.navigate('SeedPreMigrated')}
+              >
+                <Text style={styles.devButtonText}>
+                  Seed Pre-Migrated (dev)
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   )

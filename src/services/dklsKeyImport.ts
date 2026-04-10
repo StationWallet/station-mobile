@@ -11,7 +11,15 @@ import {
   waitForComplete,
 } from './relay'
 import { setupBatchImport } from './fastVaultServer'
-import { encryptAesGcm, decryptAesGcm, deriveCipherKey, md5HashAsync, randomHex, randomUUID, sleep } from '../utils/mpcCrypto'
+import {
+  encryptAesGcm,
+  decryptAesGcm,
+  deriveCipherKey,
+  md5HashAsync,
+  randomHex,
+  randomUUID,
+  sleep,
+} from '../utils/mpcCrypto'
 
 export type KeyImportStep =
   | 'setup'
@@ -55,47 +63,83 @@ async function runMpcProtocol(
   const TIMEOUT_MS = 120_000
   let lastProgressTime = startTime
 
-  const processOutbound = async () => {
+  const processOutbound = async (): Promise<void> => {
     while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
       if (signal?.aborted) throw new Error('Aborted')
       try {
-        const outMsg = await ExpoDkls.getOutboundMessage(sessionHandle)
-        if (!outMsg) { await sleep(100); continue }
+        const outMsg = await ExpoDkls.getOutboundMessage(
+          sessionHandle
+        )
+        if (!outMsg) {
+          await sleep(100)
+          continue
+        }
 
         const encrypted = encryptAesGcm(outMsg, cipherKey)
         const hash = await md5HashAsync(outMsg)
 
         let idx = 0
         while (true) {
-          const receiver = await ExpoDkls.getMessageReceiver(sessionHandle, outMsg, idx)
+          const receiver = await ExpoDkls.getMessageReceiver(
+            sessionHandle,
+            outMsg,
+            idx
+          )
           if (!receiver) break
-          await sendRelayMessage(sessionId, localPartyId, receiver, encrypted, hash, sequenceNo++, messageId)
+          await sendRelayMessage(
+            sessionId,
+            localPartyId,
+            receiver,
+            encrypted,
+            hash,
+            sequenceNo++,
+            messageId
+          )
           idx++
         }
         await sleep(100)
       } catch (err) {
         if (signal?.aborted) throw err
-        console.warn('[MPC] Outbound error:', err instanceof Error ? err.message : err)
+        // eslint-disable-next-line no-console -- MPC protocol diagnostics
+        console.warn(
+          '[MPC] Outbound error:',
+          err instanceof Error ? err.message : err
+        )
         await sleep(200)
       }
     }
   }
 
-  const processInbound = async () => {
+  const processInbound = async (): Promise<void> => {
     while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
       if (signal?.aborted) throw new Error('Aborted')
       try {
-        const messages = await getRelayMessages(sessionId, localPartyId, messageId)
-        if (messages.length === 0) { await sleep(100); continue }
+        const messages = await getRelayMessages(
+          sessionId,
+          localPartyId,
+          messageId
+        )
+        if (messages.length === 0) {
+          await sleep(100)
+          continue
+        }
 
         for (const msg of messages) {
           const cacheKey = `${msg.from}-${msg.hash}`
           if (processedMessages.has(cacheKey)) continue
 
           const decrypted = decryptAesGcm(msg.body, cipherKey)
-          const finished = await ExpoDkls.inputMessage(sessionHandle, decrypted)
+          const finished = await ExpoDkls.inputMessage(
+            sessionHandle,
+            decrypted
+          )
           processedMessages.add(cacheKey)
-          await deleteRelayMessage(sessionId, localPartyId, msg.hash, messageId).catch(() => {})
+          await deleteRelayMessage(
+            sessionId,
+            localPartyId,
+            msg.hash,
+            messageId
+          ).catch(() => {})
 
           if (finished) {
             isComplete = true
@@ -113,7 +157,11 @@ async function runMpcProtocol(
         await sleep(100)
       } catch (err) {
         if (signal?.aborted) throw err
-        console.warn('[MPC] Inbound error:', err instanceof Error ? err.message : err)
+        // eslint-disable-next-line no-console -- MPC protocol diagnostics
+        console.warn(
+          '[MPC] Inbound error:',
+          err instanceof Error ? err.message : err
+        )
         await sleep(200)
       }
     }
@@ -139,14 +187,24 @@ export async function importKeyToFastVault(options: {
   onProgress?: (p: KeyImportProgress) => void
   signal?: AbortSignal
 }): Promise<KeyImportResult> {
-  const { name, email, password, privateKeyHex, onProgress, signal } = options
+  const { name, email, password, privateKeyHex, onProgress, signal } =
+    options
 
-  const report = (p: KeyImportProgress) => {
-    console.log(`[KeyImport] ${p.step}: ${p.message} (${p.progress}%)`)
+  const report = (p: KeyImportProgress): void => {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log(
+        `[KeyImport] ${p.step}: ${p.message} (${p.progress}%)`
+      )
+    }
     onProgress?.(p)
   }
 
-  report({ step: 'setup', message: 'Generating session...', progress: 5 })
+  report({
+    step: 'setup',
+    message: 'Generating session...',
+    progress: 5,
+  })
 
   const sessionId = randomUUID()
   const hexEncryptionKey = randomHex(32)
@@ -155,12 +213,19 @@ export async function importKeyToFastVault(options: {
 
   let serverHash = 0
   for (let i = 0; i < sessionId.length; i++) {
-    serverHash = ((serverHash << 5) - serverHash) + sessionId.charCodeAt(i)
+    serverHash =
+      (serverHash << 5) - serverHash + sessionId.charCodeAt(i)
     serverHash = serverHash & serverHash
   }
-  let serverPartyId = `Server-${Math.abs(serverHash).toString().slice(-5)}`
+  let serverPartyId = `Server-${Math.abs(serverHash)
+    .toString()
+    .slice(-5)}`
 
-  report({ step: 'setup', message: 'Setting up vault...', progress: 12 })
+  report({
+    step: 'setup',
+    message: 'Setting up vault...',
+    progress: 12,
+  })
 
   await Promise.all([
     setupBatchImport({
@@ -176,15 +241,27 @@ export async function importKeyToFastVault(options: {
     joinRelaySession(sessionId, localPartyId),
   ])
 
-  report({ step: 'joining', message: 'Joining relay...', progress: 20 })
-  report({ step: 'waiting', message: 'Waiting for server...', progress: 28 })
+  report({
+    step: 'joining',
+    message: 'Joining relay...',
+    progress: 20,
+  })
+  report({
+    step: 'waiting',
+    message: 'Waiting for server...',
+    progress: 28,
+  })
   const parties = await waitForParties(sessionId, 2, 120_000, signal)
 
   // Validate that the server joined with the expected party ID
-  const actualServerPartyId = parties.find(p => p !== localPartyId)
-  if (!actualServerPartyId) throw new Error('Could not identify server party from relay')
+  const actualServerPartyId = parties.find((p) => p !== localPartyId)
+  if (!actualServerPartyId)
+    throw new Error('Could not identify server party from relay')
   if (actualServerPartyId !== serverPartyId) {
-    console.warn(`[KeyImport] Server party ID mismatch: expected ${serverPartyId}, got ${actualServerPartyId}`)
+    // eslint-disable-next-line no-console -- useful diagnostic for server party mismatch
+    console.warn(
+      `[KeyImport] Server party ID mismatch: expected ${serverPartyId}, got ${actualServerPartyId}`
+    )
     serverPartyId = actualServerPartyId
   }
 
@@ -192,12 +269,12 @@ export async function importKeyToFastVault(options: {
 
   report({ step: 'ecdsa', message: 'Importing key...', progress: 35 })
 
-  const importResult = await ExpoDkls.createDklsKeyImportSession(
+  const importResult = (await ExpoDkls.createDklsKeyImportSession(
     privateKeyHex,
     hexChainCode,
     2,
     [localPartyId, serverPartyId]
-  ) as { setupMessage: string; sessionHandle: number }
+  )) as { setupMessage: string; sessionHandle: number }
 
   const sessionHandle = importResult.sessionHandle
 
@@ -205,10 +282,17 @@ export async function importKeyToFastVault(options: {
     const cipherKey = deriveCipherKey(hexEncryptionKey)
 
     // Batch endpoint uses setupKey="" for ecdsa — upload to default setup-message endpoint (no messageId)
-    const encryptedSetup = encryptAesGcm(importResult.setupMessage, cipherKey)
+    const encryptedSetup = encryptAesGcm(
+      importResult.setupMessage,
+      cipherKey
+    )
     await uploadSetupMessage(sessionId, encryptedSetup)
 
-    report({ step: 'ecdsa', message: 'Running MPC protocol...', progress: 48 })
+    report({
+      step: 'ecdsa',
+      message: 'Running MPC protocol...',
+      progress: 48,
+    })
 
     // Batch endpoint uses messageId "p-ecdsa" for the ECDSA protocol
     await runMpcProtocol(
@@ -218,13 +302,21 @@ export async function importKeyToFastVault(options: {
       cipherKey,
       'p-ecdsa',
       (mpcProgress) => {
-        const stepProgress = 48 + (mpcProgress * 38)
-        report({ step: 'ecdsa', message: 'Running MPC protocol...', progress: Math.round(stepProgress) })
+        const stepProgress = 48 + mpcProgress * 38
+        report({
+          step: 'ecdsa',
+          message: 'Running MPC protocol...',
+          progress: Math.round(stepProgress),
+        })
       },
       signal
     )
 
-    report({ step: 'finalizing', message: 'Extracting keyshare...', progress: 86 })
+    report({
+      step: 'finalizing',
+      message: 'Extracting keyshare...',
+      progress: 86,
+    })
 
     const result = await ExpoDkls.finishKeygen(sessionHandle)
 
@@ -244,6 +336,8 @@ export async function importKeyToFastVault(options: {
   } finally {
     // Always free the native session handle to prevent memory leaks
     // and clear private key material from native memory
-    try { ExpoDkls.freeKeygenSession(sessionHandle) } catch {}
+    try {
+      ExpoDkls.freeKeygenSession(sessionHandle)
+    } catch {}
   }
 }

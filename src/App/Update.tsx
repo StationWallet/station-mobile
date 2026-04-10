@@ -1,10 +1,5 @@
 import React, { useEffect, useState, ReactElement } from 'react'
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  View,
-} from 'react-native'
+import { Dimensions, Image, StyleSheet, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -42,7 +37,9 @@ const Update = (props: Props): ReactElement => {
   }
 
   useEffect(() => {
-    totalBytes > 0 && setProgress(receivedBytes / totalBytes)
+    if (totalBytes > 0) {
+      setProgress(receivedBytes / totalBytes)
+    }
   }, [receivedBytes])
 
   return (

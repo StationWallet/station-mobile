@@ -4,7 +4,7 @@ import Svg, { Path } from 'react-native-svg'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
 
-function ShieldCheckIcon() {
+function ShieldCheckIcon(): React.ReactElement {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
       <Path
@@ -25,7 +25,7 @@ function ShieldCheckIcon() {
   )
 }
 
-function ClockIcon() {
+function ClockIcon(): React.ReactElement {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
       <Path
@@ -50,7 +50,9 @@ type Props = {
   daysRemaining: number
 }
 
-export default function InfoCard({ daysRemaining }: Props) {
+export default function InfoCard({
+  daysRemaining,
+}: Props): React.ReactElement {
   return (
     <View style={styles.card}>
       <View style={styles.titleRow}>
@@ -67,7 +69,7 @@ export default function InfoCard({ daysRemaining }: Props) {
 
       <Text fontType="brockmann" style={styles.body}>
         Fast Vaults are the next evolution of self-custody, built for
-        what's coming to Station.
+        what&apos;s coming to Station.
       </Text>
 
       <Text fontType="brockmann" style={styles.body}>

@@ -12,7 +12,10 @@ import VerifyEmail from '../screens/migration/VerifyEmail'
 import ImportVault from '../screens/migration/ImportVault'
 import MigrationSuccess from '../screens/migration/MigrationSuccess'
 
-import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
+import type {
+  MigrationWallet,
+  MigrationResult,
+} from 'services/migrateToVault'
 
 export type MigrationMode = 'migrate' | 'create'
 
@@ -81,7 +84,7 @@ export type MigrationStackParams = {
 
 const Stack = createStackNavigator<MigrationStackParams>()
 
-export default function MigrationNavigator() {
+export default function MigrationNavigator(): React.ReactElement {
   return (
     <Stack.Navigator
       initialRouteName="RiveIntro"
@@ -101,18 +104,33 @@ export default function MigrationNavigator() {
       <Stack.Screen name="VaultName" component={VaultName} />
       <Stack.Screen name="VaultEmail" component={VaultEmail} />
       <Stack.Screen name="VaultPassword" component={VaultPassword} />
-      <Stack.Screen name="KeygenProgress" component={KeygenProgress} />
+      <Stack.Screen
+        name="KeygenProgress"
+        component={KeygenProgress}
+      />
       <Stack.Screen name="VerifyEmail" component={VerifyEmail} />
       <Stack.Screen name="ImportVault" component={ImportVault} />
-      <Stack.Screen name="MigrationSuccess" component={MigrationSuccess} />
+      <Stack.Screen
+        name="MigrationSuccess"
+        component={MigrationSuccess}
+      />
       {__DEV__ && DevSeedLegacyData && (
-        <Stack.Screen name="SeedLegacyData" component={DevSeedLegacyData} />
+        <Stack.Screen
+          name="SeedLegacyData"
+          component={DevSeedLegacyData}
+        />
       )}
       {__DEV__ && DevSeedCorruptData && (
-        <Stack.Screen name="SeedCorruptData" component={DevSeedCorruptData} />
+        <Stack.Screen
+          name="SeedCorruptData"
+          component={DevSeedCorruptData}
+        />
       )}
       {__DEV__ && DevSeedPreMigrated && (
-        <Stack.Screen name="SeedPreMigrated" component={DevSeedPreMigrated} />
+        <Stack.Screen
+          name="SeedPreMigrated"
+          component={DevSeedPreMigrated}
+        />
       )}
     </Stack.Navigator>
   )

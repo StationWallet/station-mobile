@@ -11,17 +11,24 @@ import LegacyKeystore from '../../modules/legacy-keystore-migration/src'
 import { migrateLegacyKeystore } from 'utils/legacyMigration'
 import { encrypt, decrypt } from 'utils/crypto'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
-import preferences, { PreferencesEnum } from 'nativeModules/preferences'
+import preferences, {
+  PreferencesEnum,
+} from 'nativeModules/preferences'
 import { exportVaultShare } from 'services/exportVaultShare'
 import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container_pb'
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
 
 // Well-known secp256k1 test vectors (not funded keys)
-const TEST_PRIVATE_KEY_1 = '0000000000000000000000000000000000000000000000000000000000000001'
-const TEST_PRIVATE_KEY_2 = '0000000000000000000000000000000000000000000000000000000000000002'
-const EXPECTED_PUBKEY_1 = '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
-const EXPECTED_PUBKEY_2 = '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
+const TEST_PRIVATE_KEY_1 =
+  '0000000000000000000000000000000000000000000000000000000000000001'
+const TEST_PRIVATE_KEY_2 =
+  '0000000000000000000000000000000000000000000000000000000000000002'
+const EXPECTED_PUBKEY_1 =
+  '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for future DKLS vault2 verification
+const EXPECTED_PUBKEY_2 =
+  '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
 
 const PASSWORD_1 = 'testPassword1!'
 const PASSWORD_2 = 'testPassword2!'
@@ -88,7 +95,10 @@ export default function DevFullE2ETest(): React.ReactElement {
       // Step 1: Clean slate
       await LegacyKeystore.clearAllLegacyData()
       await keystore.remove(KeystoreEnum.AuthData)
-      await preferences.setString(PreferencesEnum.legacyKeystoreMigrated, '')
+      await preferences.setString(
+        PreferencesEnum.legacyKeystoreMigrated,
+        ''
+      )
       r['step01-clean'] = 'true'
       setResults({ ...r })
 
@@ -102,7 +112,10 @@ export default function DevFullE2ETest(): React.ReactElement {
       setResults({ ...r })
 
       // Step 3: Seed into legacy keystore
-      const seeded = await LegacyKeystore.seedLegacyTestData('AD', authDataJson)
+      const seeded = await LegacyKeystore.seedLegacyTestData(
+        'AD',
+        authDataJson
+      )
       r['step03-seeded'] = String(seeded)
       setResults({ ...r })
 
@@ -130,7 +143,9 @@ export default function DevFullE2ETest(): React.ReactElement {
 
       // Step 8: Idempotent
       await migrateLegacyKeystore()
-      const afterSecondRun = await keystore.read(KeystoreEnum.AuthData)
+      const afterSecondRun = await keystore.read(
+        KeystoreEnum.AuthData
+      )
       r['step08-idempotent'] = String(afterSecondRun === authDataJson)
       setResults({ ...r })
 
@@ -143,28 +158,38 @@ export default function DevFullE2ETest(): React.ReactElement {
       setResults({ ...r })
 
       // Step 10: Decrypt wallet 1
-      const decrypted1 = decrypt(parsed.TestWallet1.encryptedKey, PASSWORD_1)
-      r['step10-decrypt-w1'] = String(decrypted1 === TEST_PRIVATE_KEY_1)
+      const decrypted1 = decrypt(
+        parsed.TestWallet1.encryptedKey,
+        PASSWORD_1
+      )
+      r['step10-decrypt-w1'] = String(
+        decrypted1 === TEST_PRIVATE_KEY_1
+      )
       setResults({ ...r })
 
       // Step 11: Decrypt wallet 2
-      const decrypted2 = decrypt(parsed.TestWallet2.encryptedKey, PASSWORD_2)
-      r['step11-decrypt-w2'] = String(decrypted2 === TEST_PRIVATE_KEY_2)
+      const decrypted2 = decrypt(
+        parsed.TestWallet2.encryptedKey,
+        PASSWORD_2
+      )
+      r['step11-decrypt-w2'] = String(
+        decrypted2 === TEST_PRIVATE_KEY_2
+      )
       setResults({ ...r })
 
       // Step 12: Ledger wallet structure
       const ledger = parsed.TestLedgerWallet
       r['step12-ledger'] = String(
         ledger.ledger === true &&
-        ledger.address === 'terra1test000e2e000ledger001' &&
-        ledger.path === 0
+          ledger.address === 'terra1test000e2e000ledger001' &&
+          ledger.path === 0
       )
       setResults({ ...r })
 
       // Step 13: Derive public key
       const pubKeyBytes = secp256k1.getPublicKey(
         hex.decode(decrypted1),
-        true,
+        true
       )
       const pubKeyHex = hex.encode(pubKeyBytes)
       r['step13-pubkey'] = String(pubKeyHex === EXPECTED_PUBKEY_1)
@@ -176,7 +201,7 @@ export default function DevFullE2ETest(): React.ReactElement {
       const fileUri = await exportVaultShare(
         decrypted1,
         'TestWallet1',
-        EXPORT_PASSWORD,
+        EXPORT_PASSWORD
       )
       r['step14-export'] = String(fileUri.length > 0)
       setResults({ ...r })
@@ -188,7 +213,10 @@ export default function DevFullE2ETest(): React.ReactElement {
 
       // Step 16: Parse VaultContainer
       const containerBytes = base64.decode(fileContents)
-      const container = fromBinary(VaultContainerSchema, containerBytes)
+      const container = fromBinary(
+        VaultContainerSchema,
+        containerBytes
+      )
       r['step16-container'] = String(
         container.isEncrypted === true && container.version === 1n
       )
@@ -199,8 +227,12 @@ export default function DevFullE2ETest(): React.ReactElement {
       const nonce = encryptedVaultBytes.slice(0, 12)
       const ciphertext = encryptedVaultBytes.slice(12)
       const aesKey = sha256(new TextEncoder().encode(EXPORT_PASSWORD))
-      const decryptedVaultBytes = gcm(aesKey, nonce).decrypt(ciphertext)
-      r['step17-vault-decrypt'] = String(decryptedVaultBytes.length > 0)
+      const decryptedVaultBytes = gcm(aesKey, nonce).decrypt(
+        ciphertext
+      )
+      r['step17-vault-decrypt'] = String(
+        decryptedVaultBytes.length > 0
+      )
       setResults({ ...r })
 
       // Step 18: Parse Vault protobuf
@@ -211,13 +243,13 @@ export default function DevFullE2ETest(): React.ReactElement {
       // Step 19: Verify Vault fields
       r['step19-vault-fields'] = String(
         vault.publicKeyEcdsa === EXPECTED_PUBKEY_1 &&
-        vault.libType === LibType.KEYIMPORT &&
-        vault.keyShares.length === 1 &&
-        vault.keyShares[0].keyshare === TEST_PRIVATE_KEY_1 &&
-        vault.keyShares[0].publicKey === EXPECTED_PUBKEY_1 &&
-        vault.localPartyId === 'station-mobile' &&
-        vault.signers.length === 1 &&
-        vault.signers[0] === 'station-mobile'
+          vault.libType === LibType.KEYIMPORT &&
+          vault.keyShares.length === 1 &&
+          vault.keyShares[0].keyshare === TEST_PRIVATE_KEY_1 &&
+          vault.keyShares[0].publicKey === EXPECTED_PUBKEY_1 &&
+          vault.localPartyId === 'station-mobile' &&
+          vault.signers.length === 1 &&
+          vault.signers[0] === 'station-mobile'
       )
       setResults({ ...r })
 
@@ -233,7 +265,7 @@ export default function DevFullE2ETest(): React.ReactElement {
       // Step 21: Write to expo-secure-store
       const sizeWritten = await keystore.write(
         KeystoreEnum.AuthData,
-        sizeTestJson,
+        sizeTestJson
       )
       r['step21-size-write'] = String(sizeWritten)
       setResults({ ...r })
@@ -294,15 +326,17 @@ export default function DevFullE2ETest(): React.ReactElement {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+    >
       <Text style={styles.title}>Full E2E Migration Test</Text>
       <Text style={styles.subtitle}>
         Migration + Decrypt + Vault Export + Size
       </Text>
       {Object.entries(results).map(([key, value]) => {
         const isFail =
-          value === 'false' ||
-          (key === 'error' && value.length > 0)
+          value === 'false' || (key === 'error' && value.length > 0)
         const isPass = value === 'true'
         return (
           <Text

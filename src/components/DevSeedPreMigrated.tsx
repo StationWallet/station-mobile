@@ -4,10 +4,13 @@ import { encrypt } from 'utils/crypto'
 import { upsertAuthData } from 'utils/authData'
 import { migrateWalletToVault } from 'services/migrateToVault'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
-import preferences, { PreferencesEnum } from 'nativeModules/preferences'
+import preferences, {
+  PreferencesEnum,
+} from 'nativeModules/preferences'
 
 // Same test vectors as DevSeedLegacyData
-const TEST_PRIVATE_KEY_1 = '0000000000000000000000000000000000000000000000000000000000000001'
+const TEST_PRIVATE_KEY_1 =
+  '0000000000000000000000000000000000000000000000000000000000000001'
 const PASSWORD_1 = 'testPassword1!'
 
 /**
@@ -28,7 +31,7 @@ export default function DevSeedPreMigrated(): React.ReactElement {
     seed()
   }, [])
 
-  const seed = async () => {
+  const seed = async (): Promise<void> => {
     try {
       // 1. Clear existing data
       await keystore.remove(KeystoreEnum.AuthData)
@@ -48,33 +51,52 @@ export default function DevSeedPreMigrated(): React.ReactElement {
       await upsertAuthData({ authData: { TestWallet1: walletEntry } })
 
       // 3. Run old-style migration to create KEYIMPORT vault
-      const result = await migrateWalletToVault('TestWallet1', walletEntry)
+      const result = await migrateWalletToVault(
+        'TestWallet1',
+        walletEntry
+      )
       if (!result.success) {
         throw new Error(`Migration failed: ${result.error}`)
       }
 
       // 4. Set flags so app goes to Main route (skip migration flow)
-      await preferences.setBool(PreferencesEnum.legacyKeystoreMigrated, true)
+      await preferences.setBool(
+        PreferencesEnum.legacyKeystoreMigrated,
+        true
+      )
       await preferences.setBool(PreferencesEnum.legacyDataFound, true)
       await preferences.setBool(PreferencesEnum.vaultsUpgraded, true)
 
       setStatus('seeded')
       setDone(true)
     } catch (e) {
-      setStatus(`error: ${e instanceof Error ? e.message : String(e)}`)
+      setStatus(
+        `error: ${e instanceof Error ? e.message : String(e)}`
+      )
       setDone(true)
     }
   }
 
   return (
     <View style={styles.container}>
-      <Text testID="seed-premigrated-status" style={styles.text}>{status}</Text>
-      {done && <Text testID="seed-premigrated-done" style={styles.text}>done</Text>}
+      <Text testID="seed-premigrated-status" style={styles.text}>
+        {status}
+      </Text>
+      {done && (
+        <Text testID="seed-premigrated-done" style={styles.text}>
+          done
+        </Text>
+      )}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#02122B' },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#02122B',
+  },
   text: { color: '#fff', fontSize: 16, marginVertical: 4 },
 })

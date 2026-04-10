@@ -20,6 +20,7 @@ import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 // run loop busy, blocking Detox idle detection. Normal dev mode loads it.
 const isDetox = NativeModules.DetoxManager != null
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamically loaded Rive component with no TS definitions
 let Rive: any = null
 let walletAnimUrl: string | null = null
 let backgroundAnimUrl: string | null = null
@@ -27,12 +28,14 @@ let backgroundAnimUrl: string | null = null
 if (!isDetox) {
   try {
     Rive = require('rive-react-native').default
-    walletAnimUrl = Image.resolveAssetSource(
-      require('../../../assets/animations/station_wallet_animation.riv')
-    )?.uri ?? null
-    backgroundAnimUrl = Image.resolveAssetSource(
-      require('../../../assets/animations/agent_background_transition.riv')
-    )?.uri ?? null
+    walletAnimUrl =
+      Image.resolveAssetSource(
+        require('../../../assets/animations/station_wallet_animation.riv')
+      )?.uri ?? null
+    backgroundAnimUrl =
+      Image.resolveAssetSource(
+        require('../../../assets/animations/agent_background_transition.riv')
+      )?.uri ?? null
   } catch {
     // rive-react-native not available — will render static fallback
   }
@@ -46,7 +49,7 @@ const ANIM_FINAL_TOP = 90
 
 type Nav = StackNavigationProp<MigrationStackParams, 'RiveIntro'>
 
-export default function RiveIntro() {
+export default function RiveIntro(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const navigated = useRef(false)
   const { width: screenWidth } = useWindowDimensions()
@@ -106,7 +109,14 @@ export default function RiveIntro() {
     ]).start(() => {
       navigation.replace('MigrationHome')
     })
-  }, [navigation, textOpacity, textTranslateY, animScale, animTop, bgOpacity])
+  }, [
+    navigation,
+    textOpacity,
+    textTranslateY,
+    animScale,
+    animTop,
+    bgOpacity,
+  ])
 
   const panResponder = useRef(
     PanResponder.create({
@@ -145,7 +155,11 @@ export default function RiveIntro() {
             },
           ]}
         >
-          <Rive url={walletAnimUrl} style={StyleSheet.absoluteFill} autoplay />
+          <Rive
+            url={walletAnimUrl}
+            style={StyleSheet.absoluteFill}
+            autoplay
+          />
         </Animated.View>
       ) : (
         <View style={styles.animationPlaceholder} />
@@ -155,14 +169,19 @@ export default function RiveIntro() {
       <Animated.View
         style={[
           styles.textArea,
-          { opacity: textOpacity, transform: [{ translateY: textTranslateY }] },
+          {
+            opacity: textOpacity,
+            transform: [{ translateY: textTranslateY }],
+          },
         ]}
       >
         <Text style={styles.title} fontType="bold">
           {'Station is entering\nthe Vultiverse'}
         </Text>
         <Text style={styles.subtitle} fontType="medium">
-          {'Your wallet is evolving into something new. Your funds. Better security.\nA whole new experience.'}
+          {
+            'Your wallet is evolving into something new. Your funds. Better security.\nA whole new experience.'
+          }
         </Text>
       </Animated.View>
 
@@ -170,7 +189,10 @@ export default function RiveIntro() {
       <Animated.View
         style={[
           styles.ctaWrap,
-          { opacity: textOpacity, transform: [{ translateY: textTranslateY }] },
+          {
+            opacity: textOpacity,
+            transform: [{ translateY: textTranslateY }],
+          },
         ]}
       >
         <Pressable onPress={goToHome} testID="enter-vultiverse-cta">

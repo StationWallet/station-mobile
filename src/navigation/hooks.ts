@@ -8,12 +8,15 @@ export interface WalletNav {
 }
 
 export const WalletNavContext = createContext<WalletNav>({
-  onWalletCreated: () => {},
-  onWalletDisconnected: () => {},
+  onWalletCreated: (): void => {},
+  onWalletDisconnected: (): void => {},
   goToMigration: undefined,
   wallets: [],
 })
 
-export const useWalletCreated = () => useContext(WalletNavContext).onWalletCreated
-export const useWalletDisconnected = () => useContext(WalletNavContext).onWalletDisconnected
-export const useWalletNav = () => useContext(WalletNavContext)
+export const useWalletCreated = (): (() => void) =>
+  useContext(WalletNavContext).onWalletCreated
+export const useWalletDisconnected = (): (() => void) =>
+  useContext(WalletNavContext).onWalletDisconnected
+export const useWalletNav = (): WalletNav =>
+  useContext(WalletNavContext)

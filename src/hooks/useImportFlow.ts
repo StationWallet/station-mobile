@@ -5,18 +5,30 @@ import type { StackNavigationProp } from '@react-navigation/stack'
 import * as DocumentPicker from 'expo-document-picker'
 import { File, Paths } from 'expo-file-system'
 
-import { importVaultBackup, persistImportedVault } from 'services/importVaultBackup'
+import {
+  importVaultBackup,
+  persistImportedVault,
+  type ImportVaultBackupResult,
+} from 'services/importVaultBackup'
 import { getErrorMessage } from 'utils/getErrorMessage'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'ImportVault'>
+
+type SuccessResult = Extract<
+  ImportVaultBackupResult,
+  { needsPassword: false }
+>
+
 const DETOX_STAGED_FILES = ['detox-import.vult', 'detox-import.bak']
 
 export type FileState = 'empty' | 'error' | 'success'
 
-const isVaultBackupFile = (name: string) => /\.(vult|bak)$/i.test(name)
+const isVaultBackupFile = (name: string): boolean =>
+  /\.(vult|bak)$/i.test(name)
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- return type is inferred from complex hook state
 export function useImportFlow() {
   const navigation = useNavigation<Nav>()
 
@@ -27,28 +39,39 @@ export function useImportFlow() {
 
   // Password sheet state
   const [showPasswordSheet, setShowPasswordSheet] = useState(false)
-  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [passwordError, setPasswordError] = useState<string | null>(
+    null
+  )
   const [decrypting, setDecrypting] = useState(false)
 
   const ctaTitle = loading ? 'Importing...' : 'Continue'
 
-  const navigateAfterImport = (vaultName: string) => {
+  const navigateAfterImport = (vaultName: string): void => {
     setFileContent(null)
-    navigation.navigate('MigrationSuccess', { results: [], importedVaultName: vaultName })
+    navigation.navigate('MigrationSuccess', {
+      results: [],
+      importedVaultName: vaultName,
+    })
   }
 
-  const persistAndNavigate = async (vaultBytes: Uint8Array, vaultName: string) => {
+  const persistAndNavigate = async (
+    vaultBytes: Uint8Array,
+    vaultName: string
+  ): Promise<void> => {
     await persistImportedVault(vaultBytes, vaultName)
     navigateAfterImport(vaultName)
   }
 
-  const importDetoxStagedFile = async () => {
+  const importDetoxStagedFile = async (): Promise<boolean> => {
     if (!__DEV__) return false
 
     let stagedFile: InstanceType<typeof File> | null = null
     for (const name of DETOX_STAGED_FILES) {
       const candidate = new File(Paths.document, name)
-      if (candidate.exists) { stagedFile = candidate; break }
+      if (candidate.exists) {
+        stagedFile = candidate
+        break
+      }
     }
     if (!stagedFile) return false
 
@@ -71,7 +94,11 @@ export function useImportFlow() {
           return true
         }
 
-        await persistAndNavigate(result.vaultBytes, result.vaultName)
+        const success = result as SuccessResult
+        await persistAndNavigate(
+          success.vaultBytes,
+          success.vaultName
+        )
         setLoading(false)
         return true
       } catch (err) {
@@ -84,7 +111,7 @@ export function useImportFlow() {
     return false
   }
 
-  const pickFile = async () => {
+  const pickFile = async (): Promise<void> => {
     try {
       if (await importDetoxStagedFile()) return
 
@@ -110,17 +137,25 @@ export function useImportFlow() {
 
       const selectedFile = new File(file.uri)
       const content = (await selectedFile.text()).trim()
-      console.log(`[Import] Read file: ${file.name}, ${content.length} chars`)
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `[Import] Read file: ${file.name}, ${content.length} chars`
+        )
+      }
 
       setFileName(file.name)
       setFileContent(content)
       setFileState('success')
     } catch (err) {
-      Alert.alert('Error', `Failed to read file: ${getErrorMessage(err)}`)
+      Alert.alert(
+        'Error',
+        `Failed to read file: ${getErrorMessage(err)}`
+      )
     }
   }
 
-  const importVault = async () => {
+  const importVault = async (): Promise<void> => {
     if (!fileContent || !fileName) return
 
     try {
@@ -136,7 +171,8 @@ export function useImportFlow() {
         return
       }
 
-      await persistAndNavigate(result.vaultBytes, result.vaultName)
+      const success = result as SuccessResult
+      await persistAndNavigate(success.vaultBytes, success.vaultName)
       setLoading(false)
     } catch (err) {
       setLoading(false)
@@ -144,7 +180,7 @@ export function useImportFlow() {
     }
   }
 
-  const submitPassword = async (pwd: string) => {
+  const submitPassword = async (pwd: string): Promise<void> => {
     if (!fileContent || !fileName || !pwd.trim()) return
 
     try {
@@ -163,7 +199,8 @@ export function useImportFlow() {
         return
       }
 
-      await persistAndNavigate(result.vaultBytes, result.vaultName)
+      const success = result as SuccessResult
+      await persistAndNavigate(success.vaultBytes, success.vaultName)
       setDecrypting(false)
       setShowPasswordSheet(false)
     } catch {
@@ -172,12 +209,12 @@ export function useImportFlow() {
     }
   }
 
-  const dismissPasswordSheet = () => {
+  const dismissPasswordSheet = (): void => {
     setShowPasswordSheet(false)
     setPasswordError(null)
   }
 
-  const resetSelection = () => {
+  const resetSelection = (): void => {
     setFileName(null)
     setFileContent(null)
     setFileState('empty')

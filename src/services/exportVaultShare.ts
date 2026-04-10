@@ -3,7 +3,10 @@ import { gcm } from '@noble/ciphers/aes.js'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { base64 } from '@scure/base'
 import * as ExpoCrypto from 'expo-crypto'
-import { cacheDirectory, writeAsStringAsync } from 'expo-file-system/legacy'
+import {
+  cacheDirectory,
+  writeAsStringAsync,
+} from 'expo-file-system/legacy'
 import * as Sharing from 'expo-sharing'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
@@ -18,7 +21,10 @@ import { getStoredVault } from './migrateToVault'
  * Output: nonce (12) + ciphertext + authTag (16).
  * Matches vultiagent-app / vultisig-ios encryption format.
  */
-function encryptWithPassword(data: Uint8Array, password: string): Uint8Array {
+function encryptWithPassword(
+  data: Uint8Array,
+  password: string
+): Uint8Array {
   const key = sha256(new TextEncoder().encode(password))
   const nonce = ExpoCrypto.getRandomBytes(12)
   const ciphertext = gcm(key, nonce).encrypt(data)
@@ -41,7 +47,7 @@ function encryptWithPassword(data: Uint8Array, password: string): Uint8Array {
 export async function exportVaultShare(
   walletName: string,
   exportPassword: string,
-  privateKeyHex?: string,  // Only needed for legacy vaults
+  privateKeyHex?: string // Only needed for legacy vaults
 ): Promise<string> {
   let vaultBytes: Uint8Array
 
@@ -53,7 +59,11 @@ export async function exportVaultShare(
       vaultBytes = base64.decode(stored)
     } else if (privateKeyHex) {
       const publicKeyHex = derivePublicKeyHex(privateKeyHex)
-      const vaultProto = buildVaultProto(walletName, publicKeyHex, privateKeyHex)
+      const vaultProto = buildVaultProto(
+        walletName,
+        publicKeyHex,
+        privateKeyHex
+      )
       vaultBytes = toBinary(VaultSchema, vaultProto)
     } else {
       throw new Error('privateKeyHex is required for legacy vaults')
@@ -63,10 +73,17 @@ export async function exportVaultShare(
       throw new Error('No vault found and no privateKeyHex provided')
     }
     const publicKeyHex = derivePublicKeyHex(privateKeyHex)
-    const vaultProto = buildVaultProto(walletName, publicKeyHex, privateKeyHex)
+    const vaultProto = buildVaultProto(
+      walletName,
+      publicKeyHex,
+      privateKeyHex
+    )
     vaultBytes = toBinary(VaultSchema, vaultProto)
   }
-  const encryptedBytes = encryptWithPassword(vaultBytes, exportPassword)
+  const encryptedBytes = encryptWithPassword(
+    vaultBytes,
+    exportPassword
+  )
 
   const container = create(VaultContainerSchema, {
     version: 1n,

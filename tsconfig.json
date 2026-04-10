@@ -23,5 +23,6 @@
       "nativeModules/*": ["./nativeModules/*"],
       "lib/*": ["./lib/*"]
     }
-  }
+  },
+  "exclude": ["e2e"]
 }

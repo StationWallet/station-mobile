@@ -13,7 +13,16 @@ import TerraWallet from 'nativeModules/terraWallet'
 import { COLORS } from 'consts/theme'
 import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
 
-const Step3 = ({ navigation }: any) => {
+const Step3 = ({
+  navigation,
+}: {
+  navigation: {
+    navigate: (
+      screen: string,
+      params?: Record<string, unknown>
+    ) => void
+  }
+}): React.ReactElement => {
   const [mnemonic, setMnemonic] = useState('')
   const [loading, setLoading] = useState(true)
   const setSeed = useSetRecoilState(NewWalletStore.seed)
@@ -30,7 +39,7 @@ const Step3 = ({ navigation }: any) => {
 
   const words = mnemonic.split(' ')
 
-  const handleNext = () => {
+  const handleNext = (): void => {
     navigation.navigate('WalletCreated', {
       mnemonic,
       name,
@@ -59,9 +68,9 @@ const Step3 = ({ navigation }: any) => {
 
         <View style={styles.warningBox}>
           <Text style={styles.warningText}>
-            Write these 24 words down in order and store them in a safe
-            place. Anyone with your seed phrase can access your wallet.
-            Do not share it with anyone.
+            Write these 24 words down in order and store them in a
+            safe place. Anyone with your seed phrase can access your
+            wallet. Do not share it with anyone.
           </Text>
         </View>
 
@@ -74,8 +83,13 @@ const Step3 = ({ navigation }: any) => {
           ))}
         </View>
 
-        <TouchableOpacity style={authStyles.button} onPress={handleNext}>
-          <Text style={authStyles.buttonText}>I've saved it</Text>
+        <TouchableOpacity
+          style={authStyles.button}
+          onPress={handleNext}
+        >
+          <Text style={authStyles.buttonText}>
+            I&apos;ve saved it
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

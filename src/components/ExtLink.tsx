@@ -1,5 +1,10 @@
 import React, { ReactElement } from 'react'
-import { Linking, StyleProp, TextStyle, TouchableOpacity } from 'react-native'
+import {
+  Linking,
+  StyleProp,
+  TextStyle,
+  TouchableOpacity,
+} from 'react-native'
 
 import Text from './Text'
 

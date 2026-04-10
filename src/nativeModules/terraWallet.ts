@@ -14,7 +14,8 @@ export type TerraWalletType = {
 const TerraWallet: TerraWalletType = {
   getNewWallet: async () => {
     const mk = new MnemonicKey()
-    const pubKeyBase64 = (mk.publicKey as any)?.key || ''
+    const pubKeyBase64 =
+      (mk.publicKey as { key?: string } | null)?.key || ''
     return {
       privateKey: mk.privateKey.toString('hex'),
       publicKey: pubKeyBase64,

@@ -1,4 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import {
   View,
   FlatList,
@@ -25,8 +30,8 @@ interface TxResponse {
   timestamp: string
   tx: {
     '@type': string
-    body: { messages: any[]; memo: string }
-    auth_info: any
+    body: { messages: Record<string, unknown>[]; memo: string }
+    auth_info: unknown
     signatures: string[]
   }
 }
@@ -39,7 +44,7 @@ interface CosmosTxSearchResult {
 
 const PAGE_SIZE = 20
 
-export default function History() {
+export default function History(): React.ReactElement {
   const { params } = useRoute<RouteProp<RouteParams, 'History'>>()
   const { address } = params
   const { chain } = useConfig()
@@ -58,7 +63,10 @@ export default function History() {
     async (query: string, offset: number) => {
       // Single quotes must be %27 for Cosmos SDK — use fetch to avoid
       // axios re-encoding %27 back to literal quotes
-      const encodedQuery = encodeURIComponent(query).replace(/'/g, '%27')
+      const encodedQuery = encodeURIComponent(query).replace(
+        /'/g,
+        '%27'
+      )
       const qs = `query=${encodedQuery}&order_by=ORDER_BY_DESC&pagination.limit=${PAGE_SIZE}&pagination.offset=${offset}`
       const url = `${lcdUrl}/cosmos/tx/v1beta1/txs?${qs}`
 
@@ -67,9 +75,14 @@ export default function History() {
       for (let attempt = 0; attempt < 2; attempt++) {
         const res = await fetch(url)
         const data: CosmosTxSearchResult = await res.json()
-        if ((data.tx_responses?.length ?? 0) > 0 || attempt === 1) return data
+        if ((data.tx_responses?.length ?? 0) > 0 || attempt === 1)
+          return data
       }
-      return { tx_responses: [], total: '0', pagination: null } as CosmosTxSearchResult
+      return {
+        tx_responses: [],
+        total: '0',
+        pagination: null,
+      } as CosmosTxSearchResult
     },
     [lcdUrl]
   )
@@ -93,7 +106,8 @@ export default function History() {
         })
         .sort(
           (a, b) =>
-            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            new Date(b.timestamp).getTime() -
+            new Date(a.timestamp).getTime()
         )
 
       return {
@@ -105,14 +119,21 @@ export default function History() {
     [fetchByQuery, address]
   )
 
-  const resetFromResult = useCallback((result: { txs: TxResponse[]; hasMoreSent: boolean; hasMoreReceived: boolean }) => {
-    seenHashes.current = new Set(result.txs.map((tx) => tx.txhash))
-    setTxs(result.txs)
-    setHasMoreSent(result.hasMoreSent)
-    setHasMoreReceived(result.hasMoreReceived)
-    setSentOffset(PAGE_SIZE)
-    setReceivedOffset(PAGE_SIZE)
-  }, [])
+  const resetFromResult = useCallback(
+    (result: {
+      txs: TxResponse[]
+      hasMoreSent: boolean
+      hasMoreReceived: boolean
+    }) => {
+      seenHashes.current = new Set(result.txs.map((tx) => tx.txhash))
+      setTxs(result.txs)
+      setHasMoreSent(result.hasMoreSent)
+      setHasMoreReceived(result.hasMoreReceived)
+      setSentOffset(PAGE_SIZE)
+      setReceivedOffset(PAGE_SIZE)
+    },
+    []
+  )
 
   const loadInitial = useCallback(async () => {
     setLoading(true)
@@ -133,7 +154,10 @@ export default function History() {
           ? fetchByQuery(`message.sender='${address}'`, sentOffset)
           : Promise.resolve(null),
         hasMoreReceived
-          ? fetchByQuery(`coin_received.receiver='${address}'`, receivedOffset)
+          ? fetchByQuery(
+              `coin_received.receiver='${address}'`,
+              receivedOffset
+            )
           : Promise.resolve(null),
       ])
       const sentTxs = sent?.tx_responses || []
@@ -147,7 +171,8 @@ export default function History() {
         })
         .sort(
           (a, b) =>
-            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            new Date(b.timestamp).getTime() -
+            new Date(a.timestamp).getTime()
         )
       setTxs((prev) => [...prev, ...unique])
       if (hasMoreSent) {
@@ -162,7 +187,14 @@ export default function History() {
       setHasMoreSent(false)
       setHasMoreReceived(false)
     }
-  }, [fetchByQuery, address, sentOffset, receivedOffset, hasMoreSent, hasMoreReceived])
+  }, [
+    fetchByQuery,
+    address,
+    sentOffset,
+    receivedOffset,
+    hasMoreSent,
+    hasMoreReceived,
+  ])
 
   const refresh = useCallback(async () => {
     setRefreshing(true)
@@ -188,8 +220,10 @@ export default function History() {
       const msgs = tx.tx?.body?.messages || []
       if (msgs.length === 0) return 'Unknown'
       const msg = msgs[0]
-      const type: string = msg['@type'] || ''
-      const baseType = type.split('.').pop()?.replace('Msg', '') || 'Unknown'
+      const type: string =
+        ((msg as Record<string, unknown>)['@type'] as string) || ''
+      const baseType =
+        type.split('.').pop()?.replace('Msg', '') || 'Unknown'
 
       if (baseType === 'Send') {
         if (msg.to_address === address) return 'Receive'
@@ -202,23 +236,39 @@ export default function History() {
     }
   }
 
-  const renderItem = ({ item }: { item: TxResponse }) => {
+  const renderItem = ({
+    item,
+  }: {
+    item: TxResponse
+  }): React.ReactElement => {
     const hash = item.txhash || ''
     const success = !item.code || item.code === 0
     const timestamp = item.timestamp || ''
     const msgType = getTxLabel(item)
 
     return (
-      <TouchableOpacity style={styles.row} onPress={() => openExplorer(hash)}>
+      <TouchableOpacity
+        style={styles.row}
+        onPress={() => openExplorer(hash)}
+      >
         <View style={styles.rowLeft}>
           <Text style={styles.msgType}>{msgType}</Text>
           <Text style={styles.date}>{timestamp}</Text>
         </View>
         <View style={styles.rowRight}>
-          <View style={[styles.badge, success ? styles.badgeSuccess : styles.badgeFail]}>
-            <Text style={styles.badgeText}>{success ? 'OK' : 'FAIL'}</Text>
+          <View
+            style={[
+              styles.badge,
+              success ? styles.badgeSuccess : styles.badgeFail,
+            ]}
+          >
+            <Text style={styles.badgeText}>
+              {success ? 'OK' : 'FAIL'}
+            </Text>
           </View>
-          <Text style={styles.hash}>{UTIL.truncate(hash, [6, 4])}</Text>
+          <Text style={styles.hash}>
+            {UTIL.truncate(hash, [6, 4])}
+          </Text>
         </View>
       </TouchableOpacity>
     )
@@ -239,11 +289,18 @@ export default function History() {
           keyExtractor={(item) => item.txhash}
           renderItem={renderItem}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#fff" />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={refresh}
+              tintColor="#fff"
+            />
           }
           ListFooterComponent={
             hasMore ? (
-              <TouchableOpacity style={styles.loadMore} onPress={loadMore}>
+              <TouchableOpacity
+                style={styles.loadMore}
+                onPress={loadMore}
+              >
                 <Text style={styles.loadMoreText}>Load more</Text>
               </TouchableOpacity>
             ) : null
@@ -256,8 +313,18 @@ export default function History() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg, padding: 16 },
-  title: { color: COLORS.textPrimary, fontSize: 20, fontWeight: '600', marginBottom: 16 },
-  empty: { color: COLORS.textSecondary, fontSize: 16, textAlign: 'center', marginTop: 48 },
+  title: {
+    color: COLORS.textPrimary,
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  empty: {
+    color: COLORS.textSecondary,
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 48,
+  },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -269,9 +336,18 @@ const styles = StyleSheet.create({
   },
   rowLeft: { flex: 1 },
   rowRight: { alignItems: 'flex-end' },
-  msgType: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '600' },
+  msgType: {
+    color: COLORS.textPrimary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
   date: { color: COLORS.textSecondary, fontSize: 12, marginTop: 4 },
-  badge: { borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginBottom: 4 },
+  badge: {
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginBottom: 4,
+  },
   badgeSuccess: { backgroundColor: COLORS.success },
   badgeFail: { backgroundColor: COLORS.error },
   badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },

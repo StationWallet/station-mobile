@@ -7,9 +7,17 @@ type Props = {
   testID?: string
 }
 
-export default function GlassButton({ onPress, children, testID }: Props) {
+export default function GlassButton({
+  onPress,
+  children,
+  testID,
+}: Props): React.ReactElement {
   return (
-    <TouchableOpacity onPress={onPress} style={styles.container} testID={testID}>
+    <TouchableOpacity
+      onPress={onPress}
+      style={styles.container}
+      testID={testID}
+    >
       <View style={styles.layerBase} />
       <View style={styles.layerMain} />
       <View style={styles.layerHighlight} />

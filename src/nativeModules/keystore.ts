@@ -17,17 +17,24 @@ export type KeystoreType = {
 export const LEGACY_SERVICE_PREFIX = 'app.keystore'
 export const LEGACY_ACCOUNT = 'keystore'
 
-export function keychainOpts(key: string): SecureStore.SecureStoreOptions {
+export function keychainOpts(
+  key: string
+): SecureStore.SecureStoreOptions {
   return {
     keychainService: `${LEGACY_SERVICE_PREFIX}-${key}`,
-    keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
+    keychainAccessible:
+      SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
   }
 }
 
 export default {
   write: async (key: string, value: string): Promise<boolean> => {
     try {
-      await SecureStore.setItemAsync(LEGACY_ACCOUNT, value, keychainOpts(key))
+      await SecureStore.setItemAsync(
+        LEGACY_ACCOUNT,
+        value,
+        keychainOpts(key)
+      )
       return true
     } catch {
       return false
@@ -35,7 +42,10 @@ export default {
   },
   read: async (key: string): Promise<string> => {
     try {
-      const value = await SecureStore.getItemAsync(LEGACY_ACCOUNT, keychainOpts(key))
+      const value = await SecureStore.getItemAsync(
+        LEGACY_ACCOUNT,
+        keychainOpts(key)
+      )
       return value || ''
     } catch {
       return ''
@@ -43,12 +53,16 @@ export default {
   },
   remove: async (key: string): Promise<boolean> => {
     try {
-      await SecureStore.deleteItemAsync(LEGACY_ACCOUNT, keychainOpts(key))
+      await SecureStore.deleteItemAsync(
+        LEGACY_ACCOUNT,
+        keychainOpts(key)
+      )
       return true
     } catch {
       return false
     }
   },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- interface requires key param
   migratePreferences: async (_key: string): Promise<void> => {
     // No-op — preferences were in MMKV (now inaccessible after Expo migration).
     // Wallet data is NOT preserved by name matching — the old keychain service was

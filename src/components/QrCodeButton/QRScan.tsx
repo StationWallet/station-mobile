@@ -1,5 +1,5 @@
 import React, { ReactElement, useState } from 'react'
-import { View, StyleSheet, TouchableOpacity, Text as RNText } from 'react-native'
+import { View, StyleSheet, TouchableOpacity } from 'react-native'
 import { CameraView } from 'expo-camera'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -27,7 +27,8 @@ const QRScan = ({
     if (scanned) return
     setScanned(true)
 
-    const parsedData = (dataParser ? dataParser({ data }) : data) || ''
+    const parsedData =
+      (dataParser ? dataParser({ data }) : data) || ''
 
     if (onlyIfScan) {
       const errorMessage = onlyIfScan({ data: parsedData })

@@ -11,17 +11,20 @@ import NewWalletStore from 'stores/NewWalletStore'
 import { COLORS } from 'consts/theme'
 import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
 
-const Step2 = ({ navigation }: any) => {
+const Step2 = ({
+  navigation,
+}: {
+  navigation: { navigate: (screen: string) => void }
+}): React.ReactElement => {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const setStorePassword = useSetRecoilState(NewWalletStore.password)
 
   const tooShort = password.length > 0 && password.length < 10
   const mismatch = confirm.length > 0 && password !== confirm
-  const canProceed =
-    password.length >= 10 && password === confirm
+  const canProceed = password.length >= 10 && password === confirm
 
-  const handleNext = () => {
+  const handleNext = (): void => {
     setStorePassword(password)
     navigation.navigate('NewWalletStep3')
   }
@@ -40,7 +43,10 @@ const Step2 = ({ navigation }: any) => {
         <View style={[authStyles.inputGroup, { marginBottom: 20 }]}>
           <Text style={authStyles.label}>Password</Text>
           <TextInput
-            style={[authStyles.input, tooShort && authStyles.inputError]}
+            style={[
+              authStyles.input,
+              tooShort && authStyles.inputError,
+            ]}
             value={password}
             onChangeText={setPassword}
             placeholder="Enter password"
@@ -60,7 +66,10 @@ const Step2 = ({ navigation }: any) => {
         <View style={[authStyles.inputGroup, { marginBottom: 20 }]}>
           <Text style={authStyles.label}>Confirm Password</Text>
           <TextInput
-            style={[authStyles.input, mismatch && authStyles.inputError]}
+            style={[
+              authStyles.input,
+              mismatch && authStyles.inputError,
+            ]}
             value={confirm}
             onChangeText={setConfirm}
             placeholder="Confirm password"
@@ -70,12 +79,17 @@ const Step2 = ({ navigation }: any) => {
             autoComplete="off"
           />
           {mismatch && (
-            <Text style={authStyles.errorText}>Passwords do not match</Text>
+            <Text style={authStyles.errorText}>
+              Passwords do not match
+            </Text>
           )}
         </View>
 
         <TouchableOpacity
-          style={[authStyles.button, !canProceed && authStyles.buttonDisabled]}
+          style={[
+            authStyles.button,
+            !canProceed && authStyles.buttonDisabled,
+          ]}
           onPress={handleNext}
           disabled={!canProceed}
         >

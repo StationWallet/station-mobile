@@ -7,6 +7,7 @@ import {
   getAuthDataValue,
   removeAuthData,
   upsertAuthData,
+  AuthDataValueType,
 } from './authData'
 
 const sanitize = (s = ''): string =>
@@ -84,7 +85,7 @@ export const decryptKey = (
 export const getWallets = async (): Promise<LocalWallet[]> => {
   const authData = await getAuthData()
   return _.map(authData, (wallet, name) => {
-    if(wallet?.ledger){
+    if (wallet?.ledger) {
       return { ...wallet, name }
     } else {
       return { ...wallet, name, ledger: false }
@@ -93,7 +94,7 @@ export const getWallets = async (): Promise<LocalWallet[]> => {
 }
 
 export const getWallet = async (
-  name: string,
+  name: string
 ): Promise<LocalWallet | undefined> => {
   const wallets = await getWallets()
   return wallets.find((wallet) => wallet.name === name)
@@ -103,8 +104,11 @@ export const getEncryptedKey = async (
   name: string
 ): Promise<string> => {
   const authDataValue = await getAuthDataValue(name)
-  if(authDataValue?.ledger) throw new Error("Can't get the raw key from Ledger")
-  return authDataValue ? authDataValue.encryptedKey : ''
+  if (authDataValue?.ledger)
+    throw new Error("Can't get the raw key from Ledger")
+  return authDataValue
+    ? (authDataValue as AuthDataValueType).encryptedKey
+    : ''
 }
 
 export const addWallet = async ({
@@ -118,10 +122,13 @@ export const addWallet = async ({
 }): Promise<boolean> => {
   const wallets = await getWallets()
 
-  if (wallet.name !== 'Ledger' && wallets.find((w) => w.name === wallet.name))
+  if (
+    wallet.name !== 'Ledger' &&
+    wallets.find((w) => w.name === wallet.name)
+  )
     throw new Error('Wallet with that name already exists')
-  
-  if(wallet.ledger) {
+
+  if (wallet.ledger) {
     return await upsertAuthData({
       authData: {
         [wallet.name]: {
@@ -168,16 +175,16 @@ export const changePassword = async (
   ondPassword: string,
   newPassword: string
 ): Promise<boolean> => {
-
   const decryptedKey = await getDecyrptedKey(name, ondPassword)
   const encryptedKey = encrypt(decryptedKey, newPassword)
   const authDataValue = await getAuthDataValue(name)
-  if(authDataValue?.ledger) return false;
+  if (authDataValue?.ledger) return false
   if (authDataValue) {
+    const authValue = authDataValue as AuthDataValueType
     upsertAuthData({
       authData: {
         [name]: {
-          ...authDataValue,
+          ...authValue,
           password: newPassword,
           encryptedKey,
         },
@@ -198,7 +205,7 @@ export const testPassword = async ({
   { isSuccess: true } | { isSuccess: false; errorMessage: string }
 > => {
   const wallet = await getWallet(name)
-  if(wallet?.ledger) {
+  if (wallet?.ledger) {
     return {
       isSuccess: true,
     }
