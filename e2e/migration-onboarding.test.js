@@ -78,6 +78,12 @@ describe('Migration Onboarding Flow', () => {
     // --- Migration UI flow ---
 
     it('shows MigrationHome with Start Migration CTA', async () => {
+      // Tap through RiveIntro
+      await waitFor(element(by.id('enter-vultiverse-cta')))
+        .toBeVisible()
+        .withTimeout(90000);
+      await element(by.id('enter-vultiverse-cta')).tap();
+
       await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
         .withTimeout(90000);

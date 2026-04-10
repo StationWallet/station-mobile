@@ -19,6 +19,7 @@ import { importKeyToFastVault, KeyImportResult, KeyImportProgress } from 'servic
 import { storeFastVault } from 'services/migrateToVault'
 import { getAuthDataValue, AuthDataValueType } from 'utils/authData'
 import { decrypt } from 'utils/crypto'
+import { randomHex } from 'utils/mpcCrypto'
 import type { MigrationResult } from 'services/migrateToVault'
 import { advanceToNextWallet } from 'utils/migrationNav'
 
@@ -78,18 +79,9 @@ export default function KeygenProgress() {
       let result: KeyImportResult
 
       if (mode === 'create') {
-        // TODO: Wire actual fresh keygen service here.
-        // For now, use importKeyToFastVault as a placeholder so the
-        // flow is exercisable end-to-end.
-        const authEntry = await getAuthDataValue(walletName)
-        if (!authEntry || authEntry.ledger) {
-          throw new Error('No auth data found for wallet')
-        }
-        const standardData = authEntry as AuthDataValueType
-        const privateKeyHex = decrypt(standardData.encryptedKey, standardData.password)
-        if (!privateKeyHex) {
-          throw new Error('Failed to decrypt private key')
-        }
+        // Fresh vault creation — generate a new random secp256k1 private key
+        // and import it into a 2-of-2 DKLS fast vault.
+        const privateKeyHex = randomHex(32)
         result = await importKeyToFastVault({
           name: walletName,
           email,

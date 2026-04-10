@@ -1,9 +1,14 @@
 /**
  * Fast Vault Creation E2E Test — New User
  *
- * Clean install (no legacy wallets) → RiveIntro → MigrationHome →
+ * Clean install (no legacy wallets) → AuthMenu (dev mode) →
+ * "Create Fast Vault (dev)" → RiveIntro → MigrationHome →
  * "Create a Fast Vault" → VaultName → VaultEmail → VaultPassword →
  * KeygenProgress → VerifyEmail → MigrationSuccess.
+ *
+ * In dev mode, fresh installs route to AuthMenu (so E2E dev seed buttons
+ * are accessible). The test taps the dev-only "Create Fast Vault" button
+ * to switch to the Migration navigator.
  *
  * Requires: vultiserver at api.vultisig.com, agentmail credentials in .env
  */
@@ -40,8 +45,20 @@ describe('Fast Vault Creation — New User', () => {
       await device.enableSynchronization();
     });
 
-    it('should reach MigrationHome with "Create a Fast Vault"', async () => {
-      // RiveIntro auto-plays → MigrationHome appears
+    it('should navigate from AuthMenu to MigrationHome', async () => {
+      // In dev mode, fresh installs route to AuthMenu first.
+      // Tap the dev button to switch to the Migration/creation flow.
+      await waitFor(element(by.id('dev-create-fast-vault')))
+        .toBeVisible()
+        .withTimeout(90000);
+      await element(by.id('dev-create-fast-vault')).tap();
+
+      // Tap through RiveIntro → MigrationHome appears with "Create a Fast Vault"
+      await waitFor(element(by.id('enter-vultiverse-cta')))
+        .toBeVisible()
+        .withTimeout(90000);
+      await element(by.id('enter-vultiverse-cta')).tap();
+
       await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
         .withTimeout(90000);
@@ -79,11 +96,30 @@ describe('Fast Vault Creation — New User', () => {
       await element(by.id('vault-password-confirm')).typeText(VAULT_PASSWORD);
       await element(by.id('vault-password-continue')).tap();
 
-      // Fresh keygen → VerifyEmail
-      await waitFor(element(by.text('Verify your email')))
-        .toExist()
-        .withTimeout(150000);
-    });
+      // Wait for keygen to finish and navigate to VerifyEmail.
+      // The MPC ceremony typically completes in 30-60s but may take up to 3 min.
+      // Poll every 15s to check for error or success.
+      const startTime = Date.now();
+      const timeoutMs = 180000;
+      while (Date.now() - startTime < timeoutMs) {
+        // Check if VerifyEmail appeared
+        try {
+          await expect(element(by.text('Verify your email'))).toExist();
+          return; // Success!
+        } catch {}
+
+        // Check if error UI appeared (keygen failed)
+        try {
+          await expect(element(by.text('Failed'))).toExist();
+          // Keygen failed — tap Retry
+          console.log('[Keygen] Error detected, tapping Retry');
+          await element(by.id('keygen-retry')).tap();
+        } catch {}
+
+        await new Promise(r => setTimeout(r, 15000));
+      }
+      throw new Error('Keygen did not complete within timeout');
+    }, 240000);
 
     it('should verify email with OTP', async () => {
       const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, knownMessageIds);

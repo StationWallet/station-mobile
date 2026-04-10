@@ -89,6 +89,10 @@ export default function AppNavigator() {
     }
   }, [loadWallets])
 
+  const goToMigration = useCallback(() => {
+    setRootRoute('Migration')
+  }, [])
+
   const navTheme = useMemo(() => ({
     ...DefaultTheme,
     colors: {
@@ -100,7 +104,7 @@ export default function AppNavigator() {
   if (rootRoute === null || wallets === null) return null
 
   return (
-    <WalletNavContext.Provider value={{ onWalletCreated, onWalletDisconnected, wallets }}>
+    <WalletNavContext.Provider value={{ onWalletCreated, onWalletDisconnected, goToMigration, wallets }}>
       <MigrationContext.Provider value={{ onMigrationComplete }}>
         <NavigationContainer theme={navTheme}>
           {rootRoute === 'Migration' ? (

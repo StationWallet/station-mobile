@@ -47,7 +47,12 @@ describe('Import Vault', () => {
     });
 
     it('should play RiveIntro and reach MigrationHome', async () => {
-      // Clean install (no wallets) → RiveIntro auto-plays → MigrationHome
+      // Tap through RiveIntro → MigrationHome
+      await waitFor(element(by.id('enter-vultiverse-cta')))
+        .toBeVisible()
+        .withTimeout(90000);
+      await element(by.id('enter-vultiverse-cta')).tap();
+
       await waitFor(element(by.id('import-vault-button')))
         .toBeVisible()
         .withTimeout(90000);
@@ -121,7 +126,12 @@ describe('Import Vault', () => {
       });
 
       it('should reach ImportVault screen', async () => {
-        // RiveIntro → MigrationHome
+        // Tap through RiveIntro → MigrationHome
+        await waitFor(element(by.id('enter-vultiverse-cta')))
+          .toBeVisible()
+          .withTimeout(90000);
+        await element(by.id('enter-vultiverse-cta')).tap();
+
         await waitFor(element(by.id('import-vault-button')))
           .toBeVisible()
           .withTimeout(90000);

@@ -1,5 +1,13 @@
-import React, { useCallback, useEffect, useRef } from 'react'
-import { View, StyleSheet } from 'react-native'
+import React, { useCallback, useRef, useState } from 'react'
+import {
+  Animated,
+  Image,
+  PanResponder,
+  Pressable,
+  View,
+  StyleSheet,
+  useWindowDimensions,
+} from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 
@@ -7,57 +15,191 @@ import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-// In dev mode, skip Rive to avoid blocking Detox idle detection.
-// In production, load Rive and play the animations.
-const Rive = __DEV__ ? null : require('rive-react-native').default
+// Load Rive with graceful fallback (follows vultiagent pattern)
+let Rive: any = null
+try {
+  Rive = require('rive-react-native').default
+} catch {
+  // rive-react-native not available — will render static fallback
+}
+
+// Resolve asset URIs so Rive can fetch them in both dev and production.
+const walletAnimUrl = Rive
+  ? Image.resolveAssetSource(
+      require('../../../assets/animations/station_wallet_animation.riv')
+    )?.uri
+  : null
+
+const backgroundAnimUrl = Rive
+  ? Image.resolveAssetSource(
+      require('../../../assets/animations/agent_background_transition.riv')
+    )?.uri
+  : null
+
+const SWIPE_THRESHOLD = 50
+const ANIM_INITIAL_TOP = 179
+const ANIM_INITIAL_SIZE = 300
+const ANIM_FINAL_SIZE = 200
+const ANIM_FINAL_TOP = 90
 
 type Nav = StackNavigationProp<MigrationStackParams, 'RiveIntro'>
 
 export default function RiveIntro() {
   const navigation = useNavigation<Nav>()
   const navigated = useRef(false)
+  const { width: screenWidth } = useWindowDimensions()
+
+  // Animated values for the exit transition
+  const textOpacity = useRef(new Animated.Value(1)).current
+  const textTranslateY = useRef(new Animated.Value(0)).current
+  const animScale = useRef(new Animated.Value(1)).current
+  const animTop = useRef(new Animated.Value(ANIM_INITIAL_TOP)).current
+  const bgOpacity = useRef(new Animated.Value(0)).current
+
+  // Show the background Rive only after gesture starts
+  const [showBgTransition, setShowBgTransition] = useState(false)
 
   const goToHome = useCallback(() => {
     if (navigated.current) return
     navigated.current = true
-    navigation.replace('MigrationHome')
-  }, [navigation])
 
-  useEffect(() => {
-    const delay = __DEV__ ? 100 : 8000
-    const timer = setTimeout(goToHome, delay)
-    return () => clearTimeout(timer)
-  }, [goToHome])
+    // Start the background transition Rive
+    setShowBgTransition(true)
 
-  // Dev mode: simple static splash
-  if (!Rive) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.content}>
-          <Text style={styles.stationText} fontType="bold">
-            Station Wallet
-          </Text>
-        </View>
-      </View>
-    )
-  }
+    // Run exit animations per Figma annotations
+    Animated.parallel([
+      // Text dissolves upward: fade out, 300ms linear
+      Animated.timing(textOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(textTranslateY, {
+        toValue: -30,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      // Wallet animation scales down: 300→200 (scale 0.667), 380ms, 40ms delay
+      Animated.sequence([
+        Animated.delay(40),
+        Animated.parallel([
+          Animated.timing(animScale, {
+            toValue: ANIM_FINAL_SIZE / ANIM_INITIAL_SIZE,
+            duration: 380,
+            useNativeDriver: false,
+          }),
+          Animated.timing(animTop, {
+            toValue: ANIM_FINAL_TOP,
+            duration: 380,
+            useNativeDriver: false,
+          }),
+        ]),
+      ]),
+      // Dark background fades in
+      Animated.timing(bgOpacity, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      navigation.replace('MigrationHome')
+    })
+  }, [navigation, textOpacity, textTranslateY, animScale, animTop, bgOpacity])
 
-  // Production: Rive animations
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_evt, gestureState) =>
+        Math.abs(gestureState.dy) > 10,
+      onPanResponderRelease: (_evt, gestureState) => {
+        if (gestureState.dy < -SWIPE_THRESHOLD) {
+          goToHome()
+        }
+      },
+    })
+  ).current
+
+  const animWidth = animScale.interpolate({
+    inputRange: [ANIM_FINAL_SIZE / ANIM_INITIAL_SIZE, 1],
+    outputRange: [ANIM_FINAL_SIZE, ANIM_INITIAL_SIZE],
+  })
+  const animHeight = animWidth
+
   return (
-    <View style={styles.container}>
-      <Rive
-        source={require('../../../assets/animations/agent_background_transition.riv')}
-        style={StyleSheet.absoluteFill}
-        autoplay
-        onStop={goToHome}
-      />
-      <View style={styles.walletAnimation}>
-        <Rive
-          source={require('../../../assets/animations/station_wallet_animation.riv')}
-          style={styles.walletRive}
-          autoplay
-        />
-      </View>
+    <View style={styles.container} {...panResponder.panHandlers}>
+      {/* Wallet Rive animation */}
+      {Rive && walletAnimUrl ? (
+        <Animated.View
+          style={[
+            styles.walletAnimation,
+            {
+              top: animTop,
+              width: animWidth,
+              height: animHeight,
+              left: Animated.subtract(
+                screenWidth / 2,
+                Animated.divide(animWidth, 2)
+              ),
+            },
+          ]}
+        >
+          <Rive url={walletAnimUrl} style={StyleSheet.absoluteFill} autoplay />
+        </Animated.View>
+      ) : (
+        <View style={styles.animationPlaceholder} />
+      )}
+
+      {/* Text area — dissolves upward on transition */}
+      <Animated.View
+        style={[
+          styles.textArea,
+          { opacity: textOpacity, transform: [{ translateY: textTranslateY }] },
+        ]}
+      >
+        <Text style={styles.title} fontType="bold">
+          {'Station is entering\nthe Vultiverse'}
+        </Text>
+        <Text style={styles.subtitle} fontType="medium">
+          {'Your wallet is evolving into something new. Your funds. Better security.\nA whole new experience.'}
+        </Text>
+      </Animated.View>
+
+      {/* CTA — also dissolves out */}
+      <Animated.View
+        style={[
+          styles.ctaWrap,
+          { opacity: textOpacity, transform: [{ translateY: textTranslateY }] },
+        ]}
+      >
+        <Pressable onPress={goToHome} testID="enter-vultiverse-cta">
+          <Text style={styles.ctaText} fontType="brockmann-semibold">
+            Enter the Vultiverse
+          </Text>
+        </Pressable>
+      </Animated.View>
+
+      {/* Dark background transition — rendered on top, fades in */}
+      {showBgTransition && (
+        <Animated.View
+          style={[StyleSheet.absoluteFill, { opacity: bgOpacity }]}
+          pointerEvents="none"
+        >
+          {Rive && backgroundAnimUrl ? (
+            <Rive
+              url={backgroundAnimUrl}
+              style={StyleSheet.absoluteFill}
+              autoplay
+            />
+          ) : (
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: MIGRATION.bg },
+              ]}
+            />
+          )}
+        </Animated.View>
+      )}
     </View>
   )
 }
@@ -67,24 +209,43 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  content: {
+  animationPlaceholder: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stationText: {
-    fontSize: 20,
-    color: MIGRATION.stationBlue,
   },
   walletAnimation: {
     position: 'absolute',
-    top: 179,
-    left: 0,
-    right: 0,
+  },
+  textArea: {
+    position: 'absolute',
+    bottom: 140,
+    left: MIGRATION.screenPadding,
+    right: MIGRATION.screenPadding,
     alignItems: 'center',
   },
-  walletRive: {
-    width: 300,
-    height: 300,
+  title: {
+    fontSize: 24,
+    color: MIGRATION.stationBlue,
+    textAlign: 'center',
+    lineHeight: 30,
+    letterSpacing: 0.3,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: MIGRATION.stationBlue,
+    textAlign: 'center',
+    marginTop: 12,
+    lineHeight: 20,
+  },
+  ctaWrap: {
+    position: 'absolute',
+    bottom: 80,
+    alignSelf: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  ctaText: {
+    fontSize: 14,
+    color: MIGRATION.textTertiary,
+    lineHeight: 18,
   },
 })

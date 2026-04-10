@@ -53,8 +53,12 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
     });
 
     it('shows MigrationHome with migration CTA', async () => {
-      // RiveIntro plays then MigrationHome renders with the CTA button
-      // Second launch uses cached Metro bundle so should be faster
+      // Tap through RiveIntro → MigrationHome renders with the CTA button
+      await waitFor(element(by.id('enter-vultiverse-cta')))
+        .toBeVisible()
+        .withTimeout(90000);
+      await element(by.id('enter-vultiverse-cta')).tap();
+
       await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
         .withTimeout(90000);

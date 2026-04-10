@@ -62,6 +62,12 @@ describe('Fast Vault Migration — Per-Wallet', () => {
     });
 
     it('should play RiveIntro and reach MigrationHome', async () => {
+      // Tap through RiveIntro
+      await waitFor(element(by.id('enter-vultiverse-cta')))
+        .toBeVisible()
+        .withTimeout(90000);
+      await element(by.id('enter-vultiverse-cta')).tap();
+
       await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
         .withTimeout(90000);
