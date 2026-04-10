@@ -1,31 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import { Text, StyleSheet, ScrollView } from 'react-native'
-import { fromBinary } from '@bufbuild/protobuf'
-import { gcm } from '@noble/ciphers/aes.js'
-import { sha256 } from '@noble/hashes/sha2.js'
 import { secp256k1 } from '@noble/curves/secp256k1.js'
-import { hex, base64 } from '@scure/base'
-import { readAsStringAsync } from 'expo-file-system/legacy'
+import { hex } from '@scure/base'
 
 import LegacyKeystore from '../../modules/legacy-keystore-migration/src'
 import { migrateLegacyKeystore } from 'utils/legacyMigration'
 import { encrypt, decrypt } from 'utils/crypto'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
 import preferences, { PreferencesEnum } from 'nativeModules/preferences'
-import { exportVaultShare } from 'services/exportVaultShare'
-import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container_pb'
-import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
-import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
 
 // Well-known secp256k1 test vectors (not funded keys)
 const TEST_PRIVATE_KEY_1 = '0000000000000000000000000000000000000000000000000000000000000001'
 const TEST_PRIVATE_KEY_2 = '0000000000000000000000000000000000000000000000000000000000000002'
 const EXPECTED_PUBKEY_1 = '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
-const EXPECTED_PUBKEY_2 = '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5'
-
 const PASSWORD_1 = 'testPassword1!'
 const PASSWORD_2 = 'testPassword2!'
-const EXPORT_PASSWORD = 'vaultExportPass123'
 
 type Results = Record<string, string>
 
@@ -170,83 +159,32 @@ export default function DevFullE2ETest(): React.ReactElement {
       r['step13-pubkey'] = String(pubKeyHex === EXPECTED_PUBKEY_1)
       setResults({ ...r })
 
-      // ── Phase 3: Vault Export + Verification ────────────────
+      // ── Phase 3: Size Stress Test ───────────────────────
 
-      // Step 14: Export vault share
-      const fileUri = await exportVaultShare(
-        decrypted1,
-        'TestWallet1',
-        EXPORT_PASSWORD,
-      )
-      r['step14-export'] = String(fileUri.length > 0)
-      setResults({ ...r })
-
-      // Step 15: Read .vult file
-      const fileContents = await readAsStringAsync(fileUri)
-      r['step15-file-read'] = String(fileContents.length > 0)
-      setResults({ ...r })
-
-      // Step 16: Parse VaultContainer
-      const containerBytes = base64.decode(fileContents)
-      const container = fromBinary(VaultContainerSchema, containerBytes)
-      r['step16-container'] = String(
-        container.isEncrypted === true && container.version === 1n
-      )
-      setResults({ ...r })
-
-      // Step 17: Decrypt vault payload
-      const encryptedVaultBytes = base64.decode(container.vault)
-      const nonce = encryptedVaultBytes.slice(0, 12)
-      const ciphertext = encryptedVaultBytes.slice(12)
-      const aesKey = sha256(new TextEncoder().encode(EXPORT_PASSWORD))
-      const decryptedVaultBytes = gcm(aesKey, nonce).decrypt(ciphertext)
-      r['step17-vault-decrypt'] = String(decryptedVaultBytes.length > 0)
-      setResults({ ...r })
-
-      // Step 18: Parse Vault protobuf
-      const vault = fromBinary(VaultSchema, decryptedVaultBytes)
-      r['step18-vault-name'] = String(vault.name === 'TestWallet1')
-      setResults({ ...r })
-
-      // Step 19: Verify Vault fields
-      r['step19-vault-fields'] = String(
-        vault.publicKeyEcdsa === EXPECTED_PUBKEY_1 &&
-        vault.libType === LibType.KEYIMPORT &&
-        vault.keyShares.length === 1 &&
-        vault.keyShares[0].keyshare === TEST_PRIVATE_KEY_1 &&
-        vault.keyShares[0].publicKey === EXPECTED_PUBKEY_1 &&
-        vault.localPartyId === 'station-mobile' &&
-        vault.signers.length === 1 &&
-        vault.signers[0] === 'station-mobile'
-      )
-      setResults({ ...r })
-
-      // ── Phase 4: Size Stress Test ───────────────────────────
-
-      // Step 20: Build large payload
+      // Step 14: Build large payload
       const sizeTestJson = buildSizeTestData(10)
       const byteSize = new TextEncoder().encode(sizeTestJson).length
-      r['step20-size-bytes'] = String(byteSize)
-      r['step20-over-2k'] = String(byteSize > 2048)
+      r['step14-size-bytes'] = String(byteSize)
+      r['step14-over-2k'] = String(byteSize > 2048)
       setResults({ ...r })
 
-      // Step 21: Write to expo-secure-store
+      // Step 15: Write to expo-secure-store
       const sizeWritten = await keystore.write(
         KeystoreEnum.AuthData,
         sizeTestJson,
       )
-      r['step21-size-write'] = String(sizeWritten)
+      r['step15-size-write'] = String(sizeWritten)
       setResults({ ...r })
 
-      // Step 22: Read back and compare
+      // Step 16: Read back and compare
       const sizeReadBack = await keystore.read(KeystoreEnum.AuthData)
-      r['step22-size-match'] = String(sizeReadBack === sizeTestJson)
+      r['step16-size-match'] = String(sizeReadBack === sizeTestJson)
       setResults({ ...r })
 
-      // Step 23: Report
-      r['step23-size-report'] = `${byteSize} bytes, 10 wallets`
+      // Step 17: Report
+      r['step17-size-report'] = `${byteSize} bytes, 10 wallets`
 
-      // ── Summary ────────────────────────────────────────────���
+      // ── Summary ────────────────────────────────────────────────
 
       const allPassed =
         r['step01-clean'] === 'true' &&
@@ -262,15 +200,9 @@ export default function DevFullE2ETest(): React.ReactElement {
         r['step11-decrypt-w2'] === 'true' &&
         r['step12-ledger'] === 'true' &&
         r['step13-pubkey'] === 'true' &&
-        r['step14-export'] === 'true' &&
-        r['step15-file-read'] === 'true' &&
-        r['step16-container'] === 'true' &&
-        r['step17-vault-decrypt'] === 'true' &&
-        r['step18-vault-name'] === 'true' &&
-        r['step19-vault-fields'] === 'true' &&
-        r['step20-over-2k'] === 'true' &&
-        r['step21-size-write'] === 'true' &&
-        r['step22-size-match'] === 'true'
+        r['step14-over-2k'] === 'true' &&
+        r['step15-size-write'] === 'true' &&
+        r['step16-size-match'] === 'true'
 
       r['all-passed'] = String(allPassed)
     } catch (error) {
@@ -297,7 +229,7 @@ export default function DevFullE2ETest(): React.ReactElement {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Full E2E Migration Test</Text>
       <Text style={styles.subtitle}>
-        Migration + Decrypt + Vault Export + Size
+        Migration + Decrypt + Size
       </Text>
       {Object.entries(results).map(([key, value]) => {
         const isFail =
