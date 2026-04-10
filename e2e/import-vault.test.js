@@ -34,11 +34,8 @@ describe('Import Vault', () => {
       });
       execSync(`xcrun simctl boot ${udid}`, { timeout: 30000 });
 
-      await device.launchApp({
-        delete: true,
-        newInstance: true,
-        launchArgs: { detoxURLBlacklistRegex: '.*' },
-      });
+      // NOTE: Do NOT pass detoxURLBlacklistRegex on initial launch — it causes hang
+      await device.launchApp({ delete: true, newInstance: true });
       await device.disableSynchronization();
     });
 
