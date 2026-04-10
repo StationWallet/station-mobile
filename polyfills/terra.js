@@ -101,9 +101,19 @@ class RawKey extends Key {
 
   ecdsaSign(payload) {
     const hash = Buffer.from(sha256(payload));
-    const sig = secp256k1.sign(hash, this.privateKey);
-    const compactBytes = sig.toCompactRawBytes();
-    return { signature: compactBytes, recid: sig.recovery };
+    // @noble/curves v2: sign() returns compact Uint8Array directly
+    const compactBytes = secp256k1.sign(hash, this.privateKey);
+    // Recover the recovery bit by trial
+    const sigObj = secp256k1.Signature.fromBytes(compactBytes);
+    const pubHex = Buffer.from(secp256k1.getPublicKey(this.privateKey, true)).toString('hex');
+    let recid = 0;
+    for (let i = 0; i < 2; i++) {
+      try {
+        const recovered = sigObj.addRecoveryBit(i).recoverPublicKey(hash);
+        if (recovered.toHex(true) === pubHex) { recid = i; break; }
+      } catch (_e) { /* try next */ }
+    }
+    return { signature: Buffer.from(compactBytes), recid };
   }
 
   async sign(payload) {
