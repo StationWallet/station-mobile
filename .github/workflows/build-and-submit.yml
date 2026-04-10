@@ -19,18 +19,12 @@ jobs:
       - run: npm ci
 
       - name: Lint
-        # TODO: remove continue-on-error once pre-existing lint errors are fixed
-        continue-on-error: true
         run: npm run lint:check
 
       - name: Typecheck
-        # TODO: remove continue-on-error once pre-existing type errors are fixed
-        continue-on-error: true
         run: npm run typecheck
 
       - name: Unit tests
-        # TODO: remove continue-on-error once terra polyfill tests are fixed
-        continue-on-error: true
         run: npm run test:ci
 
   build-ios:

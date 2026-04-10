@@ -13,9 +13,6 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    # TODO: remove continue-on-error once pre-existing lint errors are fixed
-    # (~161 errors: explicit-function-return-type, no-explicit-any, no-console)
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -31,9 +28,6 @@ jobs:
   typecheck:
     name: Typecheck
     runs-on: ubuntu-latest
-    # TODO: remove continue-on-error once pre-existing type errors are fixed
-    # (19 errors in storage.ts, wallet.ts, currency types)
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -49,9 +43,6 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    # TODO: remove continue-on-error once terra polyfill tests are fixed
-    # (2 failures in terra-keys.test.js, terra-msgs.test.js — secp256k1 API mismatch)
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
