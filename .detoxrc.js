@@ -13,12 +13,12 @@ module.exports = {
     'ios.debug': {
       type: 'ios.app',
       binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/Vultisig.app',
-      build: 'xcodebuild -workspace ios/Vultisig.xcworkspace -scheme Vultisig -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build SWIFT_STRICT_CONCURRENCY=minimal',
+      build: 'xcodebuild -workspace ios/Vultisig.xcworkspace -scheme Vultisig -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
     },
     'ios.release': {
       type: 'ios.app',
       binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/Vultisig.app',
-      build: 'xcodebuild -workspace ios/Vultisig.xcworkspace -scheme Vultisig -configuration Release -sdk iphonesimulator -derivedDataPath ios/build SWIFT_STRICT_CONCURRENCY=minimal',
+      build: 'xcodebuild -workspace ios/Vultisig.xcworkspace -scheme Vultisig -configuration Release -sdk iphonesimulator -derivedDataPath ios/build',
     },
   },
   devices: {

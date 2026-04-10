@@ -37,6 +37,28 @@ jobs:
       - name: Generate native project
         run: npx expo prebuild --platform ios --clean
 
+      - name: Fix Swift 6 concurrency errors in Pods
+        run: |
+          # Xcode 16.4+ defaults to Swift 6 which breaks expo-modules-core.
+          # Inject post_install hook to pin pods to Swift 5 language mode.
+          ruby -i -pe '
+            if /react_native_post_install/ && !$injected
+              $injected = true
+            elsif $injected && /^\s*\)/ && !$done
+              $done = true
+              $_ += <<~RUBY
+
+                # [CI] Pin Pod targets to Swift 5 for Xcode 16.4+ compat
+                installer.pods_project.targets.each do |target|
+                  target.build_configurations.each do |bc|
+                    bc.build_settings["SWIFT_STRICT_CONCURRENCY"] ||= "minimal"
+                    bc.build_settings["SWIFT_VERSION"] ||= "5.0"
+                  end
+                end
+              RUBY
+            end
+          ' ios/Podfile
+
       - name: Cache Xcode build
         uses: actions/cache@v4
         with:
