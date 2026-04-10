@@ -11,7 +11,7 @@ import { getErrorMessage } from 'utils/getErrorMessage'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'ImportVault'>
-const DETOX_STAGED_IMPORT_FILE = 'detox-import.vult'
+const DETOX_STAGED_FILES = ['detox-import.vult', 'detox-import.bak']
 
 export type FileState = 'empty' | 'error' | 'success'
 
@@ -32,21 +32,25 @@ export function useImportFlow() {
 
   const ctaTitle = loading ? 'Importing...' : 'Continue'
 
-  const navigateAfterImport = () => {
+  const navigateAfterImport = (vaultName: string) => {
     setFileContent(null)
-    navigation.navigate('MigrationSuccess', { results: [] })
+    navigation.navigate('MigrationSuccess', { results: [], importedVaultName: vaultName })
   }
 
   const persistAndNavigate = async (vaultBytes: Uint8Array, vaultName: string) => {
     await persistImportedVault(vaultBytes, vaultName)
-    navigateAfterImport()
+    navigateAfterImport(vaultName)
   }
 
   const importDetoxStagedFile = async () => {
     if (!__DEV__) return false
 
-    const stagedFile = new File(Paths.document, DETOX_STAGED_IMPORT_FILE)
-    if (!stagedFile.exists) return false
+    let stagedFile: InstanceType<typeof File> | null = null
+    for (const name of DETOX_STAGED_FILES) {
+      const candidate = new File(Paths.document, name)
+      if (candidate.exists) { stagedFile = candidate; break }
+    }
+    if (!stagedFile) return false
 
     const stagedContent = (await stagedFile.text()).trim()
     setFileName(stagedFile.name)

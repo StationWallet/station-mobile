@@ -71,6 +71,7 @@ export type MigrationStackParams = {
     results?: MigrationResult[]
     wallets?: MigrationWallet[]
     migratedWalletName?: string
+    importedVaultName?: string
   }
   // Dev-only screens for E2E test data seeding
   SeedLegacyData: undefined
