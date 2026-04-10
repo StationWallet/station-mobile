@@ -15,26 +15,26 @@ import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-// Load Rive with graceful fallback (follows vultiagent pattern)
+// Load Rive with graceful fallback.
+// In __DEV__ (Detox tests), skip Rive entirely — its native runtime
+// keeps the iOS main run loop busy, blocking Detox idle detection.
 let Rive: any = null
-try {
-  Rive = require('rive-react-native').default
-} catch {
-  // rive-react-native not available — will render static fallback
-}
+let walletAnimUrl: string | null = null
+let backgroundAnimUrl: string | null = null
 
-// Resolve asset URIs so Rive can fetch them in both dev and production.
-const walletAnimUrl = Rive
-  ? Image.resolveAssetSource(
+if (!__DEV__) {
+  try {
+    Rive = require('rive-react-native').default
+    walletAnimUrl = Image.resolveAssetSource(
       require('../../../assets/animations/station_wallet_animation.riv')
-    )?.uri
-  : null
-
-const backgroundAnimUrl = Rive
-  ? Image.resolveAssetSource(
+    )?.uri ?? null
+    backgroundAnimUrl = Image.resolveAssetSource(
       require('../../../assets/animations/agent_background_transition.riv')
-    )?.uri
-  : null
+    )?.uri ?? null
+  } catch {
+    // rive-react-native not available — will render static fallback
+  }
+}
 
 const SWIPE_THRESHOLD = 50
 const ANIM_INITIAL_TOP = 179
