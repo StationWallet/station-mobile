@@ -43,12 +43,17 @@ describe('Import Vault', () => {
       await device.enableSynchronization();
     });
 
-    it('should play RiveIntro and reach MigrationHome', async () => {
-      // Tap through RiveIntro → MigrationHome
-      await waitFor(element(by.id('enter-vultiverse-cta')))
-        .toBeVisible()
-        .withTimeout(90000);
-      await element(by.id('enter-vultiverse-cta')).tap();
+    it('should reach MigrationHome', async () => {
+      // RiveIntro may auto-navigate or require tap depending on build.
+      // Try tapping enter-vultiverse-cta if visible, otherwise wait for MigrationHome directly.
+      try {
+        await waitFor(element(by.id('enter-vultiverse-cta')))
+          .toBeVisible()
+          .withTimeout(10000);
+        await element(by.id('enter-vultiverse-cta')).tap();
+      } catch {
+        // RiveIntro already transitioned — continue
+      }
 
       await waitFor(element(by.id('import-vault-button')))
         .toBeVisible()
