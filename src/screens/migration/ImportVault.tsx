@@ -62,7 +62,6 @@ export default function ImportVault() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Toolbar */}
       <View style={styles.toolbar}>
         <GlassButton onPress={() => navigation.goBack()} testID="import-vault-back">
           <BackChevron />
@@ -75,7 +74,6 @@ export default function ImportVault() {
         </GlassButton>
       </View>
 
-      {/* Content */}
       <View style={styles.content}>
         <View style={styles.dropZoneWrapper}>
           <FileDropZone
@@ -91,7 +89,6 @@ export default function ImportVault() {
         </Text>
       </View>
 
-      {/* Bottom section */}
       <View style={styles.bottom}>
         {fileState === 'success' && fileName ? (
           <View style={styles.selectedBadgeRow}>
@@ -114,7 +111,6 @@ export default function ImportVault() {
         />
       </View>
 
-      {/* Decrypt Password Sheet */}
       <DecryptPasswordSheet
         visible={showPasswordSheet}
         onSubmit={submitPassword}

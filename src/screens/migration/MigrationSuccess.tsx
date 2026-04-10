@@ -69,29 +69,23 @@ export default function MigrationSuccess() {
     <SafeAreaView style={styles.container}>
       <MigrationToolbar onBack={onMigrationComplete} testID="success-back" />
 
-      {/* Title */}
       <Text fontType="brockmann-medium" style={styles.title}>
         You are aboard, Station OG!
       </Text>
 
-      {/* Subtitle */}
       <Text fontType="brockmann" style={styles.subtitle}>
         {'Your vault is secured. No single key.\nNo single point of failure.'}
       </Text>
 
-      {/* OG Status Card */}
       <View style={styles.cardContainer}>
         <OGStatusCard />
       </View>
 
-      {/* Orbit text */}
       <Text fontType="medium" style={styles.orbitText}>
         [ Entering orbit soon... ]
       </Text>
 
-      {/* Bottom actions */}
       <View style={styles.bottomActions}>
-        {/* Share OG status button */}
         <Button
           title={
             <View style={styles.shareRow}>
@@ -109,7 +103,6 @@ export default function MigrationSuccess() {
           testID="share-og-status"
         />
 
-        {/* Migrate another wallet link */}
         {hasUnmigrated && (
           <TouchableOpacity
             onPress={() => navigation.navigate('WalletsFound', { wallets, results })}
@@ -121,7 +114,6 @@ export default function MigrationSuccess() {
           </TouchableOpacity>
         )}
 
-        {/* Continue to wallets */}
         <TouchableOpacity
           onPress={onMigrationComplete}
           style={styles.continueLink}

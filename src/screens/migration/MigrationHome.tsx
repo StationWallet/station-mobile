@@ -57,20 +57,17 @@ export default function MigrationHome() {
         keyboardShouldPersistTaps="handled"
       >
       <View style={styles.content}>
-        {/* Block 1: Rive wallet animation placeholder */}
         <Animated.View
           entering={FadeIn.delay(0).duration(300)}
           style={styles.animationPlaceholder}
         />
 
-        {/* Block 2: Title */}
         <Animated.View entering={FadeIn.delay(600).duration(300)}>
           <Text fontType="brockmann-medium" style={styles.title}>
             {'Your seed phrase\nbecomes a Fast Vault'}
           </Text>
         </Animated.View>
 
-        {/* Block 3: Info card */}
         <Animated.View
           entering={FadeIn.delay(1200).duration(300)}
           style={styles.cardWrapper}
@@ -78,7 +75,6 @@ export default function MigrationHome() {
           <InfoCard daysRemaining={daysRemaining} />
         </Animated.View>
 
-        {/* Block 4: Button group */}
         <Animated.View
           entering={FadeIn.delay(1800).duration(300)}
           style={styles.buttonGroup}

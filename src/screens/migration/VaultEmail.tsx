@@ -17,18 +17,11 @@ import StepProgressBar from 'components/migration/StepProgressBar'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { formStyles } from 'components/migration/migrationStyles'
 import { MIGRATION } from 'consts/migration'
+import { isValidEmail } from 'utils/isValidEmail'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'VaultEmail'>
 type Route = RouteProp<MigrationStackParams, 'VaultEmail'>
-
-function isValidEmail(email: string): boolean {
-  const atIndex = email.indexOf('@')
-  if (atIndex < 1) return false
-  const afterAt = email.slice(atIndex + 1)
-  const dotIndex = afterAt.indexOf('.')
-  return dotIndex > 0 && dotIndex < afterAt.length - 1
-}
 
 export default function VaultEmail() {
   const navigation = useNavigation<Nav>()
