@@ -56,25 +56,33 @@ export default function MigrationHome() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-      <Animated.View
-        entering={__DEV__ ? undefined : FadeIn.duration(600)}
-        style={styles.content}
-      >
-        {/* Rive wallet animation placeholder */}
-        <View style={styles.animationPlaceholder} />
+      <View style={styles.content}>
+        {/* Block 1: Rive wallet animation placeholder */}
+        <Animated.View
+          entering={FadeIn.delay(0).duration(300)}
+          style={styles.animationPlaceholder}
+        />
 
-        {/* Title */}
-        <Text fontType="brockmann-medium" style={styles.title}>
-          {'Your seed phrase\nbecomes a Fast Vault'}
-        </Text>
+        {/* Block 2: Title */}
+        <Animated.View entering={FadeIn.delay(600).duration(300)}>
+          <Text fontType="brockmann-medium" style={styles.title}>
+            {'Your seed phrase\nbecomes a Fast Vault'}
+          </Text>
+        </Animated.View>
 
-        {/* Info card */}
-        <View style={styles.cardWrapper}>
+        {/* Block 3: Info card */}
+        <Animated.View
+          entering={FadeIn.delay(1200).duration(300)}
+          style={styles.cardWrapper}
+        >
           <InfoCard daysRemaining={daysRemaining} />
-        </View>
+        </Animated.View>
 
-        {/* Button group — always render, show CTA even before wallet discovery completes */}
-        <View style={styles.buttonGroup}>
+        {/* Block 4: Button group */}
+        <Animated.View
+          entering={FadeIn.delay(1800).duration(300)}
+          style={styles.buttonGroup}
+        >
             <Button
               title={hasLegacyWallets ? 'Start Migration' : 'Create a Fast Vault'}
               theme="ctaBlue"
@@ -104,7 +112,7 @@ export default function MigrationHome() {
               </Text>
             </TouchableOpacity>
 
-          </View>
+          </Animated.View>
 
         {/* Dev seed buttons — outside ready gate so they render immediately for E2E tests */}
         {__DEV__ && (
@@ -138,7 +146,7 @@ export default function MigrationHome() {
             </TouchableOpacity>
           </View>
         )}
-      </Animated.View>
+      </View>
       </ScrollView>
     </SafeAreaView>
   )

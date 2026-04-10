@@ -90,7 +90,11 @@ export default function MigrationNavigator() {
       }}
     >
       <Stack.Screen name="RiveIntro" component={RiveIntro} />
-      <Stack.Screen name="MigrationHome" component={MigrationHome} />
+      <Stack.Screen
+        name="MigrationHome"
+        component={MigrationHome}
+        options={{ animationEnabled: false }}
+      />
       <Stack.Screen name="WalletsFound" component={WalletsFound} />
       <Stack.Screen name="VaultName" component={VaultName} />
       <Stack.Screen name="VaultEmail" component={VaultEmail} />
