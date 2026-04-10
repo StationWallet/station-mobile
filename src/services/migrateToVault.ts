@@ -168,15 +168,31 @@ export async function storeFastVault(
     VAULT_STORE_OPTS,
   )
 
-  // Strip key material but keep the wallet entry so it remains in the wallet list.
-  // The address is needed for display; encryptedKey and password are the sensitive data.
+  // Ensure the wallet appears in the legacy wallet list (getWallets reads authData).
+  // For migrations: strip key material but keep the entry.
+  // For new vaults: create a minimal entry so the wallet is discoverable.
   const authData = await getAuthData()
-  if (authData && authData[walletName] && !authData[walletName].ledger) {
-    const entry = authData[walletName] as AuthDataValueType
+  const existing = authData?.[walletName]
+
+  if (existing && !existing.ledger) {
+    // Migration: strip sensitive data from the existing entry
+    const entry = existing as AuthDataValueType
     await upsertAuthData({
       authData: {
         [walletName]: {
           address: entry.address,
+          encryptedKey: '',
+          password: '',
+          ledger: false,
+        },
+      },
+    })
+  } else if (!existing) {
+    // New vault creation: register in authData so getWallets() can find it
+    await upsertAuthData({
+      authData: {
+        [walletName]: {
+          address: '',
           encryptedKey: '',
           password: '',
           ledger: false,

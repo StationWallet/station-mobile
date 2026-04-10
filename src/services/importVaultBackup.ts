@@ -109,4 +109,17 @@ export async function persistImportedVault(
     encoded,
     VAULT_STORE_OPTS,
   )
+
+  // Register in authData so getWallets() can discover the imported vault
+  const { upsertAuthData } = await import('../utils/authData')
+  await upsertAuthData({
+    authData: {
+      [vaultName]: {
+        address: '',
+        encryptedKey: '',
+        password: '',
+        ledger: false,
+      },
+    },
+  })
 }

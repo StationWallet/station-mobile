@@ -125,7 +125,9 @@ export default function MigrationSuccess() {
         </TouchableOpacity>
       </View>
 
-      {__DEV__ && DevVerifyVault && <DevVerifyVault importedVaultName={params.importedVaultName} />}
+      {__DEV__ && DevVerifyVault && (
+        <DevVerifyVault importedVaultName={params.importedVaultName ?? params.migratedWalletName} />
+      )}
     </SafeAreaView>
   )
 }

@@ -55,7 +55,10 @@ export default function VerifyEmail() {
       advanceToNextWallet(navigation, {
         wallets,
         results,
-        newResult: { wallet: wallets[walletIndex], success: true },
+        newResult: {
+          wallet: wallets[walletIndex] ?? { name: walletName, address: '', ledger: false },
+          success: true,
+        },
       })
     } catch (err) {
       const msg = getErrorMessage(err)
