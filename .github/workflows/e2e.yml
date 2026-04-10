@@ -29,8 +29,9 @@ jobs:
       - uses: actions/checkout@v4
 
       # expo-modules-core 55.x uses Swift 6 syntax (@MainActor on
-      # conformances) but has strict concurrency violations. Xcode 16.0
-      # enforces these less aggressively than 16.4.
+      # conformances) but has strict concurrency violations. Xcode 16.1
+      # is the minimum for RN 0.83. We also patch the Podfile to relax
+      # concurrency checking on all Pod targets.
       - name: Select Xcode 16.1
         run: sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer
 
@@ -43,6 +44,24 @@ jobs:
 
       - name: Generate native project
         run: npx expo prebuild --platform ios --clean
+
+      - name: Relax Swift 6 strict concurrency for Pods
+        run: |
+          ruby -i -pe '
+            if /react_native_post_install/ && !$injected
+              $injected = true
+            elsif $injected && /^\s*\)/ && !$done
+              $done = true
+              $_ += <<~RUBY
+
+                installer.pods_project.targets.each do |target|
+                  target.build_configurations.each do |bc|
+                    bc.build_settings["SWIFT_STRICT_CONCURRENCY"] = "minimal"
+                  end
+                end
+              RUBY
+            end
+          ' ios/Podfile
 
       - name: Cache Xcode build
         uses: actions/cache@v4
