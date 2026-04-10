@@ -47,7 +47,6 @@ export default function ImportVault() {
     loading,
     fileName,
     fileState,
-    fileContent,
     ctaTitle,
     pickFile,
     importVault,
@@ -59,7 +58,7 @@ export default function ImportVault() {
     dismissPasswordSheet,
   } = useImportFlow()
 
-  const canContinue = fileState === 'success' && !!fileContent
+  const canContinue = fileState === 'success'
 
   return (
     <SafeAreaView style={styles.container}>

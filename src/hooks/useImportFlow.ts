@@ -26,14 +26,19 @@ export function useImportFlow() {
 
   // Password sheet state
   const [showPasswordSheet, setShowPasswordSheet] = useState(false)
-  const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [decrypting, setDecrypting] = useState(false)
 
   const ctaTitle = loading ? 'Importing...' : 'Continue'
 
   const navigateAfterImport = () => {
+    setFileContent(null)
     navigation.navigate('MigrationSuccess', { results: [] })
+  }
+
+  const persistAndNavigate = async (vaultBytes: Uint8Array, vaultName: string) => {
+    await persistImportedVault(vaultBytes, vaultName)
+    navigateAfterImport()
   }
 
   const importDetoxStagedFile = async () => {
@@ -61,9 +66,8 @@ export function useImportFlow() {
           return true
         }
 
-        await persistImportedVault(stagedContent, stagedFile.name)
+        await persistAndNavigate(result.vaultBytes, result.vaultName)
         setLoading(false)
-        navigateAfterImport()
         return true
       } catch (err) {
         setLoading(false)
@@ -127,18 +131,16 @@ export function useImportFlow() {
         return
       }
 
-      await persistImportedVault(fileContent, fileName)
+      await persistAndNavigate(result.vaultBytes, result.vaultName)
       setLoading(false)
-      navigateAfterImport()
     } catch (err) {
       setLoading(false)
       Alert.alert('Import failed', err instanceof Error ? err.message : String(err))
     }
   }
 
-  const submitPassword = async (pwd?: string) => {
-    const pw = pwd ?? password
-    if (!fileContent || !fileName || !pw.trim()) return
+  const submitPassword = async (pwd: string) => {
+    if (!fileContent || !fileName || !pwd.trim()) return
 
     try {
       setDecrypting(true)
@@ -147,7 +149,7 @@ export function useImportFlow() {
       const result = importVaultBackup({
         content: fileContent,
         fileName,
-        password: pw.trim(),
+        password: pwd.trim(),
       })
 
       if (result.needsPassword) {
@@ -156,10 +158,9 @@ export function useImportFlow() {
         return
       }
 
-      await persistImportedVault(fileContent, fileName, pw.trim())
+      await persistAndNavigate(result.vaultBytes, result.vaultName)
       setDecrypting(false)
       setShowPasswordSheet(false)
-      navigateAfterImport()
     } catch {
       setDecrypting(false)
       setPasswordError('Incorrect password, try again')
@@ -168,7 +169,6 @@ export function useImportFlow() {
 
   const dismissPasswordSheet = () => {
     setShowPasswordSheet(false)
-    setPassword('')
     setPasswordError(null)
   }
 
@@ -176,7 +176,6 @@ export function useImportFlow() {
     setFileName(null)
     setFileContent(null)
     setFileState('empty')
-    setPassword('')
     setPasswordError(null)
     setShowPasswordSheet(false)
   }
@@ -184,18 +183,14 @@ export function useImportFlow() {
   return {
     loading,
     fileName,
-    fileContent,
     fileState,
     ctaTitle,
     pickFile,
-    importDetoxStagedFile,
     importVault,
     resetSelection,
     showPasswordSheet,
-    password,
     passwordError,
     decrypting,
-    setPassword,
     submitPassword,
     dismissPasswordSheet,
   }

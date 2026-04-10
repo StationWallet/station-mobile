@@ -7,11 +7,7 @@ import * as SecureStore from 'expo-secure-store'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container_pb'
-import { vaultStoreKey } from './migrateToVault'
-
-const VAULT_STORE_OPTS: SecureStore.SecureStoreOptions = {
-  keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
-}
+import { VAULT_STORE_OPTS, vaultStoreKey } from './migrateToVault'
 
 type ImportVaultBackupInput = {
   content: string
@@ -25,6 +21,8 @@ type ImportVaultBackupResult =
       needsPassword: false
       vaultName: string
       publicKeyEcdsa: string
+      /** Pre-decoded vault bytes ready for persist — avoids re-decrypting. */
+      vaultBytes: Uint8Array
     }
 
 function decryptVaultBytes(encrypted: Uint8Array, password: string) {
@@ -51,11 +49,11 @@ function inferSigners(fileName: string, signers: string[]) {
 }
 
 /**
- * Imports a vault backup file (.bak / .vult).
+ * Decodes + validates a vault backup file (.bak / .vult).
  *
- * Parses the base64 content as a VaultContainer protobuf.
  * If encrypted and no password provided, returns { needsPassword: true }.
- * Otherwise decrypts, validates the vault, and stores it in SecureStore.
+ * Otherwise decrypts, validates keyshares, and returns the decoded vault
+ * bytes (ready for persist) so callers don't need to re-decrypt.
  */
 export function importVaultBackup({
   content,
@@ -82,60 +80,33 @@ export function importVaultBackup({
     throw new Error('This backup is missing the device keyshare required for import.')
   }
 
-  // Re-serialize with inferred signers if needed
   const signers = inferSigners(fileName, vault.signers)
-  if (signers !== vault.signers) {
-    vault.signers = signers
-  }
+  vault.signers = signers
+
+  // Re-serialize with inferred signers so persistImportedVault can store directly
+  const finalBytes = toBinary(VaultSchema, vault)
 
   return {
     needsPassword: false,
     vaultName: vault.name || 'Imported Vault',
     publicKeyEcdsa: vault.publicKeyEcdsa,
+    vaultBytes: finalBytes,
   }
 }
 
 /**
- * Persists an imported vault to SecureStore.
- * Call after importVaultBackup returns { needsPassword: false }.
+ * Persists already-decoded vault bytes to SecureStore.
+ * Accepts the vaultBytes returned by importVaultBackup to avoid re-decrypting.
  */
 export async function persistImportedVault(
-  content: string,
-  fileName: string,
-  password?: string,
-): Promise<{ vaultName: string; publicKeyEcdsa: string }> {
-  const containerBytes = base64.decode(content.trim())
-  const container = fromBinary(VaultContainerSchema, containerBytes)
-
-  const vaultBytes = container.isEncrypted
-    ? decryptVaultBytes(base64.decode(container.vault), password!.trim())
-    : base64.decode(container.vault)
-
-  const vault = fromBinary(VaultSchema, vaultBytes)
-  const signers = inferSigners(fileName, vault.signers)
-  vault.signers = signers
-
-  const storedBytes = toBinary(VaultSchema, vault)
-  const encoded = base64.encode(storedBytes)
-  const vaultName = vault.name || 'Imported Vault'
+  vaultBytes: Uint8Array,
+  vaultName: string,
+): Promise<void> {
+  const encoded = base64.encode(vaultBytes)
 
   await SecureStore.setItemAsync(
     vaultStoreKey(vaultName),
     encoded,
     VAULT_STORE_OPTS,
   )
-
-  // Verify the write
-  const readBack = await SecureStore.getItemAsync(
-    vaultStoreKey(vaultName),
-    VAULT_STORE_OPTS,
-  )
-  if (readBack !== encoded) {
-    throw new Error('Vault verification failed: stored data does not match')
-  }
-
-  return {
-    vaultName,
-    publicKeyEcdsa: vault.publicKeyEcdsa,
-  }
 }
