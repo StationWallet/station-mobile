@@ -3,6 +3,11 @@ const { getDefaultConfig } = require('expo/metro-config')
 
 const config = getDefaultConfig(__dirname)
 
+// Add .riv files as asset extensions so Metro can bundle them via require()
+// Must also remove from sourceExts (Expo default config filters assetExts against sourceExts)
+config.resolver.sourceExts = (config.resolver.sourceExts || []).filter(ext => ext !== 'riv')
+config.resolver.assetExts.push('riv')
+
 // Enable package.json "exports" field resolution for @noble/* and @scure/* libraries
 config.resolver.unstable_enablePackageExports = true
 config.resolver.unstable_conditionNames = ['react-native', 'require', 'default']

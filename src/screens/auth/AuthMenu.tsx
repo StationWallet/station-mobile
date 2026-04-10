@@ -9,8 +9,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { COLORS } from 'consts/theme'
 import authStyles from './authStyles'
+import { useWalletNav } from 'navigation/hooks'
 
 const AuthMenu = ({ navigation }: any) => {
+  const { goToMigration } = useWalletNav()
   const navState = navigation.getState()
   const isAddMode = navState?.routes?.some((r: any) => r.name === 'AddWalletMenu')
 
@@ -49,6 +51,15 @@ const AuthMenu = ({ navigation }: any) => {
 
           {__DEV__ && (
             <>
+              {goToMigration && (
+                <TouchableOpacity
+                  testID="dev-create-fast-vault"
+                  style={styles.secondaryButton}
+                  onPress={goToMigration}
+                >
+                  <Text style={styles.secondaryButtonText}>Create Fast Vault (dev)</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 testID="dev-crypto-test"
                 style={styles.secondaryButton}

@@ -22,6 +22,10 @@ const EXPECTED_PUBKEY_2 = '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7aba
 
 type Results = Record<string, string>
 
+type Props = {
+  importedVaultName?: string
+}
+
 /**
  * DEV ONLY: Reads the stored vault protobufs after migration and verifies
  * that the vault structure, keys, and keyshares are correct.
@@ -30,18 +34,61 @@ type Results = Record<string, string>
  *   - KEYIMPORT (legacy): checks raw private key in keyshare
  *   - DKLS (fast vault): checks opaque keyshare, 2 signers, loads keyshare
  *     via native module to verify structural validity
+ *
+ * When importedVaultName is provided, verifies the imported vault instead
+ * of the migration test wallets.
  */
-export default function DevVerifyVault(): React.ReactElement {
+export default function DevVerifyVault({ importedVaultName }: Props = {}): React.ReactElement {
   const [results, setResults] = useState<Results>({})
 
   useEffect(() => {
     verify()
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [importedVaultName])
 
   const verify = async () => {
     const r: Results = {}
 
     try {
+      // ── Imported vault verification ──
+      if (importedVaultName) {
+        const vaultRaw = await getStoredVault(importedVaultName)
+        r['imported-exists'] = String(!!vaultRaw)
+
+        if (vaultRaw) {
+          const vaultBytes = Uint8Array.from(atob(vaultRaw), c => c.charCodeAt(0))
+          const vault = fromBinary(VaultSchema, vaultBytes)
+
+          r['imported-name'] = String(vault.name === importedVaultName)
+          r['imported-has-pubkey'] = String(
+            vault.publicKeyEcdsa.length > 0 && vault.publicKeyEcdsa.startsWith('0')
+          )
+          r['imported-has-keyshare'] = String(
+            vault.keyShares.length >= 1 &&
+            vault.keyShares[0].keyshare.length > 0 &&
+            vault.keyShares[0].publicKey === vault.publicKeyEcdsa
+          )
+          r['imported-libtype'] = String(
+            vault.libType === LibType.KEYIMPORT || vault.libType === LibType.DKLS
+          )
+          r['imported-has-signers'] = String(vault.signers.length > 0)
+
+          r['all-passed'] = String(
+            r['imported-exists'] === 'true' &&
+            r['imported-name'] === 'true' &&
+            r['imported-has-pubkey'] === 'true' &&
+            r['imported-has-keyshare'] === 'true' &&
+            r['imported-libtype'] === 'true' &&
+            r['imported-has-signers'] === 'true'
+          )
+        } else {
+          r['all-passed'] = 'false'
+        }
+
+        setResults(r)
+        return
+      }
+
       // Verify TestWallet1 vault
       const vault1Raw = await getStoredVault('TestWallet1')
       r['vault1-exists'] = String(!!vault1Raw)

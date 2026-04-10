@@ -10,7 +10,16 @@ import {
 import { COLOR } from 'consts'
 
 export type TextProps = {
-  fontType?: 'light' | 'book' | 'medium' | 'bold'
+  fontType?:
+    | 'light'
+    | 'book'
+    | 'medium'
+    | 'bold'
+    | 'brockmann'
+    | 'brockmann-medium'
+    | 'brockmann-semibold'
+    | 'brockmann-bold'
+    | 'satoshi-medium'
   children?: ReactNode
 } & DefaultTextProps
 
@@ -27,6 +36,21 @@ const Text = (props: TextProps): ReactElement => {
       break
     case 'bold':
       fontStyle.fontFamily = 'Gotham-Bold'
+      break
+    case 'brockmann':
+      fontStyle.fontFamily = 'Brockmann-Regular'
+      break
+    case 'brockmann-medium':
+      fontStyle.fontFamily = 'Brockmann-Medium'
+      break
+    case 'brockmann-semibold':
+      fontStyle.fontFamily = 'Brockmann-SemiBold'
+      break
+    case 'brockmann-bold':
+      fontStyle.fontFamily = 'Brockmann-Bold'
+      break
+    case 'satoshi-medium':
+      fontStyle.fontFamily = 'Satoshi-Medium'
       break
     case 'book':
     default:

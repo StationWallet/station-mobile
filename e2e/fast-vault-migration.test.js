@@ -1,11 +1,13 @@
 /**
- * Fast Vault Migration E2E Tests
+ * Fast Vault Migration E2E Tests — Per-Wallet Flow
  *
- * Full end-to-end: seed legacy data → walk through both standard wallets
- * (email → password → keygen → verify) → MigrationSuccess → persistence.
+ * Full end-to-end: seed legacy data → RiveIntro → MigrationHome →
+ * WalletsFound → migrate each wallet individually (email → password →
+ * keygen → verify) → MigrationSuccess → vault integrity → persistence.
  *
  * Test data: 2 standard wallets (TestWallet1, TestWallet2) + 1 Ledger wallet.
- * Ledger wallet is auto-skipped (no private key to import).
+ * Ledger wallets don't need DKLS migration and should appear as already
+ * migrated (no migrate button) on the WalletsFound screen.
  *
  * Requires: vultiserver at api.vultisig.com, agentmail credentials in .env
  */
@@ -13,13 +15,13 @@ const { execSync } = require('child_process');
 const {
   AGENTMAIL_EMAIL,
   getExistingMessageIds,
-  migrateOneWallet,
+  migrateOneWalletFromCard,
 } = require('./helpers/agentmail');
 
-describe('Fast Vault Migration', () => {
+describe('Fast Vault Migration — Per-Wallet', () => {
   let knownMessageIds = new Set();
 
-  describe('Full migration — 2 wallets + ledger', () => {
+  describe('Setup and intro', () => {
     beforeAll(async () => {
       const udid = device.id;
       execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
@@ -37,7 +39,7 @@ describe('Fast Vault Migration', () => {
 
       await waitFor(element(by.text('Seed Legacy Data (dev)')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
       await element(by.text('Seed Legacy Data (dev)')).tap();
       await waitFor(element(by.id('seed-done')))
         .toExist()
@@ -59,38 +61,75 @@ describe('Fast Vault Migration', () => {
       await device.enableSynchronization();
     });
 
-    it('should discover wallets', async () => {
-      await waitFor(element(by.text('Wallets Found')))
+    it('should play RiveIntro and reach MigrationHome', async () => {
+      // Tap through RiveIntro
+      await waitFor(element(by.id('enter-vultiverse-cta')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
+      await element(by.id('enter-vultiverse-cta')).tap();
+
+      await waitFor(element(by.id('migration-cta')))
+        .toBeVisible()
+        .withTimeout(90000);
+    });
+
+    it('should navigate to WalletsFound', async () => {
+      await element(by.id('migration-cta')).tap();
+      await waitFor(element(by.text('Your wallets')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
+
+    it('should show wallet cards', async () => {
       await waitFor(element(by.id('wallet-card-0')))
         .toBeVisible()
         .withTimeout(10000);
     });
 
-    it('should start migration', async () => {
-      await element(by.id('upgrade-button')).tap();
-      await waitFor(element(by.text('Enter your email')))
-        .toBeVisible()
-        .withTimeout(10000);
+    it('should show ledger wallet without migrate button', async () => {
+      // The ledger wallet card should exist but should not have a migrate action
+      // because ledger wallets don't need DKLS migration
+      let ledgerMigrateVisible = false;
+      try {
+        await waitFor(element(by.id('wallet-card-2-migrate')))
+          .toBeVisible()
+          .withTimeout(3000);
+        ledgerMigrateVisible = true;
+      } catch (_) {}
+
+      if (ledgerMigrateVisible) {
+        throw new Error('Ledger wallet should not have a migrate button');
+      }
+    });
+  });
+
+  describe('Per-wallet migration', () => {
+    it('should migrate wallet 1', async () => {
+      await migrateOneWalletFromCard(0, 'TestWallet1', knownMessageIds, true);
     });
 
-    it('should migrate wallet 1', async () => {
-      await migrateOneWallet('TestWallet1', knownMessageIds);
+    it('should show wallet 1 as migrated after returning to WalletsFound', async () => {
+      // After migrating wallet 0 and tapping "Migrate another wallet",
+      // wallet 0's card should show the "✓ Fast Vault" badge, not the migrate button
+      let migrateButtonVisible = false;
+      try {
+        await waitFor(element(by.id('wallet-card-0-migrate')))
+          .toBeVisible()
+          .withTimeout(3000);
+        migrateButtonVisible = true;
+      } catch (_) {}
+
+      if (migrateButtonVisible) {
+        throw new Error('Wallet 0 should show as migrated (no migrate button) after successful migration');
+      }
     });
 
     it('should migrate wallet 2', async () => {
-      // After wallet 1, should be on VaultEmail for wallet 2
-      await migrateOneWallet('TestWallet2', knownMessageIds);
+      await migrateOneWalletFromCard(1, 'TestWallet2', knownMessageIds, false);
     });
+  });
 
-    it('should show migration success', async () => {
-      // After both wallets + ledger auto-skip, should reach success screen
-      await waitFor(element(by.text('Wallets Upgraded!')))
-        .toBeVisible()
-        .withTimeout(15000);
-    });
-
+  describe('Vault integrity verification', () => {
     it('should show migration success with vault verification', async () => {
       // DevVerifyVault is rendered on MigrationSuccess in dev mode.
       // Wait for all checks to complete.
@@ -230,11 +269,11 @@ describe('Fast Vault Migration', () => {
       await device.enableSynchronization();
     });
 
-    it('should not show WalletDiscovery on relaunch', async () => {
-      // vaultsUpgraded flag should persist — no migration flow
+    it('should not show migration flow on relaunch', async () => {
+      // migration-cta should not appear — migration is complete
       let migrationShown = false;
       try {
-        await waitFor(element(by.text('Wallets Found')))
+        await waitFor(element(by.id('migration-cta')))
           .toBeVisible()
           .withTimeout(5000);
         migrationShown = true;

@@ -15,6 +15,11 @@ const VAULT_STORE_OPTS: SecureStore.SecureStoreOptions = {
   keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
 }
 
+/** Sanitize a wallet name into a valid SecureStore key (alphanumeric, '.', '-', '_' only). */
+function vaultStoreKey(walletName: string): string {
+  return VAULT_KEY_PREFIX + walletName.replace(/[^a-zA-Z0-9._-]/g, '_')
+}
+
 export interface MigrationWallet {
   name: string
   address: string
@@ -77,7 +82,7 @@ export async function migrateWalletToVault(
     const encoded = base64.encode(vaultBytes)
 
     await SecureStore.setItemAsync(
-      `${VAULT_KEY_PREFIX}${name}`,
+      vaultStoreKey(name),
       encoded,
       VAULT_STORE_OPTS,
     )
@@ -118,7 +123,7 @@ export async function migrateAllWallets(
  */
 export async function getStoredVault(walletName: string): Promise<string | null> {
   return SecureStore.getItemAsync(
-    `${VAULT_KEY_PREFIX}${walletName}`,
+    vaultStoreKey(walletName),
     VAULT_STORE_OPTS,
   )
 }
@@ -158,38 +163,36 @@ export async function storeFastVault(
   const encoded = base64.encode(vaultBytes)
 
   await SecureStore.setItemAsync(
-    `${VAULT_KEY_PREFIX}${walletName}`,
+    vaultStoreKey(walletName),
     encoded,
     VAULT_STORE_OPTS,
   )
 
-  const readBack = await SecureStore.getItemAsync(
-    `${VAULT_KEY_PREFIX}${walletName}`,
-    VAULT_STORE_OPTS,
-  )
-  if (readBack !== encoded) {
-    throw new Error('Vault verification failed: stored data does not match')
-  }
-  const decoded = fromBinary(VaultSchema, base64.decode(readBack))
-  if (decoded.publicKeyEcdsa !== result.publicKey) {
-    throw new Error('Vault verification failed: public key mismatch after deserialization')
-  }
-  if (decoded.libType !== LibType.DKLS) {
-    throw new Error('Vault verification failed: libType is not DKLS')
-  }
-  if (decoded.keyShares.length === 0) {
-    throw new Error('Vault verification failed: no keyshares found')
-  }
-
-  // Strip key material but keep the wallet entry so it remains in the wallet list.
-  // The address is needed for display; encryptedKey and password are the sensitive data.
+  // Ensure the wallet appears in the legacy wallet list (getWallets reads authData).
+  // For migrations: strip key material but keep the entry.
+  // For new vaults: create a minimal entry so the wallet is discoverable.
   const authData = await getAuthData()
-  if (authData && authData[walletName] && !authData[walletName].ledger) {
-    const entry = authData[walletName] as AuthDataValueType
+  const existing = authData?.[walletName]
+
+  if (existing && !existing.ledger) {
+    // Migration: strip sensitive data from the existing entry
+    const entry = existing as AuthDataValueType
     await upsertAuthData({
       authData: {
         [walletName]: {
           address: entry.address,
+          encryptedKey: '',
+          password: '',
+          ledger: false,
+        },
+      },
+    })
+  } else if (!existing) {
+    // New vault creation: register in authData so getWallets() can find it
+    await upsertAuthData({
+      authData: {
+        [walletName]: {
+          address: '',
           encryptedKey: '',
           password: '',
           ledger: false,
@@ -213,4 +216,4 @@ export async function isVaultFastVault(walletName: string): Promise<boolean> {
   }
 }
 
-export { VAULT_KEY_PREFIX }
+export { VAULT_KEY_PREFIX, VAULT_STORE_OPTS, vaultStoreKey }

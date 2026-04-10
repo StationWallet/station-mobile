@@ -125,6 +125,71 @@ async function migrateOneWallet(walletLabel, knownMessageIds) {
   console.log(`--- ${walletLabel} complete ---\n`);
 }
 
+/**
+ * Walk one wallet through the per-wallet migration flow.
+ * Assumes WalletsFound screen is visible with the wallet card.
+ *
+ * @param {number} walletIndex - 0-based index of the wallet card
+ * @param {string} walletLabel - For logging
+ * @param {Set} knownMessageIds - AgentMail message tracking
+ * @param {boolean} hasMoreWallets - Whether to tap "Migrate another wallet" after
+ */
+async function migrateOneWalletFromCard(walletIndex, walletLabel, knownMessageIds, hasMoreWallets) {
+  console.log(`\n--- Migrating ${walletLabel} from card ${walletIndex} ---`);
+
+  // Tap the "Migrate to a vault" button on the wallet card
+  await waitFor(element(by.id(`wallet-card-${walletIndex}-migrate`)))
+    .toBeVisible()
+    .withTimeout(10000);
+  await element(by.id(`wallet-card-${walletIndex}-migrate`)).tap();
+
+  // Email screen
+  await waitFor(element(by.text('Enter your email')))
+    .toBeVisible()
+    .withTimeout(10000);
+  await element(by.id('vault-email-input')).tap();
+  await element(by.id('vault-email-input')).clearText();
+  await element(by.id('vault-email-input')).typeText(AGENTMAIL_EMAIL);
+  await element(by.id('vault-email-next')).tap();
+
+  // Password screen
+  await waitFor(element(by.text('Choose a password')))
+    .toBeVisible()
+    .withTimeout(10000);
+
+  const preKeygenIds = await getExistingMessageIds(AGENTMAIL_EMAIL);
+  for (const id of preKeygenIds) knownMessageIds.add(id);
+
+  await element(by.id('vault-password-input')).typeText(VAULT_PASSWORD);
+  await element(by.id('vault-password-confirm')).typeText(VAULT_PASSWORD);
+  await element(by.id('vault-password-continue')).tap();
+
+  // KeygenProgress → VerifyEmail
+  await waitFor(element(by.text('Verify your email')))
+    .toExist()
+    .withTimeout(150000);
+
+  const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, knownMessageIds);
+  await waitFor(element(by.id('verify-code-input'))).toExist().withTimeout(5000);
+  await element(by.id('verify-code-input')).tap();
+  await element(by.id('verify-code-input')).replaceText(otp);
+
+  // Wait for verification + navigation to MigrationSuccess
+  await waitFor(element(by.text('You are aboard, Station OG!')))
+    .toBeVisible()
+    .withTimeout(15000);
+
+  if (hasMoreWallets) {
+    // Tap "Migrate another wallet" → back to WalletsFound
+    await element(by.id('migrate-another-wallet')).tap();
+    await waitFor(element(by.text('Your wallets')))
+      .toBeVisible()
+      .withTimeout(10000);
+  }
+
+  console.log(`--- ${walletLabel} complete ---\n`);
+}
+
 module.exports = {
   AGENTMAIL_API_KEY,
   AGENTMAIL_EMAIL,
@@ -132,4 +197,5 @@ module.exports = {
   getExistingMessageIds,
   fetchOtpFromAgentmail,
   migrateOneWallet,
+  migrateOneWalletFromCard,
 };

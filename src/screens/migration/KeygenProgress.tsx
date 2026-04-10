@@ -14,13 +14,15 @@ import type { RouteProp } from '@react-navigation/native'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
-import { VULTISIG } from 'consts/vultisig'
+import { MIGRATION } from 'consts/migration'
 import { importKeyToFastVault, KeyImportResult, KeyImportProgress } from 'services/dklsKeyImport'
 import { storeFastVault } from 'services/migrateToVault'
 import { getAuthDataValue, AuthDataValueType } from 'utils/authData'
 import { decrypt } from 'utils/crypto'
+import { randomHex } from 'utils/mpcCrypto'
 import type { MigrationResult } from 'services/migrateToVault'
 import { advanceToNextWallet } from 'utils/migrationNav'
+import { getErrorMessage } from 'utils/getErrorMessage'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
@@ -32,12 +34,12 @@ export default function KeygenProgress() {
   const route = useRoute<Route>()
   const {
     walletName,
-    walletIndex,
-    totalWallets,
-    wallets,
-    results,
+    walletIndex = 0,
+    wallets = [],
+    results = [],
     email,
     password,
+    mode,
   } = route.params
 
   const [progress, setProgress] = useState(0)
@@ -60,9 +62,9 @@ export default function KeygenProgress() {
 
   const advance = useCallback(
     (newResult: MigrationResult) => {
-      advanceToNextWallet(navigation, wallets, walletIndex, totalWallets, results, email, newResult)
+      advanceToNextWallet(navigation, { wallets, results, newResult })
     },
-    [navigation, results, walletIndex, wallets, totalWallets, email],
+    [navigation, results, wallets],
   )
 
   const runCeremony = useCallback(async () => {
@@ -74,44 +76,59 @@ export default function KeygenProgress() {
     abortRef.current = controller
 
     try {
-      const authEntry = await getAuthDataValue(walletName)
-      if (!authEntry || authEntry.ledger) {
-        throw new Error('No auth data found for wallet')
-      }
+      let result: KeyImportResult
 
-      const standardData = authEntry as AuthDataValueType
-      // Legacy stored password (for decrypting the old key) — NOT the new vault password
-      const privateKeyHex = decrypt(standardData.encryptedKey, standardData.password)
-      if (!privateKeyHex) {
-        throw new Error('Failed to decrypt private key')
+      if (mode === 'create') {
+        // Fresh vault creation — generate a new random secp256k1 private key
+        // and import it into a 2-of-2 DKLS fast vault.
+        const privateKeyHex = randomHex(32)
+        result = await importKeyToFastVault({
+          name: walletName,
+          email,
+          password,
+          privateKeyHex,
+          onProgress: updateProgress,
+          signal: controller.signal,
+        })
+      } else {
+        // mode === 'migrate' — import existing key into fast vault
+        const authEntry = await getAuthDataValue(walletName)
+        if (!authEntry || authEntry.ledger) {
+          throw new Error('No auth data found for wallet')
+        }
+        const standardData = authEntry as AuthDataValueType
+        // Legacy stored password (for decrypting the old key) — NOT the new vault password
+        const privateKeyHex = decrypt(standardData.encryptedKey, standardData.password)
+        if (!privateKeyHex) {
+          throw new Error('Failed to decrypt private key')
+        }
+        result = await importKeyToFastVault({
+          name: walletName,
+          email,
+          password,
+          privateKeyHex,
+          onProgress: updateProgress,
+          signal: controller.signal,
+        })
       }
-
-      const result: KeyImportResult = await importKeyToFastVault({
-        name: walletName,
-        email,
-        password,
-        privateKeyHex,
-        onProgress: updateProgress,
-        signal: controller.signal,
-      })
 
       await storeFastVault(walletName, result)
 
       navigation.navigate('VerifyEmail', {
         walletName,
         walletIndex,
-        totalWallets,
         wallets,
         results,
+        mode,
         email,
         publicKey: result.publicKey,
       })
     } catch (err) {
       if (controller.signal.aborted) return
-      const msg = err instanceof Error ? err.message : String(err)
+      const msg = getErrorMessage(err)
       setError(msg)
     }
-  }, [walletName, email, password, wallets, walletIndex, updateProgress, progressValue])
+  }, [walletName, email, password, mode, wallets, walletIndex, updateProgress, progressValue])
 
   useEffect(() => {
     runCeremony()
@@ -137,19 +154,19 @@ export default function KeygenProgress() {
   return (
     <SafeAreaView style={styles.container}>
       <Animated.View entering={FadeIn.duration(400)} style={styles.content}>
-        <Text style={styles.walletLabel} fontType="book">
-          Wallet {walletIndex + 1}/{totalWallets}: {walletName}
+        <Text style={styles.walletLabel} fontType="brockmann">
+          Wallet {walletIndex + 1}/{wallets.length}: {walletName}
         </Text>
 
-        <Text style={styles.title} fontType="bold">
+        <Text style={styles.title} fontType="brockmann-bold">
           Fast Vault Setup
         </Text>
 
         <View style={styles.phaseContainer}>
-          <Text style={styles.phaseText} fontType="medium">
+          <Text style={styles.phaseText} fontType="brockmann-medium">
             {error ? 'Failed' : phaseText}
           </Text>
-          <Text style={styles.progressPercent} fontType="book">
+          <Text style={styles.progressPercent} fontType="brockmann">
             {Math.round(progress)}%
           </Text>
         </View>
@@ -161,7 +178,7 @@ export default function KeygenProgress() {
         {error && (
           <View style={styles.errorSection}>
             <View style={styles.errorCard}>
-              <Text style={styles.errorText} fontType="book">
+              <Text testID="keygen-error-text" style={styles.errorText} fontType="brockmann">
                 {error}
               </Text>
             </View>
@@ -170,14 +187,16 @@ export default function KeygenProgress() {
               <Button
                 testID="keygen-skip"
                 title="Skip"
-                theme="transparent"
+                theme="secondaryDark"
+                titleFontType="brockmann-medium"
                 onPress={handleSkip}
                 containerStyle={styles.skipButton}
               />
               <Button
                 testID="keygen-retry"
                 title="Retry"
-                theme="sapphire"
+                theme="ctaBlue"
+                titleFontType="brockmann-medium"
                 onPress={handleRetry}
                 containerStyle={styles.retryButton}
               />
@@ -192,7 +211,7 @@ export default function KeygenProgress() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: VULTISIG.bg,
+    backgroundColor: MIGRATION.bg,
     justifyContent: 'center',
   },
   content: {
@@ -201,13 +220,13 @@ const styles = StyleSheet.create({
   },
   walletLabel: {
     fontSize: 13,
-    color: VULTISIG.textSecondary,
+    color: MIGRATION.textTertiary,
     marginBottom: 12,
     alignSelf: 'flex-start',
   },
   title: {
     fontSize: 28,
-    color: VULTISIG.textPrimary,
+    color: MIGRATION.textPrimary,
     marginBottom: 40,
     alignSelf: 'flex-start',
   },
@@ -219,37 +238,37 @@ const styles = StyleSheet.create({
   },
   phaseText: {
     fontSize: 15,
-    color: VULTISIG.accent,
+    color: MIGRATION.ctaBlue,
   },
   progressPercent: {
     fontSize: 15,
-    color: VULTISIG.textSecondary,
+    color: MIGRATION.textTertiary,
   },
   progressTrack: {
     alignSelf: 'stretch',
     height: 6,
-    backgroundColor: VULTISIG.card,
-    borderRadius: VULTISIG.radiusPill,
+    backgroundColor: MIGRATION.surface1,
+    borderRadius: MIGRATION.radiusPill,
     overflow: 'hidden',
     marginBottom: 40,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: VULTISIG.accent,
-    borderRadius: VULTISIG.radiusPill,
+    backgroundColor: MIGRATION.ctaBlue,
+    borderRadius: MIGRATION.radiusPill,
   },
   errorSection: {
     alignSelf: 'stretch',
   },
   errorCard: {
     backgroundColor: 'rgba(255, 92, 92, 0.1)',
-    borderRadius: VULTISIG.radiusMd,
+    borderRadius: MIGRATION.radiusCard,
     padding: 16,
     marginBottom: 24,
   },
   errorText: {
     fontSize: 14,
-    color: VULTISIG.error,
+    color: MIGRATION.errorRed,
     lineHeight: 20,
   },
   buttonRow: {
@@ -258,8 +277,10 @@ const styles = StyleSheet.create({
   },
   skipButton: {
     flex: 1,
+    borderRadius: MIGRATION.radiusPill,
   },
   retryButton: {
     flex: 2,
+    borderRadius: MIGRATION.radiusPill,
   },
 })

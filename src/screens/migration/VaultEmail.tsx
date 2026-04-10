@@ -6,7 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import Animated, { FadeInRight } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
@@ -14,24 +13,25 @@ import type { RouteProp } from '@react-navigation/native'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
-import { VULTISIG } from 'consts/vultisig'
+import StepProgressBar from 'components/migration/StepProgressBar'
+import MigrationToolbar from 'components/migration/MigrationToolbar'
+import { formStyles } from 'components/migration/migrationStyles'
+import { MIGRATION } from 'consts/migration'
+import { isValidEmail } from 'utils/isValidEmail'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'VaultEmail'>
 type Route = RouteProp<MigrationStackParams, 'VaultEmail'>
 
-function isValidEmail(email: string): boolean {
-  const atIndex = email.indexOf('@')
-  if (atIndex < 1) return false
-  const afterAt = email.slice(atIndex + 1)
-  const dotIndex = afterAt.indexOf('.')
-  return dotIndex > 0 && dotIndex < afterAt.length - 1
-}
-
 export default function VaultEmail() {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
-  const { walletName, walletIndex, totalWallets, wallets, results, email: prefillEmail } = route.params
+  const {
+    walletName,
+    mode,
+    wallets,
+    email: prefillEmail,
+  } = route.params
 
   const [email, setEmail] = useState(prefillEmail ?? '')
   const [touched, setTouched] = useState(false)
@@ -39,31 +39,26 @@ export default function VaultEmail() {
   const valid = isValidEmail(email)
   const showError = touched && !valid
 
+  const stepBarCurrentStep = mode === 'create' ? 2 : 1
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={formStyles.container}>
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={formStyles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Animated.View
-          entering={FadeInRight.duration(400)}
-          style={styles.content}
-        >
-          <Text style={styles.stepIndicator} fontType="medium">
-            Step 1 of 2
-          </Text>
+        <MigrationToolbar onBack={() => navigation.goBack()} />
 
-          <Text style={styles.walletLabel} fontType="book">
-            Wallet {walletIndex + 1}/{totalWallets}: {walletName}
-          </Text>
+        <StepProgressBar currentStep={stepBarCurrentStep} />
 
-          <Text style={styles.title} fontType="bold">
+        <View style={formStyles.content}>
+          <Text style={formStyles.title} fontType="brockmann-medium">
             Enter your email
           </Text>
 
-          <Text style={styles.subtitle} fontType="book">
-            Your email is used for vault recovery. You'll receive a verification
-            link to confirm access to your new fast vault.
+          <Text style={formStyles.subtitle} fontType="brockmann">
+            This will only be used once to send your backup file. Vultisig
+            doesn't store any data.
           </Text>
 
           <TextInput
@@ -73,7 +68,7 @@ export default function VaultEmail() {
             onChangeText={setEmail}
             onBlur={() => setTouched(true)}
             placeholder="you@example.com"
-            placeholderTextColor={VULTISIG.textSecondary}
+            placeholderTextColor={MIGRATION.textTertiary}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -81,96 +76,53 @@ export default function VaultEmail() {
           />
 
           {showError && (
-            <Text style={styles.errorText} fontType="book">
+            <Text style={styles.errorText} fontType="brockmann">
               Please enter a valid email address.
             </Text>
           )}
+        </View>
 
-          <View style={styles.buttonContainer}>
-            <Button
-              testID="vault-email-next"
-              title="Next"
-              theme="sapphire"
-              disabled={!valid}
-              onPress={() => {
-                navigation.navigate('VaultPassword', {
-                  walletName,
-                  walletIndex,
-                  totalWallets,
-                  wallets,
-                  results,
-                  email,
-                })
-              }}
-              containerStyle={styles.nextButton}
-            />
-          </View>
-        </Animated.View>
+        <View style={formStyles.buttonContainer}>
+          <Button
+            testID="vault-email-next"
+            title="Next"
+            theme="ctaBlue"
+            titleFontType="brockmann-medium"
+            disabled={!valid}
+            onPress={() => {
+              navigation.navigate('VaultPassword', {
+                walletName,
+                mode,
+                wallets,
+                email,
+              })
+            }}
+            containerStyle={formStyles.ctaButton}
+          />
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: VULTISIG.bg,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 40,
-  },
-  stepIndicator: {
-    fontSize: 13,
-    color: VULTISIG.accent,
-    marginBottom: 8,
-    letterSpacing: 0.5,
-  },
-  walletLabel: {
-    fontSize: 13,
-    color: VULTISIG.textSecondary,
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    color: VULTISIG.textPrimary,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: VULTISIG.textSecondary,
-    lineHeight: 22,
-    marginBottom: 32,
-  },
   input: {
-    backgroundColor: VULTISIG.card,
+    backgroundColor: MIGRATION.surface1,
     borderWidth: 1,
-    borderColor: VULTISIG.cardBorder,
-    borderRadius: VULTISIG.radiusMd,
+    borderColor: MIGRATION.strokeInput,
+    borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    fontSize: 16,
-    color: VULTISIG.textPrimary,
-    fontFamily: 'Gotham-Book',
+    fontSize: 14,
+    color: MIGRATION.textPrimary,
+    fontFamily: 'Brockmann-Regular',
   },
   inputError: {
-    borderColor: VULTISIG.error,
+    borderColor: MIGRATION.errorRed,
   },
   errorText: {
     fontSize: 13,
-    color: VULTISIG.error,
+    color: MIGRATION.errorRed,
     marginTop: 6,
-  },
-  buttonContainer: {
-    marginTop: 'auto',
-    paddingBottom: 24,
-    paddingTop: 16,
-  },
-  nextButton: {
-    width: '100%',
   },
 })

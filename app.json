@@ -7,9 +7,9 @@
     "icon": "./assets/terraStation.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/terra.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1f42b4"
+      "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -55,7 +55,8 @@
       "expo-local-authentication",
       "@config-plugins/detox",
       "expo-sharing",
-      "expo-updates"
+      "expo-updates",
+      "expo-document-picker"
     ],
     "extra": {
       "eas": {

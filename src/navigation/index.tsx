@@ -48,7 +48,9 @@ export default function AppNavigator() {
       if (loaded.length > 0 && !vaultsUpgraded && legacyDataFound) {
         setRootRoute('Migration')
       } else if (loaded.length === 0) {
-        setRootRoute('Auth')
+        // In dev mode, show Auth first so E2E dev seed buttons are accessible.
+        // In production, brand new users go straight to the migration/creation flow.
+        setRootRoute(__DEV__ ? 'Auth' : 'Migration')
       } else {
         setRootRoute('Main')
         const picked = await pickInitialWallet(loaded)
@@ -87,6 +89,10 @@ export default function AppNavigator() {
     }
   }, [loadWallets])
 
+  const goToMigration = useCallback(() => {
+    setRootRoute('Migration')
+  }, [])
+
   const navTheme = useMemo(() => ({
     ...DefaultTheme,
     colors: {
@@ -98,7 +104,7 @@ export default function AppNavigator() {
   if (rootRoute === null || wallets === null) return null
 
   return (
-    <WalletNavContext.Provider value={{ onWalletCreated, onWalletDisconnected, wallets }}>
+    <WalletNavContext.Provider value={{ onWalletCreated, onWalletDisconnected, goToMigration, wallets }}>
       <MigrationContext.Provider value={{ onMigrationComplete }}>
         <NavigationContainer theme={navTheme}>
           {rootRoute === 'Migration' ? (

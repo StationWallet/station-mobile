@@ -41,10 +41,10 @@ describe('Retry Upgrade from Main UI', () => {
       await device.launchApp({ delete: true, newInstance: true });
       await device.disableSynchronization();
 
-      // After erase, app starts fresh → Auth route → AuthMenu
+      // After erase, app starts fresh → Migration route → MigrationHome (dev buttons)
       await waitFor(element(by.text('Seed Pre-Migrated (dev)')))
         .toBeVisible()
-        .withTimeout(30000);
+        .withTimeout(90000);
       await element(by.text('Seed Pre-Migrated (dev)')).tap();
 
       await waitFor(element(by.id('seed-premigrated-done')))
@@ -68,10 +68,10 @@ describe('Retry Upgrade from Main UI', () => {
     });
 
     it('should show main app (not migration flow)', async () => {
-      // Should NOT show WalletDiscovery
+      // Should NOT show MigrationHome
       let migrationShown = false;
       try {
-        await waitFor(element(by.text('Wallets Found')))
+        await waitFor(element(by.id('migration-cta')))
           .toBeVisible()
           .withTimeout(5000);
         migrationShown = true;
@@ -151,7 +151,7 @@ describe('Retry Upgrade from Main UI', () => {
     });
 
     it('should show MigrationSuccess', async () => {
-      await waitFor(element(by.text('Wallets Upgraded!')))
+      await waitFor(element(by.text('You are aboard, Station OG!')))
         .toBeVisible()
         .withTimeout(15000);
 

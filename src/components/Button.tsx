@@ -16,7 +16,7 @@ export type ButtonProps = {
   onPress?: (event: GestureResponderEvent) => void
   containerStyle?: StyleProp<ViewStyle>
   titleStyle?: StyleProp<TextStyle>
-  titleFontType?: 'light' | 'book' | 'medium' | 'bold'
+  titleFontType?: 'light' | 'book' | 'medium' | 'bold' | 'brockmann' | 'brockmann-medium' | 'brockmann-semibold' | 'brockmann-bold' | 'satoshi-medium'
   title: string | ReactElement
   theme?:
     | 'sapphire'
@@ -25,6 +25,8 @@ export type ButtonProps = {
     | 'gray'
     | 'white'
     | 'transparent'
+    | 'ctaBlue'
+    | 'secondaryDark'
   disabled?: boolean
   testID?: string
 }
@@ -64,6 +66,16 @@ const Button = (props: ButtonProps): ReactElement => {
       containerStyle.backgroundColor = '#ffffff1a'
       containerStyle.borderColor = '#ffffff1a'
       break
+    case 'ctaBlue':
+      titleStyle.color = '#f0f4fc'
+      containerStyle.backgroundColor = '#0b4eff'
+      containerStyle.borderColor = '#0b4eff'
+      break
+    case 'secondaryDark':
+      titleStyle.color = '#f0f4fc'
+      containerStyle.backgroundColor = '#11284a'
+      containerStyle.borderColor = 'rgba(255,255,255,0.03)'
+      break
     case 'white':
     default:
       titleStyle.color = COLOR.primary._02
@@ -72,7 +84,11 @@ const Button = (props: ButtonProps): ReactElement => {
       break
   }
 
-  containerStyle.opacity = disabled ? 0.3 : 1
+  if (disabled) {
+    containerStyle.backgroundColor = '#0b1a3a'
+    containerStyle.borderColor = '#0b1a3a'
+    titleStyle.color = '#718096'
+  }
 
   return (
     <TouchableOpacity

@@ -1,42 +1,27 @@
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
-import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
+import type { MigrationResult } from 'services/migrateToVault'
 
 type MigrationNav = StackNavigationProp<MigrationStackParams, 'KeygenProgress' | 'VerifyEmail'>
 
 /**
- * Advances the migration flow to the next standard wallet, auto-skipping
- * ledger wallets. If all wallets are processed, navigates to MigrationSuccess.
+ * After completing a wallet's migration (verify email success),
+ * always navigate to MigrationSuccess. The user can tap
+ * "Migrate another wallet" to return to WalletsFound for the next one.
  */
 export function advanceToNextWallet(
   navigation: MigrationNav,
-  wallets: MigrationWallet[],
-  walletIndex: number,
-  totalWallets: number,
-  results: MigrationResult[],
-  email: string | undefined,
-  newResult: MigrationResult,
+  opts: {
+    wallets: MigrationResult['wallet'][]
+    results: MigrationResult[]
+    newResult: MigrationResult
+  },
 ): void {
-  const updatedResults = [...results, newResult]
-  let nextIdx = walletIndex + 1
+  const updatedResults = [...opts.results, opts.newResult]
 
-  while (nextIdx < wallets.length && wallets[nextIdx].ledger) {
-    updatedResults.push({ wallet: wallets[nextIdx], success: true })
-    nextIdx++
-  }
-
-  if (nextIdx >= wallets.length) {
-    navigation.navigate('MigrationSuccess', { results: updatedResults })
-    return
-  }
-
-  const nextWallet = wallets[nextIdx]
-  navigation.navigate('VaultEmail', {
-    walletName: nextWallet.name,
-    walletIndex: nextIdx,
-    totalWallets,
-    wallets,
+  navigation.navigate('MigrationSuccess', {
     results: updatedResults,
-    email,
+    wallets: opts.wallets,
+    migratedWalletName: opts.newResult.wallet.name,
   })
 }
