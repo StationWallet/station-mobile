@@ -52,15 +52,13 @@ jobs:
               $injected = true
             elsif $injected && /^\s*\)/ && !$done
               $done = true
-              $_ += <<~'RUBY'
+              $_ += <<~RUBY
 
                 installer.pods_project.targets.each do |target|
                   target.build_configurations.each do |bc|
                     bc.build_settings["SWIFT_STRICT_CONCURRENCY"] = "minimal"
-                    flags = bc.build_settings["OTHER_SWIFT_FLAGS"] || "$(inherited)"
-                    unless flags.include?("-strict-concurrency")
-                      bc.build_settings["OTHER_SWIFT_FLAGS"] = "#{flags} -Xfrontend -strict-concurrency=minimal"
-                    end
+                    existing = bc.build_settings["OTHER_SWIFT_FLAGS"] || "$(inherited)"
+                    bc.build_settings["OTHER_SWIFT_FLAGS"] = existing + " -Xfrontend -strict-concurrency=minimal" unless existing.include?("-strict-concurrency")
                   end
                 end
               RUBY
