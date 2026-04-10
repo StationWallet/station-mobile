@@ -14,7 +14,8 @@ import type { StackNavigationProp } from '@react-navigation/stack'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import StepProgressBar from 'components/migration/StepProgressBar'
-import GlassButton from 'components/migration/GlassButton'
+import MigrationToolbar from 'components/migration/MigrationToolbar'
+import { formStyles } from 'components/migration/migrationStyles'
 import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
@@ -25,32 +26,24 @@ export default function VaultName() {
   const [name, setName] = useState('')
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={formStyles.container}>
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={formStyles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* Toolbar */}
-        <View style={styles.toolbar}>
-          <GlassButton onPress={() => navigation.goBack()}>
-            <Text style={styles.chevron}>{'‹'}</Text>
-          </GlassButton>
-        </View>
+        <MigrationToolbar onBack={() => navigation.goBack()} />
 
-        {/* Step progress */}
         <StepProgressBar currentStep={1} />
 
-        {/* Content */}
-        <View style={styles.content}>
-          <Text style={styles.title} fontType="brockmann-medium">
+        <View style={formStyles.content}>
+          <Text style={formStyles.title} fontType="brockmann-medium">
             Name your vault
           </Text>
-          <Text style={styles.subtitle} fontType="brockmann">
+          <Text style={formStyles.subtitle} fontType="brockmann">
             No inspiration? You can always change the name later in your
             settings.
           </Text>
 
-          {/* Input with clear button */}
           <View style={styles.inputWrapper}>
             <TextInput
               testID="vault-name-input"
@@ -67,14 +60,13 @@ export default function VaultName() {
                 onPress={() => setName('')}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Text style={styles.clearIcon}>✕</Text>
+                <Text style={styles.clearIcon}>{'\u2715'}</Text>
               </TouchableOpacity>
             )}
           </View>
         </View>
 
-        {/* Next button pinned to bottom */}
-        <View style={styles.buttonContainer}>
+        <View style={formStyles.buttonContainer}>
           <Button
             testID="vault-name-next"
             title="Next"
@@ -87,7 +79,7 @@ export default function VaultName() {
                 mode: 'create',
               })
             }}
-            containerStyle={styles.nextButton}
+            containerStyle={formStyles.ctaButton}
           />
         </View>
       </KeyboardAvoidingView>
@@ -96,42 +88,6 @@ export default function VaultName() {
 }
 
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: MIGRATION.bg,
-  },
-  toolbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: MIGRATION.screenPadding,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  chevron: {
-    fontSize: 24,
-    color: MIGRATION.textPrimary,
-    marginTop: -2,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-  },
-  title: {
-    fontSize: 22,
-    color: MIGRATION.textPrimary,
-    lineHeight: 24,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: MIGRATION.textTertiary,
-    lineHeight: 20,
-    marginBottom: 32,
-  },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -154,15 +110,5 @@ const styles = StyleSheet.create({
   clearIcon: {
     fontSize: 14,
     color: MIGRATION.textTertiary,
-  },
-  buttonContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-    paddingTop: 16,
-  },
-  nextButton: {
-    width: '100%',
-    borderRadius: MIGRATION.radiusPill,
-    height: MIGRATION.ctaHeight,
   },
 })

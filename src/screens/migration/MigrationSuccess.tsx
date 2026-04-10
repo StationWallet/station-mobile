@@ -7,7 +7,7 @@ import Svg, { Path, Rect } from 'react-native-svg'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
-import GlassButton from 'components/migration/GlassButton'
+import MigrationToolbar from 'components/migration/MigrationToolbar'
 import OGStatusCard from 'components/migration/OGStatusCard'
 import { MIGRATION } from 'consts/migration'
 import preferences, { PreferencesEnum } from 'nativeModules/preferences'
@@ -67,15 +67,7 @@ export default function MigrationSuccess() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Toolbar */}
-      <View style={styles.toolbar}>
-        <GlassButton onPress={onMigrationComplete} testID="success-back">
-          <Text style={styles.chevron}>{'\u2039'}</Text>
-        </GlassButton>
-        <GlassButton onPress={() => {}} testID="success-cube">
-          <View />
-        </GlassButton>
-      </View>
+      <MigrationToolbar onBack={onMigrationComplete} testID="success-back" />
 
       {/* Title */}
       <Text fontType="brockmann-medium" style={styles.title}>
@@ -150,19 +142,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: MIGRATION.bg,
-  },
-  toolbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: MIGRATION.screenPadding,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  chevron: {
-    fontSize: 24,
-    color: MIGRATION.textPrimary,
-    marginTop: -2,
   },
   title: {
     fontSize: 22,

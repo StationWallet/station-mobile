@@ -1,13 +1,14 @@
 import React, { useMemo } from 'react'
-import { View, ScrollView, StyleSheet } from 'react-native'
+import { ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { RouteProp } from '@react-navigation/native'
 
 import Text from 'components/Text'
-import GlassButton from 'components/migration/GlassButton'
+import MigrationToolbar from 'components/migration/MigrationToolbar'
 import WalletMigrationCard from 'components/migration/WalletMigrationCard'
+import { formStyles } from 'components/migration/migrationStyles'
 import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
@@ -25,46 +26,36 @@ export default function WalletsFound() {
   )
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Toolbar */}
-      <View style={styles.toolbar}>
-        <GlassButton onPress={() => navigation.goBack()} testID="wallets-back">
-          <Text style={styles.chevron}>{'\u2039'}</Text>
-        </GlassButton>
-      </View>
+    <SafeAreaView style={formStyles.container}>
+      <MigrationToolbar onBack={() => navigation.goBack()} testID="wallets-back" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Text fontType="brockmann-medium" style={styles.title}>
-          Your wallets
-        </Text>
-        <Text fontType="brockmann" style={styles.subtitle}>
-          Handle each one separately.
-        </Text>
-      </View>
+      <Text fontType="brockmann-medium" style={styles.title}>
+        Your wallets
+      </Text>
+      <Text fontType="brockmann" style={styles.subtitle}>
+        Handle each one separately.
+      </Text>
 
-      {/* Wallet list */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {wallets.map((wallet, index) => (
-          <View key={wallet.name} style={styles.cardWrapper}>
-            <WalletMigrationCard
-              name={wallet.name}
-              address={wallet.address}
-              migrated={migratedNames.has(wallet.name) || wallet.ledger}
-              onMigrate={() => {
-                navigation.navigate('VaultEmail', {
-                  walletName: wallet.name,
-                  wallets,
-                  mode: 'migrate',
-                })
-              }}
-              testID={`wallet-card-${index}`}
-            />
-          </View>
+          <WalletMigrationCard
+            key={wallet.name}
+            name={wallet.name}
+            address={wallet.address}
+            migrated={migratedNames.has(wallet.name) || wallet.ledger}
+            onMigrate={() => {
+              navigation.navigate('VaultEmail', {
+                walletName: wallet.name,
+                wallets,
+                mode: 'migrate',
+              })
+            }}
+            testID={`wallet-card-${index}`}
+          />
         ))}
       </ScrollView>
     </SafeAreaView>
@@ -72,34 +63,19 @@ export default function WalletsFound() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: MIGRATION.bg,
-  },
-  toolbar: {
-    paddingHorizontal: MIGRATION.screenPadding,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  header: {
-    paddingHorizontal: MIGRATION.screenPadding,
-    marginBottom: 20,
-  },
   title: {
     fontSize: 22,
     color: MIGRATION.textPrimary,
     lineHeight: 24,
     marginBottom: 4,
+    paddingHorizontal: MIGRATION.screenPadding,
   },
   subtitle: {
     fontSize: 14,
     color: MIGRATION.textTertiary,
     lineHeight: 20,
-  },
-  chevron: {
-    fontSize: 24,
-    color: MIGRATION.textPrimary,
-    marginTop: -2,
+    paddingHorizontal: MIGRATION.screenPadding,
+    marginBottom: 20,
   },
   scrollView: {
     flex: 1,
@@ -109,5 +85,4 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     gap: MIGRATION.cardGap,
   },
-  cardWrapper: {},
 })

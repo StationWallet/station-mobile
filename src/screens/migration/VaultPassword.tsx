@@ -14,7 +14,8 @@ import type { RouteProp } from '@react-navigation/native'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import StepProgressBar from 'components/migration/StepProgressBar'
-import GlassButton from 'components/migration/GlassButton'
+import MigrationToolbar from 'components/migration/MigrationToolbar'
+import { formStyles } from 'components/migration/migrationStyles'
 import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
@@ -41,37 +42,27 @@ export default function VaultPassword() {
   const isValid =
     password.length >= 6 && confirm === password
 
-  // In create mode: step 0=vault, 1=name, 2=email, 3=password (currentStep=3)
-  // In migrate mode: step 0=vault, 1=email, 2=password (currentStep=2)
   const stepBarCurrentStep = mode === 'create' ? 3 : 2
-
   const buttonText = mode === 'create' ? 'Create vault' : 'Continue'
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={formStyles.container}>
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={formStyles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* Toolbar */}
-        <View style={styles.toolbar}>
-          <GlassButton onPress={() => navigation.goBack()}>
-            <Text style={styles.chevron}>{'‹'}</Text>
-          </GlassButton>
-        </View>
+        <MigrationToolbar onBack={() => navigation.goBack()} />
 
-        {/* Step progress */}
         <StepProgressBar currentStep={stepBarCurrentStep} />
 
-        {/* Content */}
-        <View style={styles.content}>
-          <Text style={styles.title} fontType="brockmann-medium">
+        <View style={formStyles.content}>
+          <Text style={formStyles.title} fontType="brockmann-medium">
             Choose a password
           </Text>
 
-          <Text style={styles.subtitle} fontType="brockmann">
+          <Text style={formStyles.subtitle} fontType="brockmann">
             If you want an extra layer of security, choose a password. Password
-            cannot be recovered. 🔑
+            cannot be recovered.
           </Text>
 
           <TextInput
@@ -117,8 +108,7 @@ export default function VaultPassword() {
           )}
         </View>
 
-        {/* Button pinned to bottom */}
-        <View style={styles.buttonContainer}>
+        <View style={formStyles.buttonContainer}>
           <Button
             testID="vault-password-continue"
             title={buttonText}
@@ -138,7 +128,7 @@ export default function VaultPassword() {
                 password,
               })
             }}
-            containerStyle={styles.continueButton}
+            containerStyle={formStyles.ctaButton}
           />
         </View>
       </KeyboardAvoidingView>
@@ -147,42 +137,6 @@ export default function VaultPassword() {
 }
 
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: MIGRATION.bg,
-  },
-  toolbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: MIGRATION.screenPadding,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  chevron: {
-    fontSize: 24,
-    color: MIGRATION.textPrimary,
-    marginTop: -2,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 24,
-  },
-  title: {
-    fontSize: 22,
-    color: MIGRATION.textPrimary,
-    lineHeight: 24,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: MIGRATION.textTertiary,
-    lineHeight: 20,
-    marginBottom: 32,
-  },
   input: {
     backgroundColor: MIGRATION.surface1,
     borderWidth: 1,
@@ -204,15 +158,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: MIGRATION.errorRed,
     marginTop: 6,
-  },
-  buttonContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-    paddingTop: 16,
-  },
-  continueButton: {
-    width: '100%',
-    borderRadius: MIGRATION.radiusPill,
-    height: MIGRATION.ctaHeight,
   },
 })
