@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Alert } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
@@ -30,10 +30,7 @@ export function useImportFlow() {
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [decrypting, setDecrypting] = useState(false)
 
-  const ctaTitle = useMemo(() => {
-    if (loading) return 'Importing...'
-    return fileState === 'success' ? 'Continue' : 'Continue'
-  }, [fileState, loading])
+  const ctaTitle = loading ? 'Importing...' : 'Continue'
 
   const navigateAfterImport = () => {
     navigation.navigate('MigrationSuccess', { results: [] })

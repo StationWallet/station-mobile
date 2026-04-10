@@ -108,6 +108,22 @@ describe('Fast Vault Migration — Per-Wallet', () => {
       await migrateOneWalletFromCard(0, 'TestWallet1', knownMessageIds, true);
     });
 
+    it('should show wallet 1 as migrated after returning to WalletsFound', async () => {
+      // After migrating wallet 0 and tapping "Migrate another wallet",
+      // wallet 0's card should show the "✓ Fast Vault" badge, not the migrate button
+      let migrateButtonVisible = false;
+      try {
+        await waitFor(element(by.id('wallet-card-0-migrate')))
+          .toBeVisible()
+          .withTimeout(3000);
+        migrateButtonVisible = true;
+      } catch (_) {}
+
+      if (migrateButtonVisible) {
+        throw new Error('Wallet 0 should show as migrated (no migrate button) after successful migration');
+      }
+    });
+
     it('should migrate wallet 2', async () => {
       await migrateOneWalletFromCard(1, 'TestWallet2', knownMessageIds, false);
     });

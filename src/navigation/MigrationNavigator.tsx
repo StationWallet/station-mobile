@@ -31,6 +31,7 @@ export type MigrationStackParams = {
   MigrationHome: undefined
   WalletsFound: {
     wallets: MigrationWallet[]
+    results?: MigrationResult[]
   }
   VaultName: undefined
   VaultEmail: {

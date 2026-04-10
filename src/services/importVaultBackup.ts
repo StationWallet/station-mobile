@@ -5,10 +5,9 @@ import { base64 } from '@scure/base'
 import { toBinary } from '@bufbuild/protobuf'
 import * as SecureStore from 'expo-secure-store'
 
-import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container_pb'
-import { VAULT_KEY_PREFIX } from './migrateToVault'
+import { vaultStoreKey } from './migrateToVault'
 
 const VAULT_STORE_OPTS: SecureStore.SecureStoreOptions = {
   keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
@@ -121,14 +120,14 @@ export async function persistImportedVault(
   const vaultName = vault.name || 'Imported Vault'
 
   await SecureStore.setItemAsync(
-    `${VAULT_KEY_PREFIX}${vaultName}`,
+    vaultStoreKey(vaultName),
     encoded,
     VAULT_STORE_OPTS,
   )
 
   // Verify the write
   const readBack = await SecureStore.getItemAsync(
-    `${VAULT_KEY_PREFIX}${vaultName}`,
+    vaultStoreKey(vaultName),
     VAULT_STORE_OPTS,
   )
   if (readBack !== encoded) {

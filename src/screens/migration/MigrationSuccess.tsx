@@ -54,6 +54,7 @@ export default function MigrationSuccess() {
   const onMigrationComplete = useMigrationComplete()
 
   const wallets = params.wallets
+  const results = params.results ?? []
   const hasUnmigrated = wallets != null && wallets.length > 0
 
   // Write the flag eagerly when this screen mounts (not just on tap)
@@ -119,7 +120,7 @@ export default function MigrationSuccess() {
         {/* Migrate another wallet link */}
         {hasUnmigrated && (
           <TouchableOpacity
-            onPress={() => navigation.navigate('WalletsFound', { wallets })}
+            onPress={() => navigation.navigate('WalletsFound', { wallets, results })}
             testID="migrate-another-wallet"
           >
             <Text fontType="brockmann-medium" style={styles.migrateAnother}>

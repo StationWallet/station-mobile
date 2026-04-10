@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo } from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -17,9 +17,12 @@ type Route = RouteProp<MigrationStackParams, 'WalletsFound'>
 export default function WalletsFound() {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
-  const { wallets } = route.params
+  const { wallets, results } = route.params
 
-  const [migratedNames, setMigratedNames] = useState<Set<string>>(new Set())
+  const migratedNames = useMemo(
+    () => new Set((results ?? []).filter(r => r.success).map(r => r.wallet.name)),
+    [results],
+  )
 
   return (
     <SafeAreaView style={styles.container}>
