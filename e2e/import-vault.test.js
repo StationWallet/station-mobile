@@ -242,6 +242,12 @@ describe('Import Vault', () => {
         throw new Error('Migration flow should not appear after successful import');
       }
     });
+
+    it('should show imported vault in wallet list', async () => {
+      await waitFor(element(by.text('Test Import Vault')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
   });
 
   // ─── Wrong password ───────────────────────────────────────────────

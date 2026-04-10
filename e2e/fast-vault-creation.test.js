@@ -251,5 +251,11 @@ describe('Fast Vault Creation — New User', () => {
         throw new Error('Migration flow should not appear after vault creation');
       }
     });
+
+    it('should show created vault in wallet list', async () => {
+      await waitFor(element(by.text('My Fast Vault')))
+        .toBeVisible()
+        .withTimeout(10000);
+    });
   });
 });
