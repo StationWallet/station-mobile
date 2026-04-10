@@ -58,7 +58,7 @@ export default function VaultName() {
               value={name}
               onChangeText={setName}
               placeholder="Saving Vault"
-              placeholderTextColor={MIGRATION.textTertiary}
+              placeholderTextColor={MIGRATION.textInputPlaceholder}
               autoCorrect={false}
             />
             {name.length > 0 && (
@@ -123,6 +123,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     color: MIGRATION.textPrimary,
+    lineHeight: 24,
     marginBottom: 8,
   },
   subtitle: {
@@ -134,10 +135,10 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#061b3acc',
+    backgroundColor: MIGRATION.surface1,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ffffff08',
+    borderColor: MIGRATION.strokeInput,
     paddingHorizontal: 16,
   },
   input: {

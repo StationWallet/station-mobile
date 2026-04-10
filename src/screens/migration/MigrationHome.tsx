@@ -176,7 +176,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 24,
     marginBottom: 24,
-    lineHeight: 30,
+    lineHeight: 24,
+    letterSpacing: -0.36,
   },
   cardWrapper: {
     marginBottom: 24,
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
-    color: MIGRATION.textLink,
+    color: MIGRATION.textTertiary,
     textDecorationLine: 'underline',
   },
   devButtons: {

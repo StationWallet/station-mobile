@@ -104,7 +104,7 @@ export default function FileDropZone({ onPress, fileName, error, onClear, fileSt
       >
         <Icon color={config.iconColor} />
         <Text
-          fontType="brockmann-medium"
+          fontType="brockmann"
           style={[styles.label, { color: config.textColor }]}
           numberOfLines={1}
         >
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   label: {
-    fontSize: 15,
+    fontSize: 14,
     lineHeight: 17,
     letterSpacing: -0.18,
     textAlign: 'center',

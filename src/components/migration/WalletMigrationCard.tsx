@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
   balance: {
     fontSize: 20,
     color: MIGRATION.textPrimary,
+    letterSpacing: 0.2,
   },
   address: {
     fontSize: 14,

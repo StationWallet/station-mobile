@@ -149,6 +149,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     color: MIGRATION.textPrimary,
+    lineHeight: 24,
     marginBottom: 8,
   },
   subtitle: {
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: MIGRATION.surface1,
     borderWidth: 1,
-    borderColor: MIGRATION.borderLight,
+    borderColor: MIGRATION.strokeInput,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -169,11 +170,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Brockmann-Regular',
   },
   inputError: {
-    borderColor: '#e53e3e',
+    borderColor: MIGRATION.errorRed,
   },
   errorText: {
     fontSize: 13,
-    color: '#e53e3e',
+    color: MIGRATION.errorRed,
     marginTop: 6,
   },
   buttonContainer: {

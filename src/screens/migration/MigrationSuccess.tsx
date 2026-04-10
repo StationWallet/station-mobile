@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
+import Svg, { Path, Rect } from 'react-native-svg'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -13,6 +14,35 @@ import preferences, { PreferencesEnum } from 'nativeModules/preferences'
 import { useMigrationComplete } from 'navigation/MigrationContext'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
+
+function CopyIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Rect x={9} y={9} width={13} height={13} rx={2} stroke="#f0f4fc" strokeWidth={1.5} />
+      <Path
+        d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
+        stroke="#f0f4fc"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  )
+}
+
+function ChevronRight() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 18l6-6-6-6"
+        stroke="#f0f4fc"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  )
+}
 
 const DevVerifyVault = __DEV__
   ? require('components/DevVerifyVault').default
@@ -70,7 +100,15 @@ export default function MigrationSuccess() {
       <View style={styles.bottomActions}>
         {/* Share OG status button */}
         <Button
-          title="Share your OG status"
+          title={
+            <View style={styles.shareRow}>
+              <CopyIcon />
+              <Text fontType="brockmann-medium" style={styles.shareText}>
+                Share your OG status
+              </Text>
+              <ChevronRight />
+            </View>
+          }
           theme="ctaBlue"
           onPress={() => {}}
           containerStyle={styles.shareButton}
@@ -128,7 +166,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     color: MIGRATION.textPrimary,
-    paddingLeft: 17,
+    paddingLeft: MIGRATION.screenPadding,
+    lineHeight: 24,
     marginTop: 50,
   },
   subtitle: {
@@ -158,6 +197,16 @@ const styles = StyleSheet.create({
   shareButton: {
     width: '100%',
     borderRadius: MIGRATION.radiusPill,
+  },
+  shareRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  shareText: {
+    fontSize: 14,
+    color: '#f0f4fc',
+    lineHeight: 18,
   },
   migrateAnother: {
     fontSize: 14,

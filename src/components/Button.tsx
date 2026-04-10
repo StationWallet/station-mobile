@@ -84,7 +84,11 @@ const Button = (props: ButtonProps): ReactElement => {
       break
   }
 
-  containerStyle.opacity = disabled ? 0.3 : 1
+  if (disabled) {
+    containerStyle.backgroundColor = '#0b1a3a'
+    containerStyle.borderColor = '#0b1a3a'
+    titleStyle.color = '#718096'
+  }
 
   return (
     <TouchableOpacity

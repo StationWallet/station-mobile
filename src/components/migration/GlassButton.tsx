@@ -1,6 +1,5 @@
 import React from 'react'
 import { TouchableOpacity, View, StyleSheet } from 'react-native'
-import { MIGRATION } from 'consts/migration'
 
 type Props = {
   onPress: () => void
@@ -11,7 +10,9 @@ type Props = {
 export default function GlassButton({ onPress, children, testID }: Props) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.container} testID={testID}>
-      <View style={styles.fill} />
+      <View style={styles.layerBase} />
+      <View style={styles.layerMain} />
+      <View style={styles.layerHighlight} />
       {children}
     </TouchableOpacity>
   )
@@ -26,10 +27,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  fill: {
+  layerBase: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: MIGRATION.buttonSecondary,
-    opacity: 0.67,
+    backgroundColor: 'rgba(204,204,204,0.5)',
+    borderRadius: 296,
+  },
+  layerMain: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#11284a',
+    borderRadius: 296,
+  },
+  layerHighlight: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 296,
   },
 })

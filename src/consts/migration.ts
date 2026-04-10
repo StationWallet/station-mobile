@@ -12,11 +12,16 @@ export const MIGRATION = {
   // Borders
   borderLight: '#11284a',
   borderExtraLight: 'rgba(255,255,255,0.03)',
+  strokeInput: '#1b3f73',
 
   // Text
   textPrimary: '#f0f4fc',
   textTertiary: '#8295ae',
   textLink: '#4879fd',
+  textInputPlaceholder: '#c9d6e8',
+
+  // Status
+  errorRed: '#ff5c5c',
 
   // Buttons
   ctaBlue: '#0b4eff',

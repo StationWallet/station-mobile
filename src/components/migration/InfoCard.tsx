@@ -1,7 +1,50 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
+import Svg, { Path } from 'react-native-svg'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
+
+function ShieldCheckIcon() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+        stroke="#5ca7ff"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M9 12l2 2 4-4"
+        stroke="#5ca7ff"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  )
+}
+
+function ClockIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
+        stroke="#4879fd"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M12 6v6l4 2"
+        stroke="#4879fd"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  )
+}
 
 type Props = {
   daysRemaining: number
@@ -11,7 +54,7 @@ export default function InfoCard({ daysRemaining }: Props) {
   return (
     <View style={styles.card}>
       <View style={styles.titleRow}>
-        <Text style={styles.icon}>{'⚡'}</Text>
+        <ShieldCheckIcon />
         <Text fontType="brockmann-medium" style={styles.title}>
           A new type of wallet
         </Text>
@@ -40,7 +83,7 @@ export default function InfoCard({ daysRemaining }: Props) {
       </Text>
 
       <View style={styles.countdownRow}>
-        <Text style={styles.clockIcon}>{'🕐'}</Text>
+        <ClockIcon />
         <Text fontType="brockmann" style={styles.countdown}>
           The window closes in {daysRemaining} days.
         </Text>
@@ -51,7 +94,7 @@ export default function InfoCard({ daysRemaining }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: MIGRATION.surface1,
+    backgroundColor: MIGRATION.bg,
     borderColor: MIGRATION.borderLight,
     borderWidth: 1,
     borderRadius: MIGRATION.radiusCard,
@@ -63,11 +106,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  icon: {
-    fontSize: 18,
-  },
   title: {
-    fontSize: 16,
+    fontSize: 15,
     color: MIGRATION.textPrimary,
   },
   body: {
@@ -88,9 +128,6 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: MIGRATION.borderLight,
-  },
-  clockIcon: {
-    fontSize: 16,
   },
   countdown: {
     fontSize: 13,

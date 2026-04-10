@@ -85,11 +85,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     color: MIGRATION.textPrimary,
+    lineHeight: 24,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
     color: MIGRATION.textTertiary,
+    lineHeight: 20,
   },
   chevron: {
     fontSize: 24,
