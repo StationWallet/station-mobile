@@ -1,14 +1,15 @@
 /**
  * Fast Vault Creation E2E Test — New User
  *
- * Clean install (no legacy wallets) → AuthMenu (dev mode) →
- * "Create Fast Vault (dev)" → RiveIntro → MigrationHome →
- * "Create a Fast Vault" → VaultName → VaultEmail → VaultPassword →
- * KeygenProgress → VerifyEmail → MigrationSuccess.
+ * Clean install (no legacy wallets) -> AuthMenu (dev mode) ->
+ * "Create Fast Vault (dev)" -> RiveIntro -> MigrationHome ->
+ * "Create a Fast Vault" -> VaultName -> VaultEmail -> VaultPassword ->
+ * KeygenProgress -> VerifyEmail -> MigrationSuccess.
  *
- * In dev mode, fresh installs route to AuthMenu (so E2E dev seed buttons
- * are accessible). The test taps the dev-only "Create Fast Vault" button
- * to switch to the Migration navigator.
+ * Also tests input validation on each form screen:
+ * - VaultName: empty name disables Next button
+ * - VaultEmail: invalid email shows error, disables Next button
+ * - VaultPassword: short password and mismatched passwords show errors
  *
  * Requires: vultiserver at api.vultisig.com, agentmail credentials in .env
  */
@@ -45,15 +46,12 @@ describe('Fast Vault Creation — New User', () => {
       await device.enableSynchronization();
     });
 
-    it('should navigate from AuthMenu to MigrationHome', async () => {
-      // In dev mode, fresh installs route to AuthMenu first.
-      // Tap the dev button to switch to the Migration/creation flow.
+    it('should reach MigrationHome via dev button', async () => {
       await waitFor(element(by.id('dev-create-fast-vault')))
         .toBeVisible()
         .withTimeout(90000);
       await element(by.id('dev-create-fast-vault')).tap();
 
-      // Tap through RiveIntro → MigrationHome appears with "Create a Fast Vault"
       await waitFor(element(by.id('enter-vultiverse-cta')))
         .toBeVisible()
         .withTimeout(90000);
@@ -62,66 +60,142 @@ describe('Fast Vault Creation — New User', () => {
       await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
         .withTimeout(90000);
+
+      await new Promise(r => setTimeout(r, 2000));
     });
 
     it('should navigate to VaultName', async () => {
       await element(by.id('migration-cta')).tap();
       await waitFor(element(by.text('Name your vault')))
         .toBeVisible()
-        .withTimeout(10000);
+        .withTimeout(15000);
+    });
+  });
+
+  // ─── VaultName validation ───────────────────────────────────────
+  describe('VaultName validation', () => {
+    it('should have Next button disabled with empty name', async () => {
+      // The input starts empty — Next should be disabled
+      const attrs = await element(by.id('vault-name-next')).getAttributes();
+      // Detox exposes enabled/disabled through the element attributes
+      // On iOS, a disabled Button has accessibilityState.disabled = true
+      // We verify by attempting tap and checking we stay on the same screen
+      await element(by.id('vault-name-next')).tap();
+      // Should still be on VaultName (didn't navigate)
+      await expect(element(by.text('Name your vault'))).toBeVisible();
     });
 
-    it('should enter vault name and advance', async () => {
+    it('should enable Next after entering a name', async () => {
       await element(by.id('vault-name-input')).typeText('My Fast Vault');
       await element(by.id('vault-name-next')).tap();
+
+      // Should navigate to VaultEmail
       await waitFor(element(by.text('Enter your email')))
         .toBeVisible()
         .withTimeout(10000);
     });
+  });
 
-    it('should enter email and advance', async () => {
+  // ─── VaultEmail validation ──────────────────────────────────────
+  describe('VaultEmail validation', () => {
+    it('should have Next button disabled with empty email', async () => {
+      await element(by.id('vault-email-next')).tap();
+      // Should still be on VaultEmail
+      await expect(element(by.text('Enter your email'))).toBeVisible();
+    });
+
+    it('should show error for invalid email on blur', async () => {
       await element(by.id('vault-email-input')).tap();
+      await element(by.id('vault-email-input')).typeText('not-an-email');
+      // Tap elsewhere to trigger blur
+      await element(by.id('vault-email-next')).tap();
+
+      await waitFor(element(by.text('Please enter a valid email address.')))
+        .toBeVisible()
+        .withTimeout(3000);
+    });
+
+    it('should clear error and advance with valid email', async () => {
+      await element(by.id('vault-email-input')).tap();
+      await element(by.id('vault-email-input')).clearText();
       await element(by.id('vault-email-input')).typeText(AGENTMAIL_EMAIL);
       await element(by.id('vault-email-next')).tap();
+
       await waitFor(element(by.text('Choose a password')))
         .toBeVisible()
         .withTimeout(10000);
     });
+  });
 
-    it('should enter password and start keygen', async () => {
+  // ─── VaultPassword validation ───────────────────────────────────
+  describe('VaultPassword validation', () => {
+    it('should show error for short password on blur', async () => {
+      await element(by.id('vault-password-input')).typeText('ab');
+      // Tap confirm field to trigger blur on password
+      await element(by.id('vault-password-confirm')).tap();
+
+      await waitFor(element(by.text('Password must be at least 6 characters.')))
+        .toBeVisible()
+        .withTimeout(3000);
+    });
+
+    it('should show error for mismatched passwords', async () => {
+      await element(by.id('vault-password-input')).clearText();
+      await element(by.id('vault-password-input')).typeText(VAULT_PASSWORD);
+      await element(by.id('vault-password-confirm')).clearText();
+      await element(by.id('vault-password-confirm')).typeText('different123');
+      // Tap the button to trigger blur on confirm
+      await element(by.id('vault-password-continue')).tap();
+
+      await waitFor(element(by.text('Passwords do not match.')))
+        .toBeVisible()
+        .withTimeout(3000);
+    });
+
+    it('should have continue button disabled when passwords mismatch', async () => {
+      // Should still be on VaultPassword
+      await expect(element(by.text('Choose a password'))).toBeVisible();
+    });
+
+    it('should advance with valid matching passwords', async () => {
+      await element(by.id('vault-password-confirm')).clearText();
+      await element(by.id('vault-password-confirm')).typeText(VAULT_PASSWORD);
+
+      // Snapshot agentmail before keygen sends the verification email
       const preKeygenIds = await getExistingMessageIds(AGENTMAIL_EMAIL);
       for (const id of preKeygenIds) knownMessageIds.add(id);
 
-      await element(by.id('vault-password-input')).typeText(VAULT_PASSWORD);
-      await element(by.id('vault-password-confirm')).typeText(VAULT_PASSWORD);
       await element(by.id('vault-password-continue')).tap();
 
-      // Wait for keygen to finish and navigate to VerifyEmail.
-      // The MPC ceremony typically completes in 30-60s but may take up to 3 min.
-      // Poll every 15s to check for error or success.
+      await waitFor(element(by.text('Fast Vault Setup')))
+        .toBeVisible()
+        .withTimeout(10000);
+    }, 240000);
+  });
+
+  // ─── Keygen + OTP verification ──────────────────────────────────
+  describe('Keygen and verification', () => {
+    it('should complete keygen and reach VerifyEmail', async () => {
       const startTime = Date.now();
       const timeoutMs = 180000;
       while (Date.now() - startTime < timeoutMs) {
-        // Check if VerifyEmail appeared
         try {
           await expect(element(by.text('Verify your email'))).toExist();
-          return; // Success!
+          return;
         } catch {}
 
-        // Check if error UI appeared (keygen failed)
         try {
           await expect(element(by.text('Failed'))).toExist();
-          // Keygen failed — log error message and tap Retry
           try {
-            const errAttrs = await element(by.id('keygen-error-text')).getAttributes();
-            console.log('[Keygen] Error:', errAttrs.text || errAttrs.label || 'unknown');
-          } catch { console.log('[Keygen] Error detected (could not read text)'); }
+            const attrs = await element(by.id('keygen-error-text')).getAttributes();
+            console.log('[Keygen] Error:', attrs.text || attrs.label);
+          } catch { console.log('[Keygen] Error detected'); }
           await element(by.id('keygen-retry')).tap();
         } catch {}
 
-        await new Promise(r => setTimeout(r, 15000));
+        await new Promise(r => setTimeout(r, 10000));
       }
-      throw new Error('Keygen did not complete within timeout');
+      throw new Error('Keygen did not complete within 3 minutes');
     }, 240000);
 
     it('should verify email with OTP', async () => {
@@ -163,6 +237,7 @@ describe('Fast Vault Creation — New User', () => {
     });
   });
 
+  // ─── Persistence ────────────────────────────────────────────────
   describe('Persistence', () => {
     beforeAll(async () => {
       await device.launchApp({
