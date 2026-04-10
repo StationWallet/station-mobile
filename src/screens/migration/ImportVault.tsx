@@ -17,7 +17,7 @@ function BackChevron() {
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
       <Path
         d="M15 18L9 12L15 6"
-        stroke="#F0F4FC"
+        stroke={MIGRATION.textPrimary}
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -29,10 +29,10 @@ function BackChevron() {
 function InfoIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="10" stroke="#F0F4FC" strokeWidth={1.5} />
+      <Circle cx="12" cy="12" r="10" stroke={MIGRATION.textPrimary} strokeWidth={1.5} />
       <Path
         d="M12 16V12M12 8H12.01"
-        stroke="#F0F4FC"
+        stroke={MIGRATION.textPrimary}
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   selectedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#061B3A',
+    backgroundColor: MIGRATION.surface1,
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 14,
@@ -178,12 +178,12 @@ const styles = StyleSheet.create({
   },
   selectedBadgeText: {
     fontSize: 13,
-    color: '#F0F4FC',
+    color: MIGRATION.textPrimary,
     flexShrink: 1,
   },
   ctaButton: {
     width: '100%',
-    borderRadius: 99,
-    height: 46,
+    borderRadius: MIGRATION.radiusPill,
+    height: MIGRATION.ctaHeight,
   },
 })

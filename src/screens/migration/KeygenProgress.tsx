@@ -22,6 +22,7 @@ import { decrypt } from 'utils/crypto'
 import { randomHex } from 'utils/mpcCrypto'
 import type { MigrationResult } from 'services/migrateToVault'
 import { advanceToNextWallet } from 'utils/migrationNav'
+import { getErrorMessage } from 'utils/getErrorMessage'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
@@ -34,7 +35,6 @@ export default function KeygenProgress() {
   const {
     walletName,
     walletIndex = 0,
-    totalWallets = 1,
     wallets = [],
     results = [],
     email,
@@ -62,9 +62,9 @@ export default function KeygenProgress() {
 
   const advance = useCallback(
     (newResult: MigrationResult) => {
-      advanceToNextWallet(navigation, wallets, walletIndex, totalWallets, results, email, newResult)
+      advanceToNextWallet(navigation, { wallets, results, newResult })
     },
-    [navigation, results, walletIndex, wallets, totalWallets, email],
+    [navigation, results, wallets],
   )
 
   const runCeremony = useCallback(async () => {
@@ -117,7 +117,6 @@ export default function KeygenProgress() {
       navigation.navigate('VerifyEmail', {
         walletName,
         walletIndex,
-        totalWallets,
         wallets,
         results,
         mode,
@@ -126,7 +125,7 @@ export default function KeygenProgress() {
       })
     } catch (err) {
       if (controller.signal.aborted) return
-      const msg = err instanceof Error ? err.message : String(err)
+      const msg = getErrorMessage(err)
       setError(msg)
     }
   }, [walletName, email, password, mode, wallets, walletIndex, updateProgress, progressValue])
@@ -156,7 +155,7 @@ export default function KeygenProgress() {
     <SafeAreaView style={styles.container}>
       <Animated.View entering={FadeIn.duration(400)} style={styles.content}>
         <Text style={styles.walletLabel} fontType="brockmann">
-          Wallet {walletIndex + 1}/{totalWallets}: {walletName}
+          Wallet {walletIndex + 1}/{wallets.length}: {walletName}
         </Text>
 
         <Text style={styles.title} fontType="brockmann-bold">
@@ -269,7 +268,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    color: '#ff5c5c',
+    color: MIGRATION.errorRed,
     lineHeight: 20,
   },
   buttonRow: {

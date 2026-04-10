@@ -3,6 +3,7 @@ import { TouchableOpacity, View, StyleSheet } from 'react-native'
 import Svg, { Path, Polyline } from 'react-native-svg'
 
 import Text from 'components/Text'
+import { MIGRATION } from 'consts/migration'
 import type { FileState } from 'hooks/useImportFlow'
 
 function CloudUploadIcon({ color }: { color: string }) {
@@ -54,6 +55,8 @@ function PageCheckIcon({ color }: { color: string }) {
   )
 }
 
+const SUCCESS_GREEN = '#13C89D'
+
 type Props = {
   onPress: () => void
   fileName?: string
@@ -64,28 +67,28 @@ type Props = {
 
 const stateConfig = {
   empty: {
-    bg: '#0b1a3a80',
-    border: '#1b3f73',
-    textColor: '#C9D6E8',
+    bg: `${MIGRATION.buttonDisabled}80`,
+    border: MIGRATION.strokeInput,
+    textColor: MIGRATION.textInputPlaceholder,
     text: 'Import your vault share',
     Icon: CloudUploadIcon,
-    iconColor: '#3478F6',
+    iconColor: MIGRATION.textLink,
   },
   error: {
-    bg: 'rgba(255,92,92,0.05)',
-    border: '#FF5C5C',
-    textColor: '#FF5C5C',
+    bg: `${MIGRATION.errorRed}0D`,
+    border: MIGRATION.errorRed,
+    textColor: MIGRATION.errorRed,
     text: 'Unsupported file type, please try again',
     Icon: CloudUploadIcon,
-    iconColor: '#FF5C5C',
+    iconColor: MIGRATION.errorRed,
   },
   success: {
-    bg: 'rgba(19,200,157,0.05)',
-    border: '#13C89D',
-    textColor: '#13C89D',
+    bg: `${SUCCESS_GREEN}0D`,
+    border: SUCCESS_GREEN,
+    textColor: SUCCESS_GREEN,
     text: '',
     Icon: PageCheckIcon,
-    iconColor: '#13C89D',
+    iconColor: SUCCESS_GREEN,
   },
 } as const
 
@@ -119,7 +122,7 @@ export default function FileDropZone({ onPress, fileName, error, onClear, fileSt
               {fileName}
             </Text>
             <TouchableOpacity onPress={onClear} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={styles.clearIcon}>✕</Text>
+              <Text style={styles.clearIcon}>{'\u2715'}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -133,7 +136,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderRadius: 24,
+    borderRadius: MIGRATION.radiusCard,
     paddingVertical: 48,
     paddingHorizontal: 16,
     alignItems: 'center',
@@ -154,7 +157,7 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#061B3A',
+    backgroundColor: MIGRATION.surface1,
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 14,
@@ -163,11 +166,11 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 13,
-    color: '#F0F4FC',
+    color: MIGRATION.textPrimary,
     flexShrink: 1,
   },
   clearIcon: {
     fontSize: 14,
-    color: '#8295AE',
+    color: MIGRATION.textTertiary,
   },
 })

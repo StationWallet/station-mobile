@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import Text from 'components/Text'
+import { MIGRATION } from 'consts/migration'
 
 type Props = {
   currentStep: number
@@ -68,44 +69,44 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#03132c',
+    backgroundColor: MIGRATION.bg,
     borderWidth: 1,
-    borderColor: '#718096',
+    borderColor: MIGRATION.textTertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   circleCompleted: {
-    backgroundColor: '#0c4eff',
-    borderColor: '#0c4eff',
+    backgroundColor: MIGRATION.ctaBlue,
+    borderColor: MIGRATION.ctaBlue,
   },
   circleActive: {
-    borderColor: '#4879fd',
+    borderColor: MIGRATION.textLink,
   },
   checkmark: {
     fontSize: 18,
-    color: '#ffffff',
+    color: MIGRATION.textPrimary,
   },
   stepIcon: {
     fontSize: 16,
-    color: '#718096',
+    color: MIGRATION.textTertiary,
   },
   stepIconActive: {
-    color: '#f0f4fc',
+    color: MIGRATION.textPrimary,
   },
   glowBar: {
     width: 24,
     height: 3,
     borderRadius: 2,
-    backgroundColor: '#0c4eff',
+    backgroundColor: MIGRATION.ctaBlue,
     marginTop: 6,
   },
   connector: {
     width: 16,
     height: 1,
-    backgroundColor: '#11284a',
+    backgroundColor: MIGRATION.borderLight,
     marginHorizontal: 4,
   },
   connectorCompleted: {
-    backgroundColor: '#0c4eff',
+    backgroundColor: MIGRATION.ctaBlue,
   },
 })

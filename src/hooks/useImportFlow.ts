@@ -6,6 +6,7 @@ import * as DocumentPicker from 'expo-document-picker'
 import { File, Paths } from 'expo-file-system'
 
 import { importVaultBackup, persistImportedVault } from 'services/importVaultBackup'
+import { getErrorMessage } from 'utils/getErrorMessage'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
@@ -71,7 +72,7 @@ export function useImportFlow() {
         return true
       } catch (err) {
         setLoading(false)
-        Alert.alert('Import failed', err instanceof Error ? err.message : String(err))
+        Alert.alert('Import failed', getErrorMessage(err))
         return false
       }
     }
@@ -111,7 +112,7 @@ export function useImportFlow() {
       setFileContent(content)
       setFileState('success')
     } catch (err) {
-      Alert.alert('Error', `Failed to read file: ${err instanceof Error ? err.message : String(err)}`)
+      Alert.alert('Error', `Failed to read file: ${getErrorMessage(err)}`)
     }
   }
 
@@ -135,7 +136,7 @@ export function useImportFlow() {
       setLoading(false)
     } catch (err) {
       setLoading(false)
-      Alert.alert('Import failed', err instanceof Error ? err.message : String(err))
+      Alert.alert('Import failed', getErrorMessage(err))
     }
   }
 

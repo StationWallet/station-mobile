@@ -18,6 +18,7 @@ import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 import { verifyVaultEmail } from 'services/fastVaultServer'
 import { advanceToNextWallet } from 'utils/migrationNav'
+import { getErrorMessage } from 'utils/getErrorMessage'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'VerifyEmail'>
@@ -29,7 +30,6 @@ export default function VerifyEmail() {
   const {
     walletName,
     walletIndex = 0,
-    totalWallets = 1,
     wallets = [],
     results = [],
     email,
@@ -52,18 +52,19 @@ export default function VerifyEmail() {
 
     try {
       await verifyVaultEmail({ public_key: publicKey, code: verifyCode })
-      advanceToNextWallet(
-        navigation, wallets, walletIndex, totalWallets, results, email,
-        { wallet: wallets[walletIndex], success: true },
-      )
+      advanceToNextWallet(navigation, {
+        wallets,
+        results,
+        newResult: { wallet: wallets[walletIndex], success: true },
+      })
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
+      const msg = getErrorMessage(err)
       Alert.alert('Verification Failed', msg)
       setCode('')
       setVerifying(false)
       setTimeout(() => inputRef.current?.focus(), 100)
     }
-  }, [publicKey, verifying, wallets, walletIndex, navigation, totalWallets, results, email])
+  }, [publicKey, verifying, wallets, walletIndex, navigation, results])
 
   const handleChangeText = useCallback((text: string) => {
     const digits = text.replace(/\D/g, '').slice(0, 4)
@@ -108,7 +109,7 @@ export default function VerifyEmail() {
     <SafeAreaView style={styles.container}>
       <Animated.View entering={FadeIn.duration(400)} style={styles.content}>
         <Text style={styles.walletLabel} fontType="brockmann">
-          Wallet {walletIndex + 1}/{totalWallets}: {walletName}
+          Wallet {walletIndex + 1}/{wallets.length}: {walletName}
         </Text>
 
         <Text style={styles.title} fontType="brockmann-bold">

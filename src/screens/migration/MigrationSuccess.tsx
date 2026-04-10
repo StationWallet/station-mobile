@@ -18,10 +18,10 @@ import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 function CopyIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Rect x={9} y={9} width={13} height={13} rx={2} stroke="#f0f4fc" strokeWidth={1.5} />
+      <Rect x={9} y={9} width={13} height={13} rx={2} stroke={MIGRATION.textPrimary} strokeWidth={1.5} />
       <Path
         d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
-        stroke="#f0f4fc"
+        stroke={MIGRATION.textPrimary}
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -35,7 +35,7 @@ function ChevronRight() {
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
       <Path
         d="M9 18l6-6-6-6"
-        stroke="#f0f4fc"
+        stroke={MIGRATION.textPrimary}
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   },
   orbitText: {
     fontSize: 14,
-    color: '#4879fd',
+    color: MIGRATION.textLink,
     textAlign: 'center',
     marginTop: 24,
   },
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   },
   shareText: {
     fontSize: 14,
-    color: '#f0f4fc',
+    color: MIGRATION.textPrimary,
     lineHeight: 18,
   },
   migrateAnother: {

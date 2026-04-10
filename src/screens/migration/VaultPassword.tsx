@@ -133,7 +133,6 @@ export default function VaultPassword() {
                 walletName,
                 mode,
                 walletIndex: walletIndex != null && walletIndex >= 0 ? walletIndex : undefined,
-                totalWallets: wallets?.length,
                 wallets,
                 email,
                 password,

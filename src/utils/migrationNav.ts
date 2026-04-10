@@ -1,6 +1,6 @@
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
-import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
+import type { MigrationResult } from 'services/migrateToVault'
 
 type MigrationNav = StackNavigationProp<MigrationStackParams, 'KeygenProgress' | 'VerifyEmail'>
 
@@ -11,18 +11,17 @@ type MigrationNav = StackNavigationProp<MigrationStackParams, 'KeygenProgress' |
  */
 export function advanceToNextWallet(
   navigation: MigrationNav,
-  wallets: MigrationWallet[],
-  walletIndex: number,
-  totalWallets: number,
-  results: MigrationResult[],
-  _email: string | undefined,
-  newResult: MigrationResult,
+  opts: {
+    wallets: MigrationResult['wallet'][]
+    results: MigrationResult[]
+    newResult: MigrationResult
+  },
 ): void {
-  const updatedResults = [...results, newResult]
+  const updatedResults = [...opts.results, opts.newResult]
 
   navigation.navigate('MigrationSuccess', {
     results: updatedResults,
-    wallets,
-    migratedWalletName: newResult.wallet.name,
+    wallets: opts.wallets,
+    migratedWalletName: opts.newResult.wallet.name,
   })
 }

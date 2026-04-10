@@ -14,6 +14,8 @@ import MigrationSuccess from '../screens/migration/MigrationSuccess'
 
 import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
 
+export type MigrationMode = 'migrate' | 'create'
+
 const DevSeedLegacyData = __DEV__
   ? require('../components/DevSeedLegacyData').default
   : null
@@ -37,32 +39,30 @@ export type MigrationStackParams = {
   VaultEmail: {
     walletName: string
     wallets?: MigrationWallet[]
-    mode: 'migrate' | 'create'
+    mode: MigrationMode
     email?: string
   }
   VaultPassword: {
     walletName: string
     wallets?: MigrationWallet[]
-    mode: 'migrate' | 'create'
+    mode: MigrationMode
     email: string
   }
   KeygenProgress: {
     walletName: string
     walletIndex?: number
-    totalWallets?: number
     wallets?: MigrationWallet[]
     results?: MigrationResult[]
-    mode: 'migrate' | 'create'
+    mode: MigrationMode
     email: string
     password: string
   }
   VerifyEmail: {
     walletName: string
     walletIndex?: number
-    totalWallets?: number
     wallets?: MigrationWallet[]
     results?: MigrationResult[]
-    mode: 'migrate' | 'create'
+    mode: MigrationMode
     email: string
     publicKey: string
   }
