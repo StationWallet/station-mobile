@@ -11,7 +11,6 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native'
-import type { StackNavigationProp } from '@react-navigation/stack'
 import Svg, { Path, Rect, Circle } from 'react-native-svg'
 
 import Text from 'components/Text'
@@ -85,15 +84,16 @@ const DevVerifyVault = __DEV__
 export default function MigrationSuccess(): React.ReactElement {
   const { params } =
     useRoute<RouteProp<MigrationStackParams, 'MigrationSuccess'>>()
-  const navigation =
-    useNavigation<
-      StackNavigationProp<MigrationStackParams, 'MigrationSuccess'>
-    >()
+  const navigation = useNavigation()
   const onMigrationComplete = useMigrationComplete()
 
-  const wallets = params.wallets
-  const results = params.results ?? []
-  const hasUnmigrated = wallets != null && wallets.length > 0
+  const handleBack = (): void => {
+    onMigrationComplete()
+    const parent = navigation.getParent()
+    if (parent?.canGoBack()) {
+      parent.goBack()
+    }
+  }
 
   // Write the flag eagerly when this screen mounts (not just on tap)
   // so it persists even if the app is killed before the user taps Continue.
@@ -106,7 +106,7 @@ export default function MigrationSuccess(): React.ReactElement {
   return (
     <SafeAreaView style={styles.container}>
       <MigrationToolbar
-        onBack={onMigrationComplete}
+        onBack={handleBack}
         testID="success-back"
       />
 
@@ -160,24 +160,17 @@ export default function MigrationSuccess(): React.ReactElement {
           testID="share-og-status"
         />
 
-        {hasUnmigrated && (
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('WalletsFound', {
-                wallets,
-                results,
-              })
-            }
-            testID="migrate-another-wallet"
+        <TouchableOpacity
+          onPress={handleBack}
+          testID="migrate-another-wallet"
+        >
+          <Text
+            fontType="brockmann-medium"
+            style={styles.migrateAnother}
           >
-            <Text
-              fontType="brockmann-medium"
-              style={styles.migrateAnother}
-            >
-              Migrate another wallet
-            </Text>
-          </TouchableOpacity>
-        )}
+            Continue to wallets
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {__DEV__ && DevVerifyVault && (

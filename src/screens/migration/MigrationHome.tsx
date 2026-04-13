@@ -19,6 +19,7 @@ import {
   MigrationWallet,
 } from 'services/migrateToVault'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
+import { useMigrationComplete } from 'navigation/MigrationContext'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
 
@@ -33,6 +34,7 @@ function computeDaysRemaining(): number {
 
 export default function MigrationHome(): React.ReactElement {
   const navigation = useNavigation<Nav>()
+  const onMigrationComplete = useMigrationComplete()
   const [wallets, setWallets] = useState<MigrationWallet[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setReady used to track loading state
   const [_ready, setReady] = useState(false)
@@ -53,7 +55,7 @@ export default function MigrationHome(): React.ReactElement {
 
   const handleCta = (): void => {
     if (hasLegacyWallets) {
-      navigation.navigate('WalletsFound', { wallets })
+      onMigrationComplete()
     } else {
       navigation.navigate('VaultName')
     }
