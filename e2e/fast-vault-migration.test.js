@@ -176,7 +176,7 @@ describe('Fast Vault Migration — Per-Wallet', () => {
     });
 
     it('should dismiss migration and show main app', async () => {
-      await element(by.id('continue-button')).tap();
+      await element(by.id('success-back')).tap();
       await new Promise(r => setTimeout(r, 2000));
     });
   });

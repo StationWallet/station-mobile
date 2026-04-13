@@ -135,7 +135,7 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
 
       // After skipping the only standard wallet (ledger is auto-handled),
       // should navigate directly to MigrationSuccess
-      await waitFor(element(by.id('continue-button')))
+      await waitFor(element(by.id('success-back')))
         .toBeVisible()
         .withTimeout(15000);
     });
@@ -164,7 +164,7 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
               .withTimeout(5000);
             titleFound = true;
           } catch {
-            // continue-button is already confirmed visible — that's enough
+            // success-back is already confirmed visible — that's enough
             titleFound = true;
           }
         }
@@ -172,7 +172,7 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
     });
 
     it('can dismiss migration and continue to app', async () => {
-      await element(by.id('continue-button')).tap();
+      await element(by.id('success-back')).tap();
       // Should navigate away from migration
       await new Promise(r => setTimeout(r, 2000));
     });

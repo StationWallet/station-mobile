@@ -164,7 +164,7 @@ describe('Migration Onboarding Flow', () => {
     // --- Complete migration ---
 
     it('taps Continue to complete migration', async () => {
-      await element(by.id('continue-button')).tap();
+      await element(by.id('success-back')).tap();
       await new Promise(r => setTimeout(r, 1000));
     });
   });

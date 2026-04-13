@@ -18,4 +18,5 @@ export default {
   queued: require('../../assets/queued.png'),
   IBC: require('../../assets/IBC.png'),
   terraStation: require('../../assets/terraStation.png'),
+  sphere_mesh: require('../../assets/sphere_mesh.png'),
 }
