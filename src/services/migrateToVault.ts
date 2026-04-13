@@ -4,7 +4,12 @@ import * as SecureStore from 'expo-secure-store'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
-import { getAuthData, upsertAuthData, AuthDataValueType, LedgerDataValueType } from 'utils/authData'
+import {
+  getAuthData,
+  upsertAuthData,
+  AuthDataValueType,
+  LedgerDataValueType,
+} from 'utils/authData'
 import type { KeyImportResult } from './dklsKeyImport'
 
 const VAULT_KEY_PREFIX = 'VAULT-'
@@ -52,7 +57,6 @@ export async function discoverLegacyWallets(): Promise<
         : undefined,
   }))
 }
-
 
 /**
  * Reads a stored vault protobuf for a given wallet name.

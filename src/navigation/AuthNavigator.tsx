@@ -20,7 +20,6 @@ const DevSeedCorruptData = __DEV__
   ? require('../components/DevSeedCorruptData').default
   : null
 
-
 const DevVerifyVault = __DEV__
   ? require('../components/DevVerifyVault').default
   : null

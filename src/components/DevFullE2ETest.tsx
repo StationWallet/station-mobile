@@ -7,12 +7,17 @@ import LegacyKeystore from '../../modules/legacy-keystore-migration/src'
 import { migrateLegacyKeystore } from 'utils/legacyMigration'
 import { encrypt, decrypt } from 'utils/crypto'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
-import preferences, { PreferencesEnum } from 'nativeModules/preferences'
+import preferences, {
+  PreferencesEnum,
+} from 'nativeModules/preferences'
 
 // Well-known secp256k1 test vectors (not funded keys)
-const TEST_PRIVATE_KEY_1 = '0000000000000000000000000000000000000000000000000000000000000001'
-const TEST_PRIVATE_KEY_2 = '0000000000000000000000000000000000000000000000000000000000000002'
-const EXPECTED_PUBKEY_1 = '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
+const TEST_PRIVATE_KEY_1 =
+  '0000000000000000000000000000000000000000000000000000000000000001'
+const TEST_PRIVATE_KEY_2 =
+  '0000000000000000000000000000000000000000000000000000000000000002'
+const EXPECTED_PUBKEY_1 =
+  '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
 const PASSWORD_1 = 'testPassword1!'
 const PASSWORD_2 = 'testPassword2!'
 
@@ -249,9 +254,7 @@ export default function DevFullE2ETest(): React.ReactElement {
       contentContainerStyle={styles.content}
     >
       <Text style={styles.title}>Full E2E Migration Test</Text>
-      <Text style={styles.subtitle}>
-        Migration + Decrypt + Size
-      </Text>
+      <Text style={styles.subtitle}>Migration + Decrypt + Size</Text>
       {Object.entries(results).map(([key, value]) => {
         const isFail =
           value === 'false' || (key === 'error' && value.length > 0)

@@ -27,7 +27,6 @@ const DevSeedCorruptData = __DEV__
   ? require('../components/DevSeedCorruptData').default
   : null
 
-
 export type MigrationStackParams = {
   RiveIntro: undefined
   MigrationHome: undefined
