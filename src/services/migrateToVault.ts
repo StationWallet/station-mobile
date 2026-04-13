@@ -221,10 +221,7 @@ export async function backfillTerraOnlyFlag(): Promise<void> {
     await upsertAuthData({ authData })
   }
 
-  await preferences.setBool(
-    PreferencesEnum.terraOnlyBackfilled,
-    true
-  )
+  await preferences.setBool(PreferencesEnum.terraOnlyBackfilled, true)
 }
 
 export { VAULT_KEY_PREFIX, VAULT_STORE_OPTS, vaultStoreKey }
