@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
 import {
   NavigationProp,
+  ParamListBase,
   useNavigation,
 } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -16,7 +17,7 @@ import Button from 'components/Button'
 import WalletCard from 'components/WalletCard'
 
 export default function WalletList(): React.ReactElement {
-  const navigation = useNavigation<NavigationProp<any>>()
+  const navigation = useNavigation<NavigationProp<ParamListBase>>()
   const { wallets, onWalletDisconnected } = useWalletNav()
   const [fastVaultMap, setFastVaultMap] = useState<
     Record<string, boolean>
@@ -72,9 +73,7 @@ export default function WalletList(): React.ReactElement {
     })
   }
 
-  const handleDelete = async (
-    wallet: LocalWallet
-  ): Promise<void> => {
+  const handleDelete = async (wallet: LocalWallet): Promise<void> => {
     await deleteWallet({ walletName: wallet.name })
     onWalletDisconnected()
   }

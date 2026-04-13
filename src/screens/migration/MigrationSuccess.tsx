@@ -105,10 +105,7 @@ export default function MigrationSuccess(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MigrationToolbar
-        onBack={handleBack}
-        testID="success-back"
-      />
+      <MigrationToolbar onBack={handleBack} testID="success-back" />
 
       <Text fontType="brockmann-medium" style={styles.title}>
         You are aboard, Station OG!

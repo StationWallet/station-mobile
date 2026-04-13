@@ -51,10 +51,7 @@ export default function WalletCard({
       activeOpacity={0.7}
     >
       <View style={styles.headerRow}>
-        <Text
-          fontType="brockmann-medium"
-          style={styles.name}
-        >
+        <Text fontType="brockmann-medium" style={styles.name}>
           {name}
         </Text>
         {terraOnly && (

@@ -8,7 +8,7 @@
  * Flow:
  *   1. Seed corrupt wallet data (1 corrupt standard wallet + 1 ledger)
  *   2. Relaunch → RiveIntro → MigrationHome (migration-cta visible)
- *   3. Tap migration-cta → WalletsFound
+ *   3. Tap migration-cta → wallet list
  *   4. Tap wallet-card-0-migrate on the corrupt wallet
  *   5. Email → Password → KeygenProgress fails immediately (corrupt key)
  *   6. Error UI appears with Skip and Retry buttons
@@ -64,7 +64,7 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
         .withTimeout(90000);
     });
 
-    it('navigates to WalletsFound', async () => {
+    it('navigates to wallet list', async () => {
       await element(by.id('migration-cta')).tap();
       await waitFor(element(by.text('Your wallets')))
         .toBeVisible()
