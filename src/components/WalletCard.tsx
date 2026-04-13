@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    gap: 8,
+    justifyContent: 'space-between',
   },
   name: {
     color: MIGRATION.textPrimary,
@@ -152,6 +152,7 @@ const styles = StyleSheet.create({
     borderRadius: MIGRATION.radiusSmallButton,
     paddingHorizontal: 10,
     paddingVertical: 4,
+    marginRight: 8,
   },
   terraOnlyText: {
     color: '#64A0FF',
