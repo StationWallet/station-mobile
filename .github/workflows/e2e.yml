@@ -49,23 +49,11 @@ jobs:
       - name: Install CocoaPods
         run: cd ios && pod install
 
-      - name: Restore Xcode build cache
-        uses: actions/cache/restore@v4
-        with:
-          path: ios/build
-          key: detox-build-${{ runner.os }}-${{ hashFiles('package-lock.json', 'ios/Podfile.lock') }}
-          restore-keys: |
-            detox-build-${{ runner.os }}-
-
+      # Note: Xcode build caching is not effective here because
+      # expo prebuild --clean regenerates ios/ each run, invalidating
+      # the derived data. The ~13min build is unavoidable.
       - name: Build for Detox
         run: npx detox build --configuration ios.sim.release
-
-      - name: Save Xcode build cache
-        if: always()
-        uses: actions/cache/save@v4
-        with:
-          path: ios/build
-          key: detox-build-${{ runner.os }}-${{ hashFiles('package-lock.json', 'ios/Podfile.lock') }}
 
       - name: Boot simulator
         run: |
