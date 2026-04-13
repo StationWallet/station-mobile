@@ -59,7 +59,13 @@ export default function WalletsFound(): React.ReactElement {
               terraOnly={false}
               isFastVault={migrated}
               onPress={() => {
-                if (!migrated) {
+                if (migrated) {
+                  navigation.navigate('MigrationSuccess', {
+                    migratedWalletName: wallet.name,
+                    wallets,
+                    results,
+                  })
+                } else {
                   navigation.navigate('VaultEmail', {
                     walletName: wallet.name,
                     wallets,
