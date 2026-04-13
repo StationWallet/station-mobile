@@ -55,6 +55,9 @@ jobs:
       - name: Install CocoaPods
         run: cd ios && pod install
 
+      - name: Install applesimutils
+        run: brew tap wix/brew && brew install applesimutils
+
       - name: Build for Detox
         run: npx detox build --configuration ios.sim.release
 
