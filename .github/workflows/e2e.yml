@@ -41,25 +41,32 @@ jobs:
 
       - run: npm ci
 
+      - name: Install applesimutils
+        run: brew tap wix/brew && brew install applesimutils
+
       - name: Generate native project
         run: npx expo prebuild --platform ios --clean
 
-      - name: Cache Xcode build
-        uses: actions/cache@v4
+      - name: Install CocoaPods
+        run: cd ios && pod install
+
+      - name: Restore Xcode build cache
+        uses: actions/cache/restore@v4
         with:
           path: ios/build
           key: detox-build-${{ runner.os }}-${{ hashFiles('package-lock.json', 'ios/Podfile.lock') }}
           restore-keys: |
             detox-build-${{ runner.os }}-
 
-      - name: Install CocoaPods
-        run: cd ios && pod install
-
-      - name: Install applesimutils
-        run: brew tap wix/brew && brew install applesimutils
-
       - name: Build for Detox
         run: npx detox build --configuration ios.sim.release
+
+      - name: Save Xcode build cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ios/build
+          key: detox-build-${{ runner.os }}-${{ hashFiles('package-lock.json', 'ios/Podfile.lock') }}
 
       - name: Boot simulator
         run: |
