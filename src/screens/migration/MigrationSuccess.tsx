@@ -178,18 +178,6 @@ export default function MigrationSuccess(): React.ReactElement {
             </Text>
           </TouchableOpacity>
         )}
-
-        <TouchableOpacity
-          onPress={onMigrationComplete}
-          testID="continue-button"
-        >
-          <Text
-            fontType="brockmann-medium"
-            style={styles.continueText}
-          >
-            Continue to wallets
-          </Text>
-        </TouchableOpacity>
       </View>
 
       {__DEV__ && DevVerifyVault && (
@@ -283,11 +271,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: MIGRATION.textTertiary,
     textDecorationLine: 'underline',
-    lineHeight: 18,
-  },
-  continueText: {
-    fontSize: 14,
-    color: MIGRATION.textTertiary,
     lineHeight: 18,
   },
 })

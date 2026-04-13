@@ -219,10 +219,10 @@ describe('Fast Vault Creation — New User', () => {
     });
 
     it('should complete and reach main app', async () => {
-      await waitFor(element(by.id('continue-button')))
+      await waitFor(element(by.id('success-back')))
         .toExist()
         .withTimeout(5000);
-      await element(by.id('continue-button')).tap();
+      await element(by.id('success-back')).tap();
       await new Promise(r => setTimeout(r, 3000));
     });
   });

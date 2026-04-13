@@ -206,10 +206,10 @@ describe('Import Vault', () => {
     it('should complete import and reach main app', async () => {
       // Wait for password sheet modal dismiss animation to complete
       await new Promise((r) => setTimeout(r, 1000));
-      await waitFor(element(by.id('continue-button')))
+      await waitFor(element(by.id('success-back')))
         .toBeVisible()
         .withTimeout(5000);
-      await element(by.id('continue-button')).tap();
+      await element(by.id('success-back')).tap();
       await new Promise((r) => setTimeout(r, 2000));
     });
   });
