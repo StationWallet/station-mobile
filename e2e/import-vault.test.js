@@ -128,7 +128,11 @@ describe('Import Vault', () => {
       });
       execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
 
-      await device.launchApp({ delete: true, newInstance: true });
+      await device.launchApp({
+        delete: true,
+        newInstance: true,
+        launchArgs: { detoxURLBlacklistRegex: '.*' },
+      });
       await device.disableSynchronization();
     });
 
