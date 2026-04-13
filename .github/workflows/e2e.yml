@@ -1,7 +1,8 @@
 name: E2E Tests
 
 on:
-  pull_request:
+  push:
+    branches: [main]
     paths:
       - 'src/**'
       - 'e2e/**'
@@ -10,11 +11,6 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'app.json'
-      - 'ios/**'
-
-concurrency:
-  group: e2e-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   detox:
