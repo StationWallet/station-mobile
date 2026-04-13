@@ -89,7 +89,7 @@ jobs:
             xcode-derived-${{ runner.os }}-${{ hashFiles('package-lock.json', 'app.json') }}-
 
       - name: Build for Detox
-        run: npx detox build --configuration ios.sim.release
+        run: npx detox build --configuration ios.sim.debug
 
       # ── Test ───────────────────────────────────────────────────────
       - name: Boot simulator
@@ -105,7 +105,7 @@ jobs:
           xcrun simctl boot "$DEVICE" || true
 
       - name: Run E2E tests
-        run: npx detox test --configuration ios.sim.release --headless --cleanup
+        run: npx detox test --configuration ios.sim.debug --headless --cleanup
 
       - name: Upload artifacts on failure
         if: failure()
