@@ -2,12 +2,12 @@
  * Fast Vault Migration E2E Tests — Per-Wallet Flow
  *
  * Full end-to-end: seed legacy data → RiveIntro → MigrationHome →
- * WalletsFound → migrate each wallet individually (email → password →
+ * wallet list → migrate each wallet individually (email → password →
  * keygen → verify) → MigrationSuccess → vault integrity → persistence.
  *
  * Test data: 2 standard wallets (TestWallet1, TestWallet2) + 1 Ledger wallet.
  * Ledger wallets don't need DKLS migration and should appear as already
- * migrated (no migrate button) on the WalletsFound screen.
+ * migrated (no migrate button) on the wallet list screen.
  *
  * Requires: vultiserver at api.vultisig.com, agentmail credentials in .env
  */
@@ -73,7 +73,7 @@ describe('Fast Vault Migration — Per-Wallet', () => {
         .withTimeout(90000);
     });
 
-    it('should navigate to WalletsFound', async () => {
+    it('should navigate to wallet list', async () => {
       await element(by.id('migration-cta')).tap();
       await waitFor(element(by.text('Your wallets')))
         .toBeVisible()
@@ -108,7 +108,7 @@ describe('Fast Vault Migration — Per-Wallet', () => {
       await migrateOneWalletFromCard(0, 'TestWallet1', knownMessageIds, true);
     });
 
-    it('should show wallet 1 as migrated after returning to WalletsFound', async () => {
+    it('should show wallet 1 as migrated after returning to wallet list', async () => {
       // After migrating wallet 0 and tapping "Migrate another wallet",
       // wallet 0's card should show the "✓ Fast Vault" badge, not the migrate button
       let migrateButtonVisible = false;
@@ -183,23 +183,14 @@ describe('Fast Vault Migration — Per-Wallet', () => {
 
   describe('Export DKLS vault', () => {
     beforeAll(async () => {
-      // Relaunch and navigate to WalletHome
+      // Relaunch — app lands on WalletList
       await device.launchApp({ newInstance: true });
       await device.disableSynchronization();
 
-      // Wait for either WalletPicker or WalletHome
-      await waitFor(element(by.text('TestWallet1')))
+      // Wait for WalletList to show
+      await waitFor(element(by.text('Your wallets')))
         .toBeVisible()
         .withTimeout(15000);
-
-      // If we see "Select Wallet" title, we're on WalletPicker — tap the wallet
-      try {
-        await expect(element(by.text('Select Wallet'))).toBeVisible();
-        await element(by.text('TestWallet1')).tap();
-        await new Promise(r => setTimeout(r, 2000));
-      } catch {
-        // Already on WalletHome
-      }
     });
 
     afterAll(async () => {
@@ -207,22 +198,16 @@ describe('Fast Vault Migration — Per-Wallet', () => {
     });
 
     it('should show Export Vault Share and navigate to export screen', async () => {
-      // WalletHome should show the wallet name
+      // WalletList should show the wallet
       await waitFor(element(by.text('TestWallet1')))
         .toBeVisible()
         .withTimeout(10000);
 
-      // Swipe up to reveal the export button (below the fold)
-      await element(by.id('wallet-home-scroll')).swipe('up', 'slow', 0.7);
-      await new Promise(r => setTimeout(r, 1000));
-
-      // For DKLS vault, button text should say "Export Vault Share"
-      await waitFor(element(by.text('Export Vault Share')))
+      // Tap the Export button on the wallet card
+      await waitFor(element(by.id('wallet-card-0-export')))
         .toBeVisible()
-        .withTimeout(10000);
-
-      // Tap to navigate to export screen
-      await element(by.text('Export Vault Share')).tap();
+        .withTimeout(5000);
+      await element(by.id('wallet-card-0-export')).tap();
 
       // ExportPrivateKey screen: "Export as Vault Share" button visible directly
       await waitFor(element(by.text('Export as Vault Share')))

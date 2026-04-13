@@ -127,7 +127,7 @@ async function migrateOneWallet(walletLabel, knownMessageIds) {
 
 /**
  * Walk one wallet through the per-wallet migration flow.
- * Assumes WalletsFound screen is visible with the wallet card.
+ * Assumes the wallet list screen is visible with the wallet card.
  *
  * @param {number} walletIndex - 0-based index of the wallet card
  * @param {string} walletLabel - For logging
@@ -180,7 +180,7 @@ async function migrateOneWalletFromCard(walletIndex, walletLabel, knownMessageId
     .withTimeout(15000);
 
   if (hasMoreWallets) {
-    // Tap "Migrate another wallet" → back to WalletsFound
+    // Tap "Migrate another wallet" → back to wallet list
     await element(by.id('migrate-another-wallet')).tap();
     await waitFor(element(by.text('Your wallets')))
       .toBeVisible()

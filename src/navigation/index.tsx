@@ -14,7 +14,6 @@ import AuthNavigator from './AuthNavigator'
 import MigrationNavigator from './MigrationNavigator'
 import { MigrationContext } from './MigrationContext'
 import { getWallets } from 'utils/wallet'
-import { settings } from 'utils/storage'
 import { useConfig } from 'lib'
 import { themes } from 'lib/contexts/useTheme'
 import { COLORS } from 'consts/theme'
@@ -31,22 +30,8 @@ export {
 
 type RootRoute = 'Migration' | 'Auth' | 'Main'
 
-async function pickInitialWallet(
-  loaded: LocalWallet[]
-): Promise<LocalWallet | undefined> {
-  if (loaded.length === 1) return loaded[0]
-  if (loaded.length > 1) {
-    const saved = await settings.get()
-    return loaded.find((w) => w.name === saved.walletName)
-  }
-  return undefined
-}
-
 export default function AppNavigator(): React.ReactElement | null {
   const [wallets, setWallets] = useState<LocalWallet[] | null>(null)
-  const [initialWallet, setInitialWallet] = useState<
-    LocalWallet | undefined
-  >(undefined)
   const [rootRoute, setRootRoute] = useState<RootRoute | null>(null)
   const { theme } = useConfig()
   const currentTheme = theme.current
@@ -75,8 +60,6 @@ export default function AppNavigator(): React.ReactElement | null {
         setRootRoute(__DEV__ ? 'Auth' : 'Migration')
       } else {
         setRootRoute('Main')
-        const picked = await pickInitialWallet(loaded)
-        if (picked) setInitialWallet(picked)
       }
     }
     init().catch(() => {
@@ -86,28 +69,22 @@ export default function AppNavigator(): React.ReactElement | null {
   }, [loadWallets])
 
   const onMigrationComplete = useCallback(async () => {
-    const loaded = await loadWallets()
-    const picked = await pickInitialWallet(loaded)
-    if (picked) setInitialWallet(picked)
+    try {
+      await loadWallets()
+    } catch {
+      // Wallet loading failed — still transition to Main so the user isn't stuck
+    }
     setRootRoute('Main')
   }, [loadWallets])
 
   const onWalletCreated = useCallback(async () => {
-    const loaded = await loadWallets()
-    if (loaded.length > 0) {
-      setInitialWallet(loaded[loaded.length - 1])
-    }
+    await loadWallets()
   }, [loadWallets])
 
   const onWalletDisconnected = useCallback(async () => {
     const loaded = await loadWallets()
     if (loaded.length === 0) {
-      setInitialWallet(undefined)
       setRootRoute('Auth')
-    } else if (loaded.length === 1) {
-      setInitialWallet(loaded[0])
-    } else {
-      setInitialWallet(undefined)
     }
   }, [loadWallets])
 
@@ -127,23 +104,31 @@ export default function AppNavigator(): React.ReactElement | null {
     [currentTheme]
   )
 
+  const walletNavValue = useMemo(
+    () => ({
+      onWalletCreated,
+      onWalletDisconnected,
+      goToMigration,
+      wallets,
+    }),
+    [onWalletCreated, onWalletDisconnected, goToMigration, wallets]
+  )
+
+  const migrationValue = useMemo(
+    () => ({ onMigrationComplete }),
+    [onMigrationComplete]
+  )
+
   if (rootRoute === null || wallets === null) return null
 
   return (
-    <WalletNavContext.Provider
-      value={{
-        onWalletCreated,
-        onWalletDisconnected,
-        goToMigration,
-        wallets,
-      }}
-    >
-      <MigrationContext.Provider value={{ onMigrationComplete }}>
+    <WalletNavContext.Provider value={walletNavValue}>
+      <MigrationContext.Provider value={migrationValue}>
         <NavigationContainer theme={navTheme}>
           {rootRoute === 'Migration' ? (
             <MigrationNavigator />
           ) : rootRoute === 'Main' ? (
-            <MainNavigator initialWallet={initialWallet} />
+            <MainNavigator />
           ) : (
             <AuthNavigator />
           )}

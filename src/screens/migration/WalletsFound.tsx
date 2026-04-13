@@ -7,8 +7,7 @@ import type { RouteProp } from '@react-navigation/native'
 
 import Text from 'components/Text'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
-import WalletMigrationCard from 'components/migration/WalletMigrationCard'
-import { formStyles } from 'components/migration/migrationStyles'
+import WalletCard from 'components/WalletCard'
 import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
@@ -31,7 +30,7 @@ export default function WalletsFound(): React.ReactElement {
   )
 
   return (
-    <SafeAreaView style={formStyles.container}>
+    <SafeAreaView style={styles.container}>
       <MigrationToolbar
         onBack={() => navigation.goBack()}
         testID="wallets-back"
@@ -49,28 +48,45 @@ export default function WalletsFound(): React.ReactElement {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {wallets.map((wallet, index) => (
-          <WalletMigrationCard
-            key={wallet.name}
-            name={wallet.name}
-            address={wallet.address}
-            migrated={migratedNames.has(wallet.name) || wallet.ledger}
-            onMigrate={() => {
-              navigation.navigate('VaultEmail', {
-                walletName: wallet.name,
-                wallets,
-                mode: 'migrate',
-              })
-            }}
-            testID={`wallet-card-${index}`}
-          />
-        ))}
+        {wallets.map((wallet, index) => {
+          const migrated =
+            migratedNames.has(wallet.name) || wallet.ledger
+          return (
+            <WalletCard
+              key={wallet.name}
+              name={wallet.name}
+              address={wallet.address}
+              terraOnly={false}
+              isFastVault={migrated}
+              onPress={() => {
+                if (migrated) {
+                  navigation.navigate('MigrationSuccess', {
+                    migratedWalletName: wallet.name,
+                    wallets,
+                    results,
+                  })
+                } else {
+                  navigation.navigate('VaultEmail', {
+                    walletName: wallet.name,
+                    wallets,
+                    mode: 'migrate',
+                  })
+                }
+              }}
+              testID={`wallet-card-${index}`}
+            />
+          )
+        })}
       </ScrollView>
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: MIGRATION.bg,
+  },
   title: {
     fontSize: 22,
     color: MIGRATION.textPrimary,

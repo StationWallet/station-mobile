@@ -84,12 +84,14 @@ describe('Migration Onboarding Flow', () => {
         .withTimeout(90000);
       await element(by.id('enter-vultiverse-cta')).tap();
 
-      await waitFor(element(by.id('migration-cta')))
+      // Wait for "Start Migration" text (not just the button testID)
+      // to ensure discoverLegacyWallets() has resolved
+      await waitFor(element(by.text('Start Migration')))
         .toBeVisible()
         .withTimeout(90000);
     });
 
-    it('taps CTA to reach WalletsFound', async () => {
+    it('taps CTA to reach wallet list', async () => {
       await element(by.id('migration-cta')).tap();
       await waitFor(element(by.id('wallet-card-0')))
         .toBeVisible()

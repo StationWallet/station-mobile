@@ -1,9 +1,6 @@
 import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
-import WalletPicker from '../screens/WalletPicker'
-import WalletHome from '../screens/WalletHome'
-import Receive from '../screens/Receive'
-import History from '../screens/History'
+import WalletList from '../screens/WalletList'
 import AuthMenu from '../screens/auth/AuthMenu'
 import NewWalletStack from './NewWalletStack'
 import RecoverWalletStack from './RecoverWalletStack'
@@ -13,6 +10,7 @@ import type {
   MigrationWallet,
   MigrationResult,
 } from 'services/migrateToVault'
+import type { MigrationMode } from './MigrationNavigator'
 
 const CryptoTestScreen = __DEV__
   ? require('../components/CryptoTestScreen').default
@@ -35,10 +33,7 @@ const DevVerifyVault = __DEV__
   : null
 
 export type MainStackParams = {
-  WalletPicker: undefined
-  WalletHome: { wallet: { name: string; address: string } }
-  Receive: { address: string }
-  History: { address: string }
+  WalletList: undefined
   AddWalletMenu: undefined
   AddNewWallet: undefined
   AddRecoverWallet: undefined
@@ -49,56 +44,26 @@ export type MainStackParams = {
   SeedCorruptData: undefined
   VerifyVault: undefined
   Migration: {
-    screen: 'VaultEmail'
+    screen: 'VaultEmail' | 'MigrationSuccess'
     params: {
-      walletName: string
-      walletIndex: number
-      totalWallets: number
-      wallets: MigrationWallet[]
-      results: MigrationResult[]
+      walletName?: string
+      walletIndex?: number
+      totalWallets?: number
+      wallets?: MigrationWallet[]
+      results?: MigrationResult[]
+      mode?: MigrationMode
+      migratedWalletName?: string
+      importedVaultName?: string
     }
   }
 }
 
 const Stack = createStackNavigator<MainStackParams>()
 
-interface Props {
-  initialWallet?: LocalWallet
-}
-
-export default function MainNavigator({
-  initialWallet,
-}: Props): React.ReactElement {
+export default function MainNavigator(): React.ReactElement {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {initialWallet ? (
-        <>
-          <Stack.Screen
-            name="WalletHome"
-            component={WalletHome}
-            initialParams={{
-              wallet: {
-                name: initialWallet.name,
-                address: initialWallet.address,
-              },
-            }}
-          />
-          <Stack.Screen
-            name="WalletPicker"
-            component={WalletPicker}
-          />
-        </>
-      ) : (
-        <>
-          <Stack.Screen
-            name="WalletPicker"
-            component={WalletPicker}
-          />
-          <Stack.Screen name="WalletHome" component={WalletHome} />
-        </>
-      )}
-      <Stack.Screen name="Receive" component={Receive} />
-      <Stack.Screen name="History" component={History} />
+      <Stack.Screen name="WalletList" component={WalletList} />
       <Stack.Screen name="AddWalletMenu" component={AuthMenu} />
       <Stack.Screen name="AddNewWallet" component={NewWalletStack} />
       <Stack.Screen

@@ -40,7 +40,7 @@ const WalletSuccessScreen = ({
   const handleDone = async (): Promise<void> => {
     if (isAddMode) {
       await onWalletCreated()
-      navigation.getParent()?.navigate('WalletPicker')
+      navigation.getParent()?.navigate('WalletList')
     } else {
       onWalletCreated()
     }

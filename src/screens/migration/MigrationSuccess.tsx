@@ -2,16 +2,17 @@ import React, { useEffect } from 'react'
 import {
   View,
   Image,
+  NativeModules,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import type { StackNavigationProp } from '@react-navigation/stack'
 import {
   RouteProp,
   useNavigation,
   useRoute,
 } from '@react-navigation/native'
-import type { StackNavigationProp } from '@react-navigation/stack'
 import Svg, { Path, Rect, Circle } from 'react-native-svg'
 
 import Text from 'components/Text'
@@ -22,9 +23,28 @@ import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
 import { useMigrationComplete } from 'navigation/MigrationContext'
-import images from 'assets/images'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
+
+// Skip Rive only under Detox — its native runtime keeps the iOS main
+// run loop busy, blocking Detox idle detection.
+const isDetox = NativeModules.DetoxManager != null
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamically loaded Rive component with no TS definitions
+let Rive: any = null
+let orbAnimUrl: string | null = null
+
+if (!isDetox) {
+  try {
+    Rive = require('rive-react-native').default
+    orbAnimUrl =
+      Image.resolveAssetSource(
+        require('assets/rive/vulti_orb_loading.riv')
+      )?.uri ?? null
+  } catch {
+    // rive-react-native not available — will render static fallback
+  }
+}
 
 function CopyIcon(): React.ReactElement {
   return (
@@ -95,6 +115,19 @@ export default function MigrationSuccess(): React.ReactElement {
   const results = params.results ?? []
   const hasUnmigrated = wallets != null && wallets.length > 0
 
+  const handleBack = (): void => {
+    // If nested inside MainNavigator (tapped a migrated wallet from WalletList),
+    // pop the Migration screen to return to WalletList.
+    const parent = navigation.getParent()
+    if (parent?.canGoBack()) {
+      onMigrationComplete()
+      parent.goBack()
+    } else {
+      // Root MigrationNavigator — complete migration and go to Main/WalletList
+      onMigrationComplete()
+    }
+  }
+
   // Write the flag eagerly when this screen mounts (not just on tap)
   // so it persists even if the app is killed before the user taps Continue.
   // vaultsUpgraded means "user has been through the migration flow",
@@ -105,10 +138,7 @@ export default function MigrationSuccess(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.container}>
-      <MigrationToolbar
-        onBack={onMigrationComplete}
-        testID="success-back"
-      />
+      <MigrationToolbar onBack={handleBack} testID="success-back" />
 
       <Text fontType="brockmann-medium" style={styles.title}>
         You are aboard, Station OG!
@@ -128,11 +158,15 @@ export default function MigrationSuccess(): React.ReactElement {
       </View>
 
       <View style={styles.orbitContainer}>
-        <Image
-          source={images.sphere_mesh}
-          style={styles.sphereMesh}
-          resizeMode="contain"
-        />
+        {Rive && orbAnimUrl ? (
+          <Rive
+            url={orbAnimUrl}
+            style={styles.orbAnimation}
+            autoplay
+          />
+        ) : (
+          <View style={styles.orbAnimation} />
+        )}
       </View>
 
       <Text fontType="brockmann-medium" style={styles.orbitText}>
@@ -160,7 +194,7 @@ export default function MigrationSuccess(): React.ReactElement {
           testID="share-og-status"
         />
 
-        {hasUnmigrated && (
+        {hasUnmigrated ? (
           <TouchableOpacity
             onPress={() =>
               navigation.navigate('WalletsFound', {
@@ -175,6 +209,18 @@ export default function MigrationSuccess(): React.ReactElement {
               style={styles.migrateAnother}
             >
               Migrate another wallet
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={handleBack}
+            testID="continue-to-wallets"
+          >
+            <Text
+              fontType="brockmann-medium"
+              style={styles.migrateAnother}
+            >
+              Continue to wallets
             </Text>
           </TouchableOpacity>
         )}
@@ -237,7 +283,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 4,
   },
-  sphereMesh: {
+  orbAnimation: {
     width: 300,
     height: 300,
   },
