@@ -20,12 +20,6 @@ jobs:
   detox:
     name: Detox iOS
     runs-on: macos-latest
-    # Non-blocking: expo-modules-core 55.x declares Swift 6 but has
-    # strict concurrency violations. GitHub's macos-latest runners
-    # (Xcode 16.x) enforce these as errors. The build succeeds on
-    # newer Xcode versions (tested locally on Xcode 26.4). Remove
-    # continue-on-error once runners ship Xcode 17+.
-    continue-on-error: true
     timeout-minutes: 60
     env:
       AGENTMAIL_API_KEY: ${{ secrets.AGENTMAIL_API_KEY }}
@@ -41,8 +35,43 @@ jobs:
 
       - run: npm ci
 
+      # expo-modules-core 55.x uses @MainActor on protocol conformances
+      # (Swift 6-only syntax) but has strict concurrency violations.
+      # Xcode 16.x can't build it in Swift 6 mode (concurrency errors)
+      # or Swift 5 mode (@MainActor conformance syntax unsupported).
+      # Fix: strip the 3 Swift 6-only @MainActor conformance annotations
+      # so the code compiles in Swift 5 mode with relaxed concurrency.
+      - name: Patch expo-modules-core for Xcode 16.x Swift 5 compat
+        run: |
+          EMC=node_modules/expo-modules-core/ios
+          # SwiftUIHostingView.swift: ", @MainActor AnyExpoSwiftUIHostingView" → ", AnyExpoSwiftUIHostingView"
+          sed -i '' 's/@MainActor AnyExpoSwiftUIHostingView/AnyExpoSwiftUIHostingView/' "$EMC/Core/Views/SwiftUI/SwiftUIHostingView.swift"
+          # SwiftUIVirtualView.swift: ": @MainActor ExpoSwiftUI.ViewWrapper" → ": ExpoSwiftUI.ViewWrapper"
+          sed -i '' 's/@MainActor ExpoSwiftUI.ViewWrapper/ExpoSwiftUI.ViewWrapper/' "$EMC/Core/Views/SwiftUI/SwiftUIVirtualView.swift"
+          # ViewDefinition.swift: ": @MainActor AnyArgument" → ": AnyArgument"
+          sed -i '' 's/@MainActor AnyArgument/AnyArgument/' "$EMC/Core/Views/ViewDefinition.swift"
+
       - name: Generate native project
         run: npx expo prebuild --platform ios --clean
+
+      - name: Pin Pods to Swift 5 with relaxed concurrency
+        run: |
+          ruby -i -pe '
+            if /react_native_post_install/ && !$injected
+              $injected = true
+            elsif $injected && /^\s*\)/ && !$done
+              $done = true
+              $_ += <<~RUBY
+
+                installer.pods_project.targets.each do |target|
+                  target.build_configurations.each do |bc|
+                    bc.build_settings["SWIFT_STRICT_CONCURRENCY"] = "minimal"
+                    bc.build_settings["SWIFT_VERSION"] = "5.0"
+                  end
+                end
+              RUBY
+            end
+          ' ios/Podfile
 
       - name: Cache Xcode build
         uses: actions/cache@v4
