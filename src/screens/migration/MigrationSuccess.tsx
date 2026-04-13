@@ -1,5 +1,10 @@
 import React, { useEffect } from 'react'
-import { View, StyleSheet, TouchableOpacity } from 'react-native'
+import {
+  View,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import {
   RouteProp,
@@ -7,17 +12,17 @@ import {
   useRoute,
 } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
-import Svg, { Path, Rect } from 'react-native-svg'
+import Svg, { Path, Rect, Circle } from 'react-native-svg'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
-import OGStatusCard from 'components/migration/OGStatusCard'
 import { MIGRATION } from 'consts/migration'
 import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
 import { useMigrationComplete } from 'navigation/MigrationContext'
+import images from 'assets/images'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
@@ -50,6 +55,21 @@ function ChevronRight(): React.ReactElement {
       <Path
         d="M9 18l6-6-6-6"
         stroke={MIGRATION.textPrimary}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  )
+}
+
+function CheckmarkIcon(): React.ReactElement {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+      <Circle cx={8} cy={8} r={8} fill="#13c89d" />
+      <Path
+        d="M4.5 8.2l2.2 2.2 4.8-4.8"
+        stroke="#f0f4fc"
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -100,12 +120,23 @@ export default function MigrationSuccess(): React.ReactElement {
         }
       </Text>
 
-      <View style={styles.cardContainer}>
-        <OGStatusCard />
+      <View style={styles.badge}>
+        <CheckmarkIcon />
+        <Text fontType="brockmann-medium" style={styles.badgeText}>
+          Eligible for $VULT Airdrop
+        </Text>
       </View>
 
-      <Text fontType="medium" style={styles.orbitText}>
-        [ Entering orbit soon... ]
+      <View style={styles.orbitContainer}>
+        <Image
+          source={images.sphere_mesh}
+          style={styles.sphereMesh}
+          resizeMode="contain"
+        />
+      </View>
+
+      <Text fontType="brockmann-medium" style={styles.orbitText}>
+        {'[ Entering orbit soon... ]'}
       </Text>
 
       <View style={styles.bottomActions}>
@@ -150,12 +181,11 @@ export default function MigrationSuccess(): React.ReactElement {
 
         <TouchableOpacity
           onPress={onMigrationComplete}
-          style={styles.continueLink}
           testID="continue-button"
         >
           <Text
             fontType="brockmann-medium"
-            style={styles.continueLinkText}
+            style={styles.continueText}
           >
             Continue to wallets
           </Text>
@@ -181,29 +211,55 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     color: MIGRATION.textPrimary,
-    paddingLeft: MIGRATION.screenPadding,
+    textAlign: 'center',
+    letterSpacing: -0.36,
     lineHeight: 24,
-    marginTop: 50,
+    marginTop: 12,
+    paddingHorizontal: MIGRATION.screenPadding,
   },
   subtitle: {
     fontSize: 14,
     color: MIGRATION.textTertiary,
-    paddingLeft: 17,
-    marginTop: 8,
+    textAlign: 'center',
     lineHeight: 20,
+    marginTop: 8,
+    paddingHorizontal: MIGRATION.screenPadding,
   },
-  cardContainer: {
+  badge: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 32,
+    alignSelf: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(19, 200, 157, 0.05)',
+    borderColor: 'rgba(19, 200, 157, 0.05)',
+    borderWidth: 1,
+    borderRadius: 22,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginTop: 21,
+  },
+  badgeText: {
+    fontSize: 12,
+    color: MIGRATION.textPrimary,
+    lineHeight: 16,
+  },
+  orbitContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+  },
+  sphereMesh: {
+    width: 300,
+    height: 300,
   },
   orbitText: {
     fontSize: 14,
     color: MIGRATION.textLink,
     textAlign: 'center',
-    marginTop: 24,
+    marginBottom: 16,
   },
   bottomActions: {
-    marginTop: 'auto',
     paddingHorizontal: MIGRATION.screenPadding,
     paddingBottom: 24,
     alignItems: 'center',
@@ -227,12 +283,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: MIGRATION.textTertiary,
     textDecorationLine: 'underline',
+    lineHeight: 18,
   },
-  continueLink: {
-    paddingVertical: 4,
-  },
-  continueLinkText: {
+  continueText: {
     fontSize: 14,
     color: MIGRATION.textTertiary,
+    lineHeight: 18,
   },
 })
