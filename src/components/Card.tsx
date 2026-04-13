@@ -16,7 +16,7 @@ import { API } from 'lib'
 import Icon from './Icon'
 import Text from './Text'
 
-interface Props extends Partial<API<any>> {
+interface Props extends Partial<API<unknown>> {
   style?: ViewStyle
   title?: string
   badge?: string
@@ -43,7 +43,7 @@ const Card = ({
   const { onPress, dark, error, loading } = rest
   const textStyle = [styles.text, dark && darkStyles.text]
   const data = [460, 466, 480, 490, 500, 510, 520]
-  const Line = ({ line }: any): ReactElement => (
+  const Line = ({ line }: { line?: string }): ReactElement => (
     <Path
       key="line "
       // @ts-ignore

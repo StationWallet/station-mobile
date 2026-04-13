@@ -13,7 +13,11 @@ import { formatSeedStringToArray } from 'utils/wallet'
 import { COLORS } from 'consts/theme'
 import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
 
-const Step2Seed = ({ navigation }: any) => {
+const Step2Seed = ({
+  navigation,
+}: {
+  navigation: { navigate: (screen: string) => void }
+}): React.ReactElement => {
   const [seedText, setSeedText] = useState('')
   const setSeed = useSetRecoilState(RecoverWalletStore.seed)
 
@@ -23,7 +27,7 @@ const Step2Seed = ({ navigation }: any) => {
   const wordCount = words.length
   const isValid = wordCount === 12 || wordCount === 24
 
-  const handleNext = () => {
+  const handleNext = (): void => {
     setSeed(words)
     navigation.navigate('Step4Seed')
   }
@@ -54,16 +58,27 @@ const Step2Seed = ({ navigation }: any) => {
           <Text
             style={[
               styles.wordCount,
-              isValid ? styles.wordCountValid : wordCount > 0 ? styles.wordCountInvalid : null,
+              isValid
+                ? styles.wordCountValid
+                : wordCount > 0
+                ? styles.wordCountInvalid
+                : null,
             ]}
           >
             {wordCount} word{wordCount !== 1 ? 's' : ''}
-            {isValid ? ' (valid)' : wordCount > 0 ? ' (need 12 or 24)' : ''}
+            {isValid
+              ? ' (valid)'
+              : wordCount > 0
+              ? ' (need 12 or 24)'
+              : ''}
           </Text>
         </View>
 
         <TouchableOpacity
-          style={[authStyles.button, !isValid && authStyles.buttonDisabled]}
+          style={[
+            authStyles.button,
+            !isValid && authStyles.buttonDisabled,
+          ]}
           onPress={handleNext}
           disabled={!isValid}
         >

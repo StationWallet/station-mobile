@@ -30,7 +30,10 @@ const secureOpts: SecureStore.SecureStoreOptions = {
 
 // Expo SecureStore replacement for native Preferences
 const Preferences: PreferencesType = {
-  setString: async (key: PreferencesEnum, val: string): Promise<void> => {
+  setString: async (
+    key: PreferencesEnum,
+    val: string
+  ): Promise<void> => {
     await SecureStore.setItemAsync(key, val, secureOpts)
   },
   getString: async (key: PreferencesEnum): Promise<string> => {
@@ -41,8 +44,15 @@ const Preferences: PreferencesType = {
       return ''
     }
   },
-  setBool: async (key: PreferencesEnum, val: boolean): Promise<void> => {
-    await SecureStore.setItemAsync(key, val ? 'true' : 'false', secureOpts)
+  setBool: async (
+    key: PreferencesEnum,
+    val: boolean
+  ): Promise<void> => {
+    await SecureStore.setItemAsync(
+      key,
+      val ? 'true' : 'false',
+      secureOpts
+    )
   },
   getBool: async (key: PreferencesEnum): Promise<boolean> => {
     try {

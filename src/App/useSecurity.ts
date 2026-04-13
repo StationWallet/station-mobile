@@ -15,13 +15,23 @@ const useSecurity = (): {
 } => {
   const [state, setState] = useState<SecurityState | undefined>(
     __DEV__
-      ? { isDeviceRooted: false, isDebugEnabled: false, isIncorrectFingerprint: false, isRunningEmulator: false }
-      : undefined,
+      ? {
+          isDeviceRooted: false,
+          isDebugEnabled: false,
+          isIncorrectFingerprint: false,
+          isRunningEmulator: false,
+        }
+      : undefined
   )
 
   const securityCheckFailed = useMemo(() => {
     if (!state) return undefined
-    return state.isDeviceRooted || state.isDebugEnabled || state.isIncorrectFingerprint || state.isRunningEmulator
+    return (
+      state.isDeviceRooted ||
+      state.isDebugEnabled ||
+      state.isIncorrectFingerprint ||
+      state.isRunningEmulator
+    )
   }, [state])
 
   useEffect(() => {
@@ -30,11 +40,27 @@ const useSecurity = (): {
     Promise.all([
       Security.deviceRooted(),
       Security.debugEnabled(),
-      Platform.OS === 'android' ? Security.incorrectFingerprint() : Promise.resolve(false),
-      Platform.OS === 'android' ? Security.runningEmulator() : Promise.resolve(false),
-    ]).then(([isDeviceRooted, isDebugEnabled, isIncorrectFingerprint, isRunningEmulator]) => {
-      setState({ isDeviceRooted, isDebugEnabled, isIncorrectFingerprint, isRunningEmulator })
-    })
+      Platform.OS === 'android'
+        ? Security.incorrectFingerprint()
+        : Promise.resolve(false),
+      Platform.OS === 'android'
+        ? Security.runningEmulator()
+        : Promise.resolve(false),
+    ]).then(
+      ([
+        isDeviceRooted,
+        isDebugEnabled,
+        isIncorrectFingerprint,
+        isRunningEmulator,
+      ]) => {
+        setState({
+          isDeviceRooted,
+          isDebugEnabled,
+          isIncorrectFingerprint,
+          isRunningEmulator,
+        })
+      }
+    )
   }, [])
 
   const getSecurityErrorMessage = (): string => {

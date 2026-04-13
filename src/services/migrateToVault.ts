@@ -4,7 +4,12 @@ import * as SecureStore from 'expo-secure-store'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
-import { getAuthData, upsertAuthData, AuthDataValueType, LedgerDataValueType } from 'utils/authData'
+import {
+  getAuthData,
+  upsertAuthData,
+  AuthDataValueType,
+  LedgerDataValueType,
+} from 'utils/authData'
 import { decrypt } from 'utils/crypto'
 import { derivePublicKeyHex, buildVaultProto } from './vaultProto'
 import type { KeyImportResult } from './dklsKeyImport'
@@ -17,7 +22,9 @@ const VAULT_STORE_OPTS: SecureStore.SecureStoreOptions = {
 
 /** Sanitize a wallet name into a valid SecureStore key (alphanumeric, '.', '-', '_' only). */
 function vaultStoreKey(walletName: string): string {
-  return VAULT_KEY_PREFIX + walletName.replace(/[^a-zA-Z0-9._-]/g, '_')
+  return (
+    VAULT_KEY_PREFIX + walletName.replace(/[^a-zA-Z0-9._-]/g, '_')
+  )
 }
 
 export interface MigrationWallet {
@@ -36,7 +43,9 @@ export interface MigrationResult {
 /**
  * Reads legacy auth data and returns the list of wallets available for migration.
  */
-export async function discoverLegacyWallets(): Promise<MigrationWallet[]> {
+export async function discoverLegacyWallets(): Promise<
+  MigrationWallet[]
+> {
   const authData = await getAuthData()
   if (!authData) return []
 
@@ -44,7 +53,10 @@ export async function discoverLegacyWallets(): Promise<MigrationWallet[]> {
     name,
     address: data.address,
     ledger: data.ledger === true,
-    path: data.ledger === true ? (data as LedgerDataValueType).path : undefined,
+    path:
+      data.ledger === true
+        ? (data as LedgerDataValueType).path
+        : undefined,
   }))
 }
 
@@ -55,13 +67,16 @@ export async function discoverLegacyWallets(): Promise<MigrationWallet[]> {
  */
 export async function migrateWalletToVault(
   name: string,
-  data: AuthDataValueType | LedgerDataValueType,
+  data: AuthDataValueType | LedgerDataValueType
 ): Promise<MigrationResult> {
   const wallet: MigrationWallet = {
     name,
     address: data.address,
     ledger: data.ledger === true,
-    path: data.ledger === true ? (data as LedgerDataValueType).path : undefined,
+    path:
+      data.ledger === true
+        ? (data as LedgerDataValueType).path
+        : undefined,
   }
 
   try {
@@ -70,21 +85,28 @@ export async function migrateWalletToVault(
 
     if (!data.ledger) {
       const standardData = data as AuthDataValueType
-      privateKeyHex = decrypt(standardData.encryptedKey, standardData.password)
+      privateKeyHex = decrypt(
+        standardData.encryptedKey,
+        standardData.password
+      )
       if (!privateKeyHex) {
         return { wallet, success: false, error: 'Decryption failed' }
       }
       publicKeyHex = derivePublicKeyHex(privateKeyHex)
     }
 
-    const vaultProto = buildVaultProto(name, publicKeyHex, privateKeyHex)
+    const vaultProto = buildVaultProto(
+      name,
+      publicKeyHex,
+      privateKeyHex
+    )
     const vaultBytes = toBinary(VaultSchema, vaultProto)
     const encoded = base64.encode(vaultBytes)
 
     await SecureStore.setItemAsync(
       vaultStoreKey(name),
       encoded,
-      VAULT_STORE_OPTS,
+      VAULT_STORE_OPTS
     )
 
     return { wallet, success: true }
@@ -99,7 +121,11 @@ export async function migrateWalletToVault(
  * Calls `onProgress` after each wallet completes (for animation timing).
  */
 export async function migrateAllWallets(
-  onProgress?: (result: MigrationResult, index: number, total: number) => void,
+  onProgress?: (
+    result: MigrationResult,
+    index: number,
+    total: number
+  ) => void
 ): Promise<MigrationResult[]> {
   const authData = await getAuthData()
   if (!authData) return []
@@ -121,10 +147,12 @@ export async function migrateAllWallets(
  * Reads a stored vault protobuf for a given wallet name.
  * Returns the raw base64-encoded vault bytes, or null if not found.
  */
-export async function getStoredVault(walletName: string): Promise<string | null> {
+export async function getStoredVault(
+  walletName: string
+): Promise<string | null> {
   return SecureStore.getItemAsync(
     vaultStoreKey(walletName),
-    VAULT_STORE_OPTS,
+    VAULT_STORE_OPTS
   )
 }
 
@@ -134,10 +162,13 @@ export async function getStoredVault(walletName: string): Promise<string | null>
  */
 export async function storeFastVault(
   walletName: string,
-  result: KeyImportResult,
+  result: KeyImportResult
 ): Promise<void> {
   if (await isVaultFastVault(walletName)) {
-    console.warn(`[storeFastVault] ${walletName} already migrated, skipping`)
+    // eslint-disable-next-line no-console -- important diagnostic for double-migration attempts
+    console.warn(
+      `[storeFastVault] ${walletName} already migrated, skipping`
+    )
     return
   }
 
@@ -150,8 +181,12 @@ export async function storeFastVault(
     hexChainCode: result.chainCode,
     resharePrefix: '',
     libType: LibType.DKLS,
-    keyShares: [{ publicKey: result.publicKey, keyshare: result.keyshare }],
-    chainPublicKeys: [{ chain: 'Terra', publicKey: result.publicKey, isEddsa: false }],
+    keyShares: [
+      { publicKey: result.publicKey, keyshare: result.keyshare },
+    ],
+    chainPublicKeys: [
+      { chain: 'Terra', publicKey: result.publicKey, isEddsa: false },
+    ],
     createdAt: {
       seconds: BigInt(Math.floor(Date.now() / 1000)),
       nanos: 0,
@@ -165,7 +200,7 @@ export async function storeFastVault(
   await SecureStore.setItemAsync(
     vaultStoreKey(walletName),
     encoded,
-    VAULT_STORE_OPTS,
+    VAULT_STORE_OPTS
   )
 
   // Ensure the wallet appears in the legacy wallet list (getWallets reads authData).
@@ -205,7 +240,9 @@ export async function storeFastVault(
 /**
  * Check if a stored vault is a DKLS fast vault (vs legacy KEYIMPORT).
  */
-export async function isVaultFastVault(walletName: string): Promise<boolean> {
+export async function isVaultFastVault(
+  walletName: string
+): Promise<boolean> {
   const stored = await getStoredVault(walletName)
   if (!stored) return false
   try {

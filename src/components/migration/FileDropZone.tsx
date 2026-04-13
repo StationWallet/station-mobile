@@ -6,7 +6,11 @@ import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 import type { FileState } from 'hooks/useImportFlow'
 
-function CloudUploadIcon({ color }: { color: string }) {
+function CloudUploadIcon({
+  color,
+}: {
+  color: string
+}): React.ReactElement {
   return (
     <Svg width={48} height={48} viewBox="0 0 24 24" fill="none">
       <Path
@@ -27,7 +31,11 @@ function CloudUploadIcon({ color }: { color: string }) {
   )
 }
 
-function PageCheckIcon({ color }: { color: string }) {
+function PageCheckIcon({
+  color,
+}: {
+  color: string
+}): React.ReactElement {
   return (
     <Svg width={48} height={48} viewBox="0 0 24 24" fill="none">
       <Path
@@ -92,9 +100,16 @@ const stateConfig = {
   },
 } as const
 
-export default function FileDropZone({ onPress, fileName, error, onClear, fileState }: Props) {
+export default function FileDropZone({
+  onPress,
+  fileName,
+  error,
+  onClear,
+  fileState,
+}: Props): React.ReactElement {
   const config = stateConfig[fileState]
-  const displayText = fileState === 'success' ? (fileName ?? '') : (error || config.text)
+  const displayText =
+    fileState === 'success' ? fileName ?? '' : error || config.text
   const { Icon } = config
 
   return (
@@ -103,7 +118,10 @@ export default function FileDropZone({ onPress, fileName, error, onClear, fileSt
         testID="import-file-picker"
         onPress={onPress}
         activeOpacity={0.7}
-        style={[styles.zone, { backgroundColor: config.bg, borderColor: config.border }]}
+        style={[
+          styles.zone,
+          { backgroundColor: config.bg, borderColor: config.border },
+        ]}
       >
         <Icon color={config.iconColor} />
         <Text
@@ -118,10 +136,17 @@ export default function FileDropZone({ onPress, fileName, error, onClear, fileSt
       {fileState === 'success' && fileName ? (
         <View style={styles.badgeRow}>
           <View style={styles.badge}>
-            <Text fontType="brockmann-medium" style={styles.badgeText} numberOfLines={1}>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.badgeText}
+              numberOfLines={1}
+            >
               {fileName}
             </Text>
-            <TouchableOpacity onPress={onClear} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <TouchableOpacity
+              onPress={onClear}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
               <Text style={styles.clearIcon}>{'\u2715'}</Text>
             </TouchableOpacity>
           </View>

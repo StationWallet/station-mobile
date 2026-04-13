@@ -1,4 +1,9 @@
-import React, { ReactElement, ReactNode, useEffect, useRef } from 'react'
+import React, {
+  ReactElement,
+  ReactNode,
+  useEffect,
+  useRef,
+} from 'react'
 import {
   TouchableOpacity,
   StyleSheet,
@@ -49,7 +54,9 @@ const SelectItemList = <T,>({
   flatListRef,
 }: {
   modal: AppModal
-  flatListRef: React.RefObject<FlatList<any>>
+  flatListRef: React.RefObject<
+    FlatList<{ label: string; value: T; disabled?: boolean }>
+  >
 } & SelectorProps<T>): ReactElement => {
   return (
     <View

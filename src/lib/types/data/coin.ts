@@ -10,4 +10,7 @@ export interface DisplayCoin {
   unit: string
 }
 
-export type Whitelist = Record<string, { symbol?: string; name?: string }>
+export type Whitelist = Record<
+  string,
+  { symbol?: string; name?: string }
+>

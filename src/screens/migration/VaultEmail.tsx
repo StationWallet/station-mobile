@@ -23,7 +23,7 @@ import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 type Nav = StackNavigationProp<MigrationStackParams, 'VaultEmail'>
 type Route = RouteProp<MigrationStackParams, 'VaultEmail'>
 
-export default function VaultEmail() {
+export default function VaultEmail(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
   const {
@@ -57,8 +57,8 @@ export default function VaultEmail() {
           </Text>
 
           <Text style={formStyles.subtitle} fontType="brockmann">
-            This will only be used once to send your backup file. Vultisig
-            doesn't store any data.
+            This will only be used once to send your backup file.
+            Vultisig doesn&apos;t store any data.
           </Text>
 
           <TextInput

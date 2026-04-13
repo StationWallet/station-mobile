@@ -25,9 +25,9 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
     beforeAll(async () => {
       const udid = device.id;
       execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
-        timeout: 30000,
+        timeout: 120000,
       });
-      execSync(`xcrun simctl boot ${udid}`, { timeout: 30000 });
+      execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
 
       // Launch fresh — tap dev button to seed corrupt data
       await device.launchApp({ delete: true, newInstance: true });

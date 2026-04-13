@@ -70,7 +70,12 @@ const QrCodeButton = ({
       'Move to settings to enable camera permissions?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Ok', onPress: () => openPermissionSettings() },
+        {
+          text: 'Ok',
+          onPress: (): void => {
+            openPermissionSettings()
+          },
+        },
       ]
     )
   }

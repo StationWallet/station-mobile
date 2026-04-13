@@ -11,8 +11,7 @@ const getScreenWideType = (): 'narrow' | 'normal' | 'wide' =>
     : 'normal'
 
 // Assume notch for modern iOS devices (POC simplification)
-const getNotchCoverPaddingBottom =
-  Platform.OS === 'ios' ? 54 : 32
+const getNotchCoverPaddingBottom = Platform.OS === 'ios' ? 54 : 32
 
 export default {
   getWindowHeight,

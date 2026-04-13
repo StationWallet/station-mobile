@@ -23,9 +23,12 @@ const jsonTryParse = <T>(value: string): T | undefined => {
   }
 }
 
-const jsonTryStringify = (value: any, ...option: any): string => {
+const jsonTryStringify = (
+  value: unknown,
+  ...option: unknown[]
+): string => {
   try {
-    return JSON.stringify(value, ...option)
+    return JSON.stringify(value, ...(option as []))
   } catch {
     return ''
   }

@@ -12,7 +12,7 @@ import DecryptPasswordSheet from 'components/migration/DecryptPasswordSheet'
 import { useImportFlow } from 'hooks/useImportFlow'
 import { MIGRATION } from 'consts/migration'
 
-function BackChevron() {
+function BackChevron(): React.ReactElement {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
       <Path
@@ -26,10 +26,16 @@ function BackChevron() {
   )
 }
 
-function InfoIcon() {
+function InfoIcon(): React.ReactElement {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="10" stroke={MIGRATION.textPrimary} strokeWidth={1.5} />
+      <Circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke={MIGRATION.textPrimary}
+        strokeWidth={1.5}
+      />
       <Path
         d="M12 16V12M12 8H12.01"
         stroke={MIGRATION.textPrimary}
@@ -41,7 +47,7 @@ function InfoIcon() {
   )
 }
 
-export default function ImportVault() {
+export default function ImportVault(): React.ReactElement {
   const navigation = useNavigation()
   const {
     loading,
@@ -63,7 +69,10 @@ export default function ImportVault() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.toolbar}>
-        <GlassButton onPress={() => navigation.goBack()} testID="import-vault-back">
+        <GlassButton
+          onPress={() => navigation.goBack()}
+          testID="import-vault-back"
+        >
           <BackChevron />
         </GlassButton>
         <Text fontType="brockmann-medium" style={styles.toolbarTitle}>
@@ -84,7 +93,10 @@ export default function ImportVault() {
           />
         </View>
 
-        <Text fontType="brockmann-medium" style={styles.supportedText}>
+        <Text
+          fontType="brockmann-medium"
+          style={styles.supportedText}
+        >
           Supported file types: .bak & .vult
         </Text>
       </View>
@@ -93,7 +105,11 @@ export default function ImportVault() {
         {fileState === 'success' && fileName ? (
           <View style={styles.selectedBadgeRow}>
             <View style={styles.selectedBadge}>
-              <Text fontType="brockmann-medium" style={styles.selectedBadgeText} numberOfLines={1}>
+              <Text
+                fontType="brockmann-medium"
+                style={styles.selectedBadgeText}
+                numberOfLines={1}
+              >
                 {fileName}
               </Text>
             </View>

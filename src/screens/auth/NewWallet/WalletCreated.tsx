@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import {
-  View,
   Text,
   StyleSheet,
   TouchableOpacity,
@@ -11,14 +10,32 @@ import { createWallet } from 'utils/wallet'
 import { COLORS } from 'consts/theme'
 import WalletSuccessScreen from '../WalletSuccessScreen'
 
-const WalletCreated = ({ navigation, route }: any) => {
+interface WalletCreatedProps {
+  navigation: {
+    goBack: () => void
+    getParent: () =>
+      | {
+          navigate: (screen: string) => void
+          getState: () => { routes?: Array<{ name: string }> }
+        }
+      | undefined
+  }
+  route: {
+    params: { mnemonic: string; name: string; password: string }
+  }
+}
+
+const WalletCreated = ({
+  navigation,
+  route,
+}: WalletCreatedProps): React.ReactElement => {
   const { mnemonic, name, password } = route.params
   const [wallet, setWallet] = useState<LocalWallet | null>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(true)
 
   useEffect(() => {
-    const persist = async () => {
+    const persist = async (): Promise<void> => {
       try {
         const result = await createWallet({
           seed: mnemonic,
@@ -30,8 +47,10 @@ const WalletCreated = ({ navigation, route }: any) => {
         } else {
           setError('Failed to create wallet')
         }
-      } catch (e: any) {
-        setError(e?.message || 'Failed to create wallet')
+      } catch (e: unknown) {
+        setError(
+          e instanceof Error ? e.message : 'Failed to create wallet'
+        )
       } finally {
         setSaving(false)
       }
@@ -76,7 +95,11 @@ const WalletCreated = ({ navigation, route }: any) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg, padding: 24 },
   centered: { alignItems: 'center', justifyContent: 'center' },
-  savingText: { color: COLORS.textSecondary, fontSize: 15, marginTop: 12 },
+  savingText: {
+    color: COLORS.textSecondary,
+    fontSize: 15,
+    marginTop: 12,
+  },
   errorIcon: {
     color: COLORS.error,
     fontSize: 48,

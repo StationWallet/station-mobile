@@ -5,7 +5,8 @@ interface MigrationContextValue {
 }
 
 export const MigrationContext = createContext<MigrationContextValue>({
-  onMigrationComplete: () => {},
+  onMigrationComplete: (): void => {},
 })
 
-export const useMigrationComplete = () => useContext(MigrationContext).onMigrationComplete
+export const useMigrationComplete = (): (() => void) =>
+  useContext(MigrationContext).onMigrationComplete

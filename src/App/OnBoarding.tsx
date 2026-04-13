@@ -74,20 +74,41 @@ const RenderSwiper = (): ReactElement => {
         style={styles.flex1}
       >
         {PagerContents.map((item, i) => (
-          <View key={i} style={[styles.SwiperContent, { width: screenWidth }]}>
+          <View
+            key={i}
+            style={[styles.SwiperContent, { width: screenWidth }]}
+          >
             <View style={styles.imageWrapper}>
-              <Image source={item.image} style={styles.SwiperContentImage} />
+              <Image
+                source={item.image}
+                style={styles.SwiperContentImage}
+              />
             </View>
             <View style={styles.textWrapper}>
-              <Text style={styles.SwiperContentTitle} fontType="bold">{item.title}</Text>
-              <Text style={styles.SwiperContentDesc} adjustsFontSizeToFit numberOfLines={2}>{item.description}</Text>
+              <Text style={styles.SwiperContentTitle} fontType="bold">
+                {item.title}
+              </Text>
+              <Text
+                style={styles.SwiperContentDesc}
+                adjustsFontSizeToFit
+                numberOfLines={2}
+              >
+                {item.description}
+              </Text>
             </View>
           </View>
         ))}
       </ScrollView>
       <View style={styles.dotsRow}>
         {PagerContents.map((_, i) => (
-          <View key={i} style={i === currentIndex ? styles.SwiperDotActive : styles.SwiperDot} />
+          <View
+            key={i}
+            style={
+              i === currentIndex
+                ? styles.SwiperDotActive
+                : styles.SwiperDot
+            }
+          />
         ))}
       </View>
     </View>
@@ -110,10 +131,7 @@ const RenderButton = ({
         style={styles.SwiperButtonStart}
         onPress={enterTabs}
       >
-        <Text
-          style={styles.SwiperButtonText}
-          fontType={'medium'}
-        >
+        <Text style={styles.SwiperButtonText} fontType={'medium'}>
           Get started
         </Text>
       </TouchableOpacity>
@@ -137,7 +155,12 @@ const OnBoarding = ({
 const styles = StyleSheet.create({
   flex1: { flex: 1 },
   swiperWrapper: { flex: 1, marginBottom: 60 },
-  imageWrapper: { height: '60%', paddingVertical: 20, alignContent: 'center', justifyContent: 'center' },
+  imageWrapper: {
+    height: '60%',
+    paddingVertical: 20,
+    alignContent: 'center',
+    justifyContent: 'center',
+  },
   textWrapper: { minHeight: 160, paddingTop: 20 },
   dotsRow: { flexDirection: 'row', justifyContent: 'center' },
   SwiperDot: {

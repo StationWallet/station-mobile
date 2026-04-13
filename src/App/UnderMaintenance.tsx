@@ -31,9 +31,9 @@ const UnderMaintenance = (): ReactElement => {
   const hide = (): void => setHideMaintenance(true)
 
   const currentChainName = useCurrentChainName()
-  const { data: maintenance } = useTerraAssets<Record<string, string>>(
-    '/station/maintenance.json'
-  )
+  const { data: maintenance } = useTerraAssets<
+    Record<string, string>
+  >('/station/maintenance.json')
 
   const isUnderMaintenance = maintenance?.[currentChainName]
 

@@ -11,7 +11,7 @@ import { COLORS } from 'consts/theme'
 
 type RouteParams = { Receive: { address: string } }
 
-export default function Receive() {
+export default function Receive(): React.ReactElement {
   const { params } = useRoute<RouteProp<RouteParams, 'Receive'>>()
   const { address } = params
 
@@ -24,14 +24,23 @@ export default function Receive() {
       <Text style={styles.title}>Receive</Text>
 
       <View style={styles.qrContainer}>
-        <QRCode value={address} size={200} backgroundColor={COLORS.surface} color={COLORS.textPrimary} />
+        <QRCode
+          value={address}
+          size={200}
+          backgroundColor={COLORS.surface}
+          color={COLORS.textPrimary}
+        />
       </View>
 
       <Text style={styles.address} selectable>
         {address}
       </Text>
 
-      <Button title="Copy Address" onPress={copyAddress} containerStyle={styles.copyButton} />
+      <Button
+        title="Copy Address"
+        onPress={copyAddress}
+        containerStyle={styles.copyButton}
+      />
     </SafeAreaView>
   )
 }
@@ -44,7 +53,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: { color: COLORS.textPrimary, fontSize: 20, fontWeight: '600', marginBottom: 32 },
+  title: {
+    color: COLORS.textPrimary,
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 32,
+  },
   qrContainer: {
     backgroundColor: COLORS.surface,
     borderRadius: 16,

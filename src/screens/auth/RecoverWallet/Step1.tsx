@@ -8,7 +8,11 @@ import {
 } from 'react-native'
 import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
 
-const Step1 = ({ navigation }: any) => {
+const Step1 = ({
+  navigation,
+}: {
+  navigation: { navigate: (screen: string) => void }
+}): React.ReactElement => {
   return (
     <View style={authStyles.container}>
       <ScrollView
@@ -29,7 +33,6 @@ const Step1 = ({ navigation }: any) => {
               Enter seed phrase
             </Text>
           </TouchableOpacity>
-
         </View>
       </ScrollView>
     </View>
