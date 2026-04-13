@@ -35,6 +35,7 @@ import keystore, { KeystoreEnum } from 'nativeModules/keystore'
 
 import { settings } from 'utils/storage'
 import { migrateLegacyKeystore } from 'utils/legacyMigration'
+import { backfillTerraOnlyFlag } from 'services/migrateToVault'
 
 import DebugBanner from './DebugBanner'
 import GlobalTopNotification from './GlobalTopNotification'
@@ -186,9 +187,9 @@ export default (): ReactElement => {
   useEffect(() => {
     const startup = async (): Promise<void> => {
       const [, loaded] = await Promise.all([
-        clearKeystoreWhenFirstRun().then(() =>
-          migrateLegacyKeystore()
-        ),
+        clearKeystoreWhenFirstRun()
+          .then(() => migrateLegacyKeystore())
+          .then(() => backfillTerraOnlyFlag()),
         settings.get(),
       ])
       setLocal(loaded)
