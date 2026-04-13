@@ -50,7 +50,7 @@ export default function WalletList(): React.ReactElement {
         })
       })
       .catch(() => {})
-    return () => {
+    return (): void => {
       cancelled = true
     }
   }, [wallets])

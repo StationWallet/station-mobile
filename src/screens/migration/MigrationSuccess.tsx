@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import type { StackNavigationProp } from '@react-navigation/stack'
 import {
   RouteProp,
   useNavigation,
@@ -104,7 +105,10 @@ const DevVerifyVault = __DEV__
 export default function MigrationSuccess(): React.ReactElement {
   const { params } =
     useRoute<RouteProp<MigrationStackParams, 'MigrationSuccess'>>()
-  const navigation = useNavigation()
+  const navigation =
+    useNavigation<
+      StackNavigationProp<MigrationStackParams, 'MigrationSuccess'>
+    >()
   const onMigrationComplete = useMigrationComplete()
 
   const wallets = params.wallets
@@ -193,7 +197,7 @@ export default function MigrationSuccess(): React.ReactElement {
         {hasUnmigrated ? (
           <TouchableOpacity
             onPress={() =>
-              (navigation as any).navigate('WalletsFound', {
+              navigation.navigate('WalletsFound', {
                 wallets,
                 results,
               })
