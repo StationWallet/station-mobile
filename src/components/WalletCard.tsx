@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   removeText: {
-    color: '#ff5c5c',
+    color: MIGRATION.errorRed,
     fontSize: 14,
   },
   exportButton: {

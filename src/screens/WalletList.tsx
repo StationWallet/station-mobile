@@ -25,6 +25,7 @@ export default function WalletList(): React.ReactElement {
 
   useEffect(() => {
     if (wallets.length === 0) return
+    let cancelled = false
     Promise.all(
       wallets.map((w) =>
         isVaultFastVault(w.name).then((isFast) => ({
@@ -32,13 +33,26 @@ export default function WalletList(): React.ReactElement {
           isFast,
         }))
       )
-    ).then((results) => {
-      const map: Record<string, boolean> = {}
-      results.forEach(({ name, isFast }) => {
-        map[name] = isFast
+    )
+      .then((results) => {
+        if (cancelled) return
+        setFastVaultMap((prev) => {
+          const changed = results.some(
+            ({ name, isFast }) => prev[name] !== isFast
+          )
+          if (!changed && Object.keys(prev).length === results.length)
+            return prev
+          const map: Record<string, boolean> = {}
+          results.forEach(({ name, isFast }) => {
+            map[name] = isFast
+          })
+          return map
+        })
       })
-      setFastVaultMap(map)
-    })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
   }, [wallets])
 
   const handlePress = async (wallet: LocalWallet): Promise<void> => {
