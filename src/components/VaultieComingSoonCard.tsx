@@ -3,14 +3,15 @@ import { View, StyleSheet } from 'react-native'
 import Text from 'components/Text'
 import { VULTISIG } from 'consts/vultisig'
 
-export default function VaultieComingSoonCard() {
+export default function VaultieComingSoonCard(): React.ReactElement {
   return (
     <View style={styles.card} testID="vaultie-coming-soon">
       <Text style={styles.title} fontType="bold">
         Vultisig Agent
       </Text>
       <Text style={styles.subtitle} fontType="book">
-        Your AI-powered crypto companion is coming to this app. Stay tuned.
+        Your AI-powered crypto companion is coming to this app. Stay
+        tuned.
       </Text>
     </View>
   )

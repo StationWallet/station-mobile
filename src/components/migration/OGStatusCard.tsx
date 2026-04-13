@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
 
-export default function OGStatusCard() {
+export default function OGStatusCard(): React.ReactElement {
   return (
     <View style={styles.card}>
       <Text fontType="brockmann-medium" style={styles.label}>

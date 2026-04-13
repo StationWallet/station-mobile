@@ -19,7 +19,7 @@ export default function WalletMigrationCard({
   migrated,
   onMigrate,
   testID,
-}: Props) {
+}: Props): React.ReactElement {
   return (
     <View style={styles.card} testID={testID}>
       <View style={styles.headerRow}>
@@ -40,7 +40,10 @@ export default function WalletMigrationCard({
       <View style={styles.buttonRow}>
         {migrated ? (
           <View style={styles.migratedBadge}>
-            <Text fontType="brockmann-medium" style={styles.migratedText}>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.migratedText}
+            >
               {'\u2713'} Fast Vault
             </Text>
           </View>

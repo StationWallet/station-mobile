@@ -10,7 +10,11 @@ type Props = {
   children?: React.ReactNode
 }
 
-export default function MigrationToolbar({ onBack, testID, children }: Props) {
+export default function MigrationToolbar({
+  onBack,
+  testID,
+  children,
+}: Props): React.ReactElement {
   return (
     <View style={styles.toolbar}>
       <GlassButton onPress={onBack} testID={testID}>

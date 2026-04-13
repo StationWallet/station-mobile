@@ -7,20 +7,18 @@ import fr from './lang/fr.json'
 import ru from './lang/ru.json'
 import pl from './lang/pl.json'
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources: {
-      en: { translation: en },
-      es: { translation: es },
-      zh: { translation: zh },
-      fr: { translation: fr },
-      ru: { translation: ru },
-      pl: { translation: pl },
-    },
-    lng: 'en',
-    keySeparator: ':',
-  })
+i18n.use(initReactI18next).init({
+  resources: {
+    en: { translation: en },
+    es: { translation: es },
+    zh: { translation: zh },
+    fr: { translation: fr },
+    ru: { translation: ru },
+    pl: { translation: pl },
+  },
+  lng: 'en',
+  keySeparator: ':',
+})
 
 /* types */
 export * from './types'

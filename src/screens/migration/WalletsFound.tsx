@@ -15,19 +15,27 @@ import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 type Nav = StackNavigationProp<MigrationStackParams, 'WalletsFound'>
 type Route = RouteProp<MigrationStackParams, 'WalletsFound'>
 
-export default function WalletsFound() {
+export default function WalletsFound(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
   const { wallets, results } = route.params
 
   const migratedNames = useMemo(
-    () => new Set((results ?? []).filter(r => r.success).map(r => r.wallet.name)),
-    [results],
+    () =>
+      new Set(
+        (results ?? [])
+          .filter((r) => r.success)
+          .map((r) => r.wallet.name)
+      ),
+    [results]
   )
 
   return (
     <SafeAreaView style={formStyles.container}>
-      <MigrationToolbar onBack={() => navigation.goBack()} testID="wallets-back" />
+      <MigrationToolbar
+        onBack={() => navigation.goBack()}
+        testID="wallets-back"
+      />
 
       <Text fontType="brockmann-medium" style={styles.title}>
         Your wallets

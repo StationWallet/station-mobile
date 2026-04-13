@@ -11,10 +11,20 @@ import { COLORS } from 'consts/theme'
 import authStyles from './authStyles'
 import { useWalletNav } from 'navigation/hooks'
 
-const AuthMenu = ({ navigation }: any) => {
+const AuthMenu = ({
+  navigation,
+}: {
+  navigation: {
+    navigate: (screen: string) => void
+    goBack: () => void
+    getState: () => { routes?: Array<{ name: string }> }
+  }
+}): React.ReactElement => {
   const { goToMigration } = useWalletNav()
   const navState = navigation.getState()
-  const isAddMode = navState?.routes?.some((r: any) => r.name === 'AddWalletMenu')
+  const isAddMode = navState?.routes?.some(
+    (r: { name: string }) => r.name === 'AddWalletMenu'
+  )
 
   return (
     <SafeAreaView style={authStyles.container}>
@@ -26,8 +36,15 @@ const AuthMenu = ({ navigation }: any) => {
           <View style={styles.logoCircle}>
             <Text style={styles.logoText}>S</Text>
           </View>
-          <Text style={[authStyles.title, { fontSize: 28 }]}>Station Wallet</Text>
-          <Text style={[authStyles.subtitle, { textAlign: 'center', marginBottom: 0 }]}>
+          <Text style={[authStyles.title, { fontSize: 28 }]}>
+            Station Wallet
+          </Text>
+          <Text
+            style={[
+              authStyles.subtitle,
+              { textAlign: 'center', marginBottom: 0 },
+            ]}
+          >
             Create or recover your Terra wallet
           </Text>
         </View>
@@ -35,14 +52,24 @@ const AuthMenu = ({ navigation }: any) => {
         <View style={styles.buttons}>
           <TouchableOpacity
             style={authStyles.button}
-            onPress={() => navigation.navigate(isAddMode ? 'AddNewWallet' : 'NewWallet')}
+            onPress={() =>
+              navigation.navigate(
+                isAddMode ? 'AddNewWallet' : 'NewWallet'
+              )
+            }
           >
-            <Text style={authStyles.buttonText}>Create New Wallet</Text>
+            <Text style={authStyles.buttonText}>
+              Create New Wallet
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() => navigation.navigate(isAddMode ? 'AddRecoverWallet' : 'RecoverWallet')}
+            onPress={() =>
+              navigation.navigate(
+                isAddMode ? 'AddRecoverWallet' : 'RecoverWallet'
+              )
+            }
           >
             <Text style={styles.secondaryButtonText}>
               Recover Wallet
@@ -57,7 +84,9 @@ const AuthMenu = ({ navigation }: any) => {
                   style={styles.secondaryButton}
                   onPress={goToMigration}
                 >
-                  <Text style={styles.secondaryButtonText}>Create Fast Vault (dev)</Text>
+                  <Text style={styles.secondaryButtonText}>
+                    Create Fast Vault (dev)
+                  </Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -65,28 +94,36 @@ const AuthMenu = ({ navigation }: any) => {
                 style={styles.secondaryButton}
                 onPress={() => navigation.navigate('CryptoTest')}
               >
-                <Text style={styles.secondaryButtonText}>Crypto Tests (dev)</Text>
+                <Text style={styles.secondaryButtonText}>
+                  Crypto Tests (dev)
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 testID="dev-full-e2e-test"
                 style={styles.secondaryButton}
                 onPress={() => navigation.navigate('FullE2ETest')}
               >
-                <Text style={styles.secondaryButtonText}>Full E2E Test (dev)</Text>
+                <Text style={styles.secondaryButtonText}>
+                  Full E2E Test (dev)
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 testID="dev-seed-legacy"
                 style={styles.secondaryButton}
                 onPress={() => navigation.navigate('SeedLegacyData')}
               >
-                <Text style={styles.secondaryButtonText}>Seed Legacy Data (dev)</Text>
+                <Text style={styles.secondaryButtonText}>
+                  Seed Legacy Data (dev)
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 testID="dev-seed-corrupt"
                 style={styles.secondaryButton}
                 onPress={() => navigation.navigate('SeedCorruptData')}
               >
-                <Text style={styles.secondaryButtonText}>Seed Corrupt Data (dev)</Text>
+                <Text style={styles.secondaryButtonText}>
+                  Seed Corrupt Data (dev)
+                </Text>
               </TouchableOpacity>
             </>
           )}

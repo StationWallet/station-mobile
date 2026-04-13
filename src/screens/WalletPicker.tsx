@@ -5,7 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native'
-import { NavigationProp, useNavigation } from '@react-navigation/native'
+import {
+  NavigationProp,
+  useNavigation,
+} from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useWalletNav } from 'navigation/hooks'
@@ -18,16 +21,21 @@ import { isVaultFastVault } from 'services/migrateToVault'
 
 import type { MainStackParams } from 'navigation/MainNavigator'
 
-export default function WalletPicker() {
+export default function WalletPicker(): React.ReactElement {
   const navigation = useNavigation<NavigationProp<MainStackParams>>()
   const { wallets } = useWalletNav()
-  const [fastVaultMap, setFastVaultMap] = useState<Record<string, boolean>>({})
+  const [fastVaultMap, setFastVaultMap] = useState<
+    Record<string, boolean>
+  >({})
 
   useEffect(() => {
     if (wallets.length === 0) return
     Promise.all(
       wallets.map((w) =>
-        isVaultFastVault(w.name).then((isFast) => ({ name: w.name, isFast }))
+        isVaultFastVault(w.name).then((isFast) => ({
+          name: w.name,
+          isFast,
+        }))
       )
     ).then((results) => {
       const map: Record<string, boolean> = {}
@@ -38,31 +46,44 @@ export default function WalletPicker() {
     })
   }, [wallets])
 
-  const selectWallet = async (wallet: LocalWallet) => {
+  const selectWallet = async (wallet: LocalWallet): Promise<void> => {
     await settings.set({ walletName: wallet.name })
     navigation.navigate('WalletHome', {
       wallet: { name: wallet.name, address: wallet.address },
     })
   }
 
-  const upgradeWallet = (wallet: LocalWallet) => {
+  const upgradeWallet = (wallet: LocalWallet): void => {
     navigation.navigate('Migration', {
       screen: 'VaultEmail',
       params: {
         walletName: wallet.name,
         walletIndex: 0,
         totalWallets: 1,
-        wallets: [{ name: wallet.name, address: wallet.address, ledger: false }],
+        wallets: [
+          {
+            name: wallet.name,
+            address: wallet.address,
+            ledger: false,
+          },
+        ],
         results: [],
       },
     })
   }
 
-  const renderItem = ({ item }: { item: LocalWallet }) => {
+  const renderItem = ({
+    item,
+  }: {
+    item: LocalWallet
+  }): React.ReactElement => {
     const isLegacy = fastVaultMap[item.name] === false
 
     return (
-      <TouchableOpacity style={styles.walletRow} onPress={() => selectWallet(item)}>
+      <TouchableOpacity
+        style={styles.walletRow}
+        onPress={() => selectWallet(item)}
+      >
         <View style={styles.walletTopRow}>
           <View style={styles.walletInfo}>
             <Text style={styles.walletName}>{item.name}</Text>
@@ -81,7 +102,9 @@ export default function WalletPicker() {
             style={styles.upgradeButton}
             onPress={() => upgradeWallet(item)}
           >
-            <Text style={styles.upgradeButtonText}>Upgrade to Fast Vault</Text>
+            <Text style={styles.upgradeButtonText}>
+              Upgrade to Fast Vault
+            </Text>
           </TouchableOpacity>
         )}
       </TouchableOpacity>
@@ -92,7 +115,8 @@ export default function WalletPicker() {
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Select Wallet</Text>
       <Text style={styles.subtitle}>
-        {wallets.length} wallet{wallets.length !== 1 ? 's' : ''} on this device
+        {wallets.length} wallet{wallets.length !== 1 ? 's' : ''} on
+        this device
       </Text>
 
       <FlatList
@@ -117,8 +141,18 @@ export default function WalletPicker() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg, padding: 20 },
-  title: { color: COLORS.textPrimary, fontSize: 24, fontWeight: '700', marginTop: 48 },
-  subtitle: { color: COLORS.textSecondary, fontSize: 14, marginTop: 8, marginBottom: 24 },
+  title: {
+    color: COLORS.textPrimary,
+    fontSize: 24,
+    fontWeight: '700',
+    marginTop: 48,
+  },
+  subtitle: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+    marginTop: 8,
+    marginBottom: 24,
+  },
   list: { flex: 1 },
   listContent: { paddingBottom: 16 },
   walletRow: {
@@ -129,8 +163,16 @@ const styles = StyleSheet.create({
   },
   walletTopRow: { flexDirection: 'row', alignItems: 'center' },
   walletInfo: { flex: 1 },
-  walletName: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '600' },
-  walletAddress: { color: COLORS.textSecondary, fontSize: 13, marginTop: 4 },
+  walletName: {
+    color: COLORS.textPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  walletAddress: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    marginTop: 4,
+  },
   legacyBadge: {
     backgroundColor: 'rgba(255, 179, 64, 0.2)',
     borderRadius: 8,

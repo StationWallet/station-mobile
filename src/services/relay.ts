@@ -2,14 +2,19 @@ import { env } from '../config/env'
 import { sleep } from '../utils/mpcCrypto'
 
 /** Register this party on the relay server. */
-export async function joinRelaySession(sessionId: string, localPartyId: string): Promise<void> {
+export async function joinRelaySession(
+  sessionId: string,
+  localPartyId: string
+): Promise<void> {
   const res = await fetch(`${env.relayUrl}/${sessionId}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify([localPartyId]),
   })
   if (!res.ok) {
-    throw new Error(`Join relay failed: ${res.status} ${await res.text()}`)
+    throw new Error(
+      `Join relay failed: ${res.status} ${await res.text()}`
+    )
   }
 }
 
@@ -23,7 +28,9 @@ export async function waitForParties(
   const start = Date.now()
   while (Date.now() - start < timeoutMs) {
     if (signal?.aborted) throw new Error('Aborted')
-    const res = await fetch(`${env.relayUrl}/${sessionId}`, { signal })
+    const res = await fetch(`${env.relayUrl}/${sessionId}`, {
+      signal,
+    })
     if (res.ok) {
       const parties: string[] = await res.json()
       if (parties.length >= expectedCount) return parties
@@ -34,7 +41,10 @@ export async function waitForParties(
 }
 
 /** Start the MPC session with all parties. */
-export async function startRelaySession(sessionId: string, parties: string[]): Promise<void> {
+export async function startRelaySession(
+  sessionId: string,
+  parties: string[]
+): Promise<void> {
   const res = await fetch(`${env.relayUrl}/start/${sessionId}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -55,7 +65,9 @@ export async function sendRelayMessage(
   sequenceNo: number,
   messageId?: string
 ): Promise<void> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
   if (messageId) headers.message_id = messageId
 
   const res = await fetch(`${env.relayUrl}/message/${sessionId}`, {
@@ -80,11 +92,22 @@ export async function getRelayMessages(
   sessionId: string,
   localPartyId: string,
   messageId?: string
-): Promise<Array<{ from: string; to: string[]; body: string; hash: string; sequence_no: number }>> {
+): Promise<
+  Array<{
+    from: string
+    to: string[]
+    body: string
+    hash: string
+    sequence_no: number
+  }>
+> {
   const headers: Record<string, string> = {}
   if (messageId) headers.message_id = messageId
 
-  const res = await fetch(`${env.relayUrl}/message/${sessionId}/${localPartyId}`, { headers })
+  const res = await fetch(
+    `${env.relayUrl}/message/${sessionId}/${localPartyId}`,
+    { headers }
+  )
   if (!res.ok) {
     if (res.status === 404) return []
     throw new Error(`Get messages failed: ${res.status}`)
@@ -93,21 +116,35 @@ export async function getRelayMessages(
 }
 
 /** Upload encrypted setup message for the other party. */
-export async function uploadSetupMessage(sessionId: string, encryptedMessage: string, messageId?: string): Promise<void> {
-  const headers: Record<string, string> = { 'Content-Type': 'text/plain' }
+export async function uploadSetupMessage(
+  sessionId: string,
+  encryptedMessage: string,
+  messageId?: string
+): Promise<void> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'text/plain',
+  }
   if (messageId) headers.message_id = messageId
-  const res = await fetch(`${env.relayUrl}/setup-message/${sessionId}`, {
-    method: 'POST',
-    headers,
-    body: encryptedMessage,
-  })
+  const res = await fetch(
+    `${env.relayUrl}/setup-message/${sessionId}`,
+    {
+      method: 'POST',
+      headers,
+      body: encryptedMessage,
+    }
+  )
   if (!res.ok) {
-    throw new Error(`Upload setup message failed: ${res.status} ${await res.text()}`)
+    throw new Error(
+      `Upload setup message failed: ${res.status} ${await res.text()}`
+    )
   }
 }
 
 /** Signal this party has completed the ceremony. */
-export async function signalComplete(sessionId: string, localPartyId: string): Promise<void> {
+export async function signalComplete(
+  sessionId: string,
+  localPartyId: string
+): Promise<void> {
   const res = await fetch(`${env.relayUrl}/complete/${sessionId}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -128,7 +165,9 @@ export async function waitForComplete(
 ): Promise<void> {
   for (let i = 0; i < attempts; i++) {
     if (signal?.aborted) throw new Error('Aborted')
-    const res = await fetch(`${env.relayUrl}/complete/${sessionId}`, { signal })
+    const res = await fetch(`${env.relayUrl}/complete/${sessionId}`, {
+      signal,
+    })
     if (res.ok) {
       const completePeers: string[] = await res.json()
       if (parties.every((p) => completePeers.includes(p))) return
@@ -147,8 +186,11 @@ export async function deleteRelayMessage(
 ): Promise<void> {
   const headers: Record<string, string> = {}
   if (messageId) headers.message_id = messageId
-  await fetch(`${env.relayUrl}/message/${sessionId}/${localPartyId}/${messageHash}`, {
-    method: 'DELETE',
-    headers,
-  })
+  await fetch(
+    `${env.relayUrl}/message/${sessionId}/${localPartyId}/${messageHash}`,
+    {
+      method: 'DELETE',
+      headers,
+    }
+  )
 }

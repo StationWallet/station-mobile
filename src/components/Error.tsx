@@ -4,7 +4,13 @@ import { View } from 'react-native'
 import Icon from './Icon'
 import Text from './Text'
 
-const Error = ({title, content} : { title?: string, content?: string }): ReactElement => {
+const Error = ({
+  title,
+  content,
+}: {
+  title?: string
+  content?: string
+}): ReactElement => {
   return (
     <View>
       <Icon
@@ -32,11 +38,9 @@ const Error = ({title, content} : { title?: string, content?: string }): ReactEl
           lineHeight: 21,
         }}
       >
-        {
-          (typeof content === 'object' || !content)  ?
-            'You have encountered an error' :
-            content
-        }
+        {typeof content === 'object' || !content
+          ? 'You have encountered an error'
+          : content}
       </Text>
     </View>
   )

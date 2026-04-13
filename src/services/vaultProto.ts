@@ -18,10 +18,11 @@ export function derivePublicKeyHex(privateKeyHex: string): string {
  * For standard wallets, pass both publicKeyHex and privateKeyHex.
  * For Ledger wallets, pass empty strings (no key material).
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- return type is the complex protobuf create() result
 export function buildVaultProto(
   name: string,
   publicKeyHex: string,
-  privateKeyHex: string,
+  privateKeyHex: string
 ) {
   return create(VaultSchema, {
     name,

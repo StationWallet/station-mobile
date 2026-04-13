@@ -14,10 +14,21 @@ import { createWallet } from 'utils/wallet'
 import { COLORS } from 'consts/theme'
 import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
 
-const Step4Seed = ({ navigation }: any) => {
+const Step4Seed = ({
+  navigation,
+}: {
+  navigation: {
+    navigate: (
+      screen: string,
+      params?: Record<string, unknown>
+    ) => void
+  }
+}): React.ReactElement => {
   const seed = useRecoilValue(RecoverWalletStore.seed)
   const setStoreName = useSetRecoilState(RecoverWalletStore.name)
-  const setStorePassword = useSetRecoilState(RecoverWalletStore.password)
+  const setStorePassword = useSetRecoilState(
+    RecoverWalletStore.password
+  )
 
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
@@ -28,9 +39,11 @@ const Step4Seed = ({ navigation }: any) => {
   const tooShort = password.length > 0 && password.length < 10
   const mismatch = confirm.length > 0 && password !== confirm
   const canProceed =
-    name.trim().length > 0 && password.length >= 10 && password === confirm
+    name.trim().length > 0 &&
+    password.length >= 10 &&
+    password === confirm
 
-  const handleRecover = async () => {
+  const handleRecover = async (): Promise<void> => {
     setLoading(true)
     setError('')
     setStoreName(name.trim())
@@ -44,12 +57,16 @@ const Step4Seed = ({ navigation }: any) => {
         password,
       })
       if (result.success) {
-        navigation.navigate('WalletRecovered', { wallet: result.wallet })
+        navigation.navigate('WalletRecovered', {
+          wallet: result.wallet,
+        })
       } else {
         setError('Failed to recover wallet')
       }
-    } catch (e: any) {
-      setError(e?.message || 'Failed to recover wallet')
+    } catch (e: unknown) {
+      setError(
+        e instanceof Error ? e.message : 'Failed to recover wallet'
+      )
     } finally {
       setLoading(false)
     }
@@ -61,7 +78,9 @@ const Step4Seed = ({ navigation }: any) => {
         contentContainerStyle={authStyles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={authStyles.title}>Set up your recovered wallet</Text>
+        <Text style={authStyles.title}>
+          Set up your recovered wallet
+        </Text>
         <Text style={authStyles.subtitle}>
           Choose a name and password for this wallet
         </Text>
@@ -81,7 +100,10 @@ const Step4Seed = ({ navigation }: any) => {
         <View style={[authStyles.inputGroup, { marginBottom: 20 }]}>
           <Text style={authStyles.label}>Password</Text>
           <TextInput
-            style={[authStyles.input, tooShort && authStyles.inputError]}
+            style={[
+              authStyles.input,
+              tooShort && authStyles.inputError,
+            ]}
             value={password}
             onChangeText={setPassword}
             placeholder="Min 10 characters"
@@ -100,7 +122,10 @@ const Step4Seed = ({ navigation }: any) => {
         <View style={[authStyles.inputGroup, { marginBottom: 20 }]}>
           <Text style={authStyles.label}>Confirm Password</Text>
           <TextInput
-            style={[authStyles.input, mismatch && authStyles.inputError]}
+            style={[
+              authStyles.input,
+              mismatch && authStyles.inputError,
+            ]}
             value={confirm}
             onChangeText={setConfirm}
             placeholder="Confirm password"
@@ -110,7 +135,9 @@ const Step4Seed = ({ navigation }: any) => {
             autoComplete="off"
           />
           {mismatch && (
-            <Text style={authStyles.errorText}>Passwords do not match</Text>
+            <Text style={authStyles.errorText}>
+              Passwords do not match
+            </Text>
           )}
         </View>
 
@@ -119,7 +146,10 @@ const Step4Seed = ({ navigation }: any) => {
         ) : null}
 
         <TouchableOpacity
-          style={[authStyles.button, (!canProceed || loading) && authStyles.buttonDisabled]}
+          style={[
+            authStyles.button,
+            (!canProceed || loading) && authStyles.buttonDisabled,
+          ]}
           onPress={handleRecover}
           disabled={!canProceed || loading}
         >

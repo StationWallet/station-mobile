@@ -8,29 +8,32 @@ export enum BiometricType {
   FINGERPRINT,
 }
 
-export const isSupportedBiometricAuthentication = async (): Promise<boolean> => {
-  const hasHardware = await LocalAuthentication.hasHardwareAsync()
-  const supportedAuthenticationTypes = await LocalAuthentication.supportedAuthenticationTypesAsync()
-  const isEnrolled = await LocalAuthentication.isEnrolledAsync()
+export const isSupportedBiometricAuthentication =
+  async (): Promise<boolean> => {
+    const hasHardware = await LocalAuthentication.hasHardwareAsync()
+    const supportedAuthenticationTypes =
+      await LocalAuthentication.supportedAuthenticationTypesAsync()
+    const isEnrolled = await LocalAuthentication.isEnrolledAsync()
 
-  return (
-    (hasHardware &&
-      supportedAuthenticationTypes.length > 0 &&
-      isEnrolled) ||
-    (Platform.OS === 'ios' &&
-      supportedAuthenticationTypes.includes(
-        LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION
-      ) &&
-      (await checkFaceIdPermission()) === 'blocked')
-  )
-}
+    return (
+      (hasHardware &&
+        supportedAuthenticationTypes.length > 0 &&
+        isEnrolled) ||
+      (Platform.OS === 'ios' &&
+        supportedAuthenticationTypes.includes(
+          LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION
+        ) &&
+        (await checkFaceIdPermission()) === 'blocked')
+    )
+  }
 
 export const getSupportedType = async (): Promise<BiometricType> => {
   if (!(await isSupportedBiometricAuthentication())) {
     return BiometricType.NONE
   }
 
-  const supportedAuthenticationTypes = await LocalAuthentication.supportedAuthenticationTypesAsync()
+  const supportedAuthenticationTypes =
+    await LocalAuthentication.supportedAuthenticationTypesAsync()
   if (supportedAuthenticationTypes.length > 0) {
     if (
       supportedAuthenticationTypes.includes(

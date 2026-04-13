@@ -1,4 +1,9 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react'
 import { View, StyleSheet } from 'react-native'
 import Animated, {
   FadeIn,
@@ -15,7 +20,11 @@ import type { RouteProp } from '@react-navigation/native'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import { MIGRATION } from 'consts/migration'
-import { importKeyToFastVault, KeyImportResult, KeyImportProgress } from 'services/dklsKeyImport'
+import {
+  importKeyToFastVault,
+  KeyImportResult,
+  KeyImportProgress,
+} from 'services/dklsKeyImport'
 import { storeFastVault } from 'services/migrateToVault'
 import { getAuthDataValue, AuthDataValueType } from 'utils/authData'
 import { decrypt } from 'utils/crypto'
@@ -29,7 +38,7 @@ import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 type Nav = StackNavigationProp<MigrationStackParams, 'KeygenProgress'>
 type Route = RouteProp<MigrationStackParams, 'KeygenProgress'>
 
-export default function KeygenProgress() {
+export default function KeygenProgress(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
   const {
@@ -52,22 +61,25 @@ export default function KeygenProgress() {
     width: `${progressValue.value}%` as `${number}%`,
   }))
 
-  const updateProgress = useCallback((p: KeyImportProgress) => {
-    setProgress(p.progress)
-    progressValue.value = withTiming(p.progress, {
-      duration: 800,
-      easing: Easing.out(Easing.cubic),
-    })
-  }, [progressValue])
+  const updateProgress = useCallback(
+    (p: KeyImportProgress) => {
+      setProgress(p.progress)
+      progressValue.value = withTiming(p.progress, {
+        duration: 800,
+        easing: Easing.out(Easing.cubic),
+      })
+    },
+    [progressValue]
+  )
 
   const advance = useCallback(
     (newResult: MigrationResult) => {
       advanceToNextWallet(navigation, { wallets, results, newResult })
     },
-    [navigation, results, wallets],
+    [navigation, results, wallets]
   )
 
-  const runCeremony = useCallback(async () => {
+  const runCeremony = useCallback(async (): Promise<void> => {
     setError(null)
     setProgress(0)
     progressValue.value = 0
@@ -98,7 +110,10 @@ export default function KeygenProgress() {
         }
         const standardData = authEntry as AuthDataValueType
         // Legacy stored password (for decrypting the old key) — NOT the new vault password
-        const privateKeyHex = decrypt(standardData.encryptedKey, standardData.password)
+        const privateKeyHex = decrypt(
+          standardData.encryptedKey,
+          standardData.password
+        )
         if (!privateKeyHex) {
           throw new Error('Failed to decrypt private key')
         }
@@ -128,14 +143,23 @@ export default function KeygenProgress() {
       const msg = getErrorMessage(err)
       setError(msg)
     }
-  }, [walletName, email, password, mode, wallets, walletIndex, updateProgress, progressValue])
+  }, [
+    walletName,
+    email,
+    password,
+    mode,
+    wallets,
+    walletIndex,
+    updateProgress,
+    progressValue,
+  ])
 
   useEffect(() => {
     runCeremony()
-    return () => {
+    return (): void => {
       abortRef.current?.abort()
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // Run ceremony once on mount — runCeremony intentionally excluded
 
   const phaseText = progress < 35 ? 'Connecting...' : 'Generating...'
 
@@ -153,7 +177,10 @@ export default function KeygenProgress() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Animated.View entering={FadeIn.duration(400)} style={styles.content}>
+      <Animated.View
+        entering={FadeIn.duration(400)}
+        style={styles.content}
+      >
         <Text style={styles.walletLabel} fontType="brockmann">
           Wallet {walletIndex + 1}/{wallets.length}: {walletName}
         </Text>
@@ -172,13 +199,19 @@ export default function KeygenProgress() {
         </View>
 
         <View style={styles.progressTrack}>
-          <Animated.View style={[styles.progressFill, progressBarStyle]} />
+          <Animated.View
+            style={[styles.progressFill, progressBarStyle]}
+          />
         </View>
 
         {error && (
           <View style={styles.errorSection}>
             <View style={styles.errorCard}>
-              <Text testID="keygen-error-text" style={styles.errorText} fontType="brockmann">
+              <Text
+                testID="keygen-error-text"
+                style={styles.errorText}
+                fontType="brockmann"
+              >
                 {error}
               </Text>
             </View>

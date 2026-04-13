@@ -86,8 +86,8 @@ interface CW20TokenItem extends CW20TokenInfoResponse {
 
 /* cw20: pair */
 type CW20Pairs = Record<TerraAddress, PairDetails>
-type Dex = "terraswap" | "astroport"
-type PairType = "xyk" | "stable"
+type Dex = 'terraswap' | 'astroport'
+type PairType = 'xyk' | 'stable'
 interface PairDetails {
   dex: Dex
   type: PairType

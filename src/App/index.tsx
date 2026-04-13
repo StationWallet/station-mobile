@@ -1,6 +1,11 @@
 import React, { useState, useEffect, ReactElement } from 'react'
 import { Platform, BackHandler } from 'react-native'
-import { LogBox, View, StatusBar, KeyboardAvoidingView } from 'react-native'
+import {
+  LogBox,
+  View,
+  StatusBar,
+  KeyboardAvoidingView,
+} from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import * as SplashScreen from 'expo-splash-screen'
 import { RecoilRoot } from 'recoil'
@@ -42,7 +47,7 @@ LogBox.ignoreLogs(['EventEmitter.removeListener'])
 
 const queryClient = new QueryClient()
 
-let App = ({
+const App = ({
   settings: { lang, chain, currency, theme },
 }: {
   settings: Settings
@@ -67,10 +72,8 @@ let App = ({
   const { name: currentChain = '' } = currentChainOptions
   const { current: currentTheme } = config.theme
 
-  const {
-    getSecurityErrorMessage,
-    securityCheckFailed,
-  } = useSecurity()
+  const { getSecurityErrorMessage, securityCheckFailed } =
+    useSecurity()
 
   useEffect(() => {
     if (securityCheckFailed !== undefined) {
@@ -78,7 +81,9 @@ let App = ({
       if (securityCheckFailed) {
         const message = getSecurityErrorMessage()
 
-        UTIL.showSystemAlert(message, 'OK', () => BackHandler.exitApp())
+        UTIL.showSystemAlert(message, 'OK', () =>
+          BackHandler.exitApp()
+        )
       }
     }
   }, [securityCheckFailed])
@@ -90,7 +95,7 @@ let App = ({
   const ready = !!(currentLang && currentChain)
 
   const defaultViewStyle = {
-    flex: 1
+    flex: 1,
   }
 
   return (
@@ -102,17 +107,23 @@ let App = ({
               <SafeAreaProvider>
                 <StatusBar
                   barStyle="light-content"
-                  backgroundColor={themes?.[currentTheme]?.backgroundColor ?? COLORS.bg}
+                  backgroundColor={
+                    themes?.[currentTheme]?.backgroundColor ??
+                    COLORS.bg
+                  }
                 />
                 <KeyboardAvoidingView
-                  behavior={Platform.OS === "ios" ? "padding" : "height"}
+                  behavior={
+                    Platform.OS === 'ios' ? 'padding' : 'height'
+                  }
                   style={{
                     ...defaultViewStyle,
-                    backgroundColor: themes?.[currentTheme]?.backgroundColor || COLORS.bg,
+                    backgroundColor:
+                      themes?.[currentTheme]?.backgroundColor ||
+                      COLORS.bg,
                   }}
                 >
-                  {(securityCheckFailed) &&
-                  Platform.OS === 'ios' ? (
+                  {securityCheckFailed && Platform.OS === 'ios' ? (
                     <View
                       style={{
                         flex: 1,
@@ -175,7 +186,9 @@ export default (): ReactElement => {
   useEffect(() => {
     const startup = async (): Promise<void> => {
       const [, loaded] = await Promise.all([
-        clearKeystoreWhenFirstRun().then(() => migrateLegacyKeystore()),
+        clearKeystoreWhenFirstRun().then(() =>
+          migrateLegacyKeystore()
+        ),
         settings.get(),
       ])
       setLocal(loaded)

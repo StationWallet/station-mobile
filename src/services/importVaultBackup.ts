@@ -15,7 +15,7 @@ type ImportVaultBackupInput = {
   password?: string
 }
 
-type ImportVaultBackupResult =
+export type ImportVaultBackupResult =
   | { needsPassword: true }
   | {
       needsPassword: false
@@ -25,7 +25,10 @@ type ImportVaultBackupResult =
       vaultBytes: Uint8Array
     }
 
-function decryptVaultBytes(encrypted: Uint8Array, password: string) {
+function decryptVaultBytes(
+  encrypted: Uint8Array,
+  password: string
+): Uint8Array {
   const nonce = encrypted.slice(0, 12)
   const ciphertextWithTag = encrypted.slice(12)
   const key = sha256(new TextEncoder().encode(password))
@@ -36,11 +39,14 @@ function decryptVaultBytes(encrypted: Uint8Array, password: string) {
 function getKeyshareForPublicKey(
   keyshares: Array<{ publicKey: string; keyshare: string }>,
   publicKey: string
-) {
-  return keyshares.find((entry) => entry.publicKey === publicKey)?.keyshare ?? ''
+): string {
+  return (
+    keyshares.find((entry) => entry.publicKey === publicKey)
+      ?.keyshare ?? ''
+  )
 }
 
-function inferSigners(fileName: string, signers: string[]) {
+function inferSigners(fileName: string, signers: string[]): string[] {
   if (signers.length > 0) return signers
   if (/share\d+of\d+/i.test(fileName)) {
     return ['Device', 'Server']
@@ -68,16 +74,27 @@ export function importVaultBackup({
   }
 
   const vaultBytes = container.isEncrypted
-    ? decryptVaultBytes(base64.decode(container.vault), password!.trim())
+    ? decryptVaultBytes(
+        base64.decode(container.vault),
+        password!.trim()
+      )
     : base64.decode(container.vault)
 
   const vault = fromBinary(VaultSchema, vaultBytes)
 
-  const keyshareEcdsa = getKeyshareForPublicKey(vault.keyShares, vault.publicKeyEcdsa)
-  const keyshareEddsa = getKeyshareForPublicKey(vault.keyShares, vault.publicKeyEddsa)
+  const keyshareEcdsa = getKeyshareForPublicKey(
+    vault.keyShares,
+    vault.publicKeyEcdsa
+  )
+  const keyshareEddsa = getKeyshareForPublicKey(
+    vault.keyShares,
+    vault.publicKeyEddsa
+  )
 
   if (!keyshareEcdsa && !keyshareEddsa) {
-    throw new Error('This backup is missing the device keyshare required for import.')
+    throw new Error(
+      'This backup is missing the device keyshare required for import.'
+    )
   }
 
   const signers = inferSigners(fileName, vault.signers)
@@ -100,14 +117,14 @@ export function importVaultBackup({
  */
 export async function persistImportedVault(
   vaultBytes: Uint8Array,
-  vaultName: string,
+  vaultName: string
 ): Promise<void> {
   const encoded = base64.encode(vaultBytes)
 
   await SecureStore.setItemAsync(
     vaultStoreKey(vaultName),
     encoded,
-    VAULT_STORE_OPTS,
+    VAULT_STORE_OPTS
   )
 
   // Register in authData so getWallets() can discover the imported vault

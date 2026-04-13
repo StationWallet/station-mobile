@@ -3,7 +3,7 @@ import { CurrencyConfig, Currency, Rate, API } from '../types'
 import useFCD from '../api/useFCD'
 
 const format = (denom: string): string => denom.slice(1).toUpperCase()
-const DefaultCurrency = {
+const DefaultCurrency: Currency = {
   key: 'ukrw',
   value: format('ukrw'),
   krwRate: '1',

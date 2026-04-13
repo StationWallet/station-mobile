@@ -21,7 +21,7 @@ import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'VaultName'>
 
-export default function VaultName() {
+export default function VaultName(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const [name, setName] = useState('')
 
@@ -40,8 +40,8 @@ export default function VaultName() {
             Name your vault
           </Text>
           <Text style={formStyles.subtitle} fontType="brockmann">
-            No inspiration? You can always change the name later in your
-            settings.
+            No inspiration? You can always change the name later in
+            your settings.
           </Text>
 
           <View style={styles.inputWrapper}>

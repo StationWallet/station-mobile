@@ -45,9 +45,8 @@ const HeaderLeft = ({
   goBackIconType?: 'arrow' | 'close'
 }): ReactElement => {
   const { user } = useAuth()
-  const { goBack, canGoBack, dispatch } = useNavigation<
-    NavigationProp<ParamListBase>
-  >()
+  const { goBack, canGoBack, dispatch } =
+    useNavigation<NavigationProp<ParamListBase>>()
 
   const onPressGoBack = (): void => {
     if (canGoBack()) {

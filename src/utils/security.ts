@@ -14,10 +14,15 @@ const runningEmulator = async (): Promise<boolean> => {
   }
   if (Platform.OS === 'android') {
     try {
-      const constants = Platform.constants as any
-      return !!(constants?.Fingerprint?.includes('generic') ||
+      const constants = Platform.constants as {
+        Fingerprint?: string
+        Model?: string
+      }
+      return !!(
+        constants?.Fingerprint?.includes('generic') ||
         constants?.Model?.includes('SDK') ||
-        constants?.Model?.includes('Emulator'))
+        constants?.Model?.includes('Emulator')
+      )
     } catch {
       return false
     }

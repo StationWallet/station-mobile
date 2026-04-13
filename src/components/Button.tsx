@@ -16,7 +16,16 @@ export type ButtonProps = {
   onPress?: (event: GestureResponderEvent) => void
   containerStyle?: StyleProp<ViewStyle>
   titleStyle?: StyleProp<TextStyle>
-  titleFontType?: 'light' | 'book' | 'medium' | 'bold' | 'brockmann' | 'brockmann-medium' | 'brockmann-semibold' | 'brockmann-bold' | 'satoshi-medium'
+  titleFontType?:
+    | 'light'
+    | 'book'
+    | 'medium'
+    | 'bold'
+    | 'brockmann'
+    | 'brockmann-medium'
+    | 'brockmann-semibold'
+    | 'brockmann-bold'
+    | 'satoshi-medium'
   title: string | ReactElement
   theme?:
     | 'sapphire'

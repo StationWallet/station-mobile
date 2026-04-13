@@ -4,7 +4,7 @@ import { QueryKeyEnum } from 'types'
 
 const config = { baseURL: 'https://assets.terra.money' }
 
-const useTerraAssets = <T = any>(
+const useTerraAssets = <T = unknown>(
   path: string
 ): {
   data?: T

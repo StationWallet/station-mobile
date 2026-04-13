@@ -9,7 +9,8 @@ export type RecoverWalletStackParams = {
   WalletRecovered: { wallet: LocalWallet }
 }
 
-const RecoverWalletStack = createStackNavigator<RecoverWalletStackParams>()
+const RecoverWalletStack =
+  createStackNavigator<RecoverWalletStackParams>()
 
 import Step1 from '../screens/auth/RecoverWallet/Step1'
 import Step2Seed from '../screens/auth/RecoverWallet/Step2Seed'
