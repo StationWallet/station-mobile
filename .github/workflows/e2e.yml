@@ -16,7 +16,7 @@ jobs:
   detox:
     name: Detox iOS
     runs-on: macos-latest
-    timeout-minutes: 45
+    timeout-minutes: 35
     env:
       AGENTMAIL_API_KEY: ${{ secrets.AGENTMAIL_API_KEY }}
       AGENTMAIL_EMAIL: ${{ secrets.AGENTMAIL_EMAIL }}
@@ -39,18 +39,59 @@ jobs:
       - name: Install applesimutils
         run: brew tap wix/brew && brew install applesimutils
 
+      # ── Caches ─────────────────────────────────────────────────────
+      # Cache the generated ios/ directory (expo prebuild output + pods).
+      # On cache hit we skip both prebuild and pod install entirely.
+      - name: Cache iOS native project
+        uses: actions/cache@v4
+        id: ios-cache
+        with:
+          path: ios/
+          key: ios-prebuild-${{ runner.os }}-${{ hashFiles('package-lock.json', 'app.json') }}
+
+      # CocoaPods download cache — even on a full rebuild, avoids
+      # re-downloading ~289 pods from the network.
+      - name: Cache CocoaPods downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/CocoaPods
+          key: pods-download-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            pods-download-${{ runner.os }}-
+
+      # Detox pre-built framework — keyed by Xcode + Detox version.
+      - name: Cache Detox framework
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Detox
+          key: detox-fw-${{ runner.os }}-${{ hashFiles('node_modules/detox/package.json') }}
+
+      - name: Build Detox framework cache
+        run: npx detox build-framework-cache
+
+      # ── Build ──────────────────────────────────────────────────────
       - name: Generate native project
-        run: npx expo prebuild --platform ios --clean
+        if: steps.ios-cache.outputs.cache-hit != 'true'
+        run: npx expo prebuild --platform ios
 
       - name: Install CocoaPods
+        if: steps.ios-cache.outputs.cache-hit != 'true'
         run: cd ios && pod install
 
-      # Note: Xcode build caching is not effective here because
-      # expo prebuild --clean regenerates ios/ each run, invalidating
-      # the derived data. The ~13min build is unavoidable.
+      # Xcode derived data cache — preserves file mtimes so Xcode
+      # can do incremental builds across CI runs.
+      - name: Cache Xcode derived data
+        uses: irgaly/xcode-cache@v1
+        with:
+          deriveddata-directory: ios/build
+          key: xcode-derived-${{ runner.os }}-${{ hashFiles('package-lock.json', 'app.json') }}-${{ github.sha }}
+          restore-keys: |
+            xcode-derived-${{ runner.os }}-${{ hashFiles('package-lock.json', 'app.json') }}-
+
       - name: Build for Detox
         run: npx detox build --configuration ios.sim.release
 
+      # ── Test ───────────────────────────────────────────────────────
       - name: Boot simulator
         run: |
           DEVICE=$(xcrun simctl list devices available -j | python3 -c "
