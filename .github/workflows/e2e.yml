@@ -24,7 +24,6 @@ jobs:
     env:
       AGENTMAIL_API_KEY: ${{ secrets.AGENTMAIL_API_KEY }}
       AGENTMAIL_EMAIL: ${{ secrets.AGENTMAIL_EMAIL }}
-      VAULT_PASSWORD: ${{ secrets.VAULT_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 

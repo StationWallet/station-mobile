@@ -32,9 +32,9 @@ describe('Retry Upgrade from Main UI', () => {
       // Erase the simulator to clear keychain (delete:true doesn't clear iOS keychain)
       const udid = device.id;
       execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
-        timeout: 30000,
+        timeout: 120000,
       });
-      execSync(`xcrun simctl boot ${udid}`, { timeout: 30000 });
+      execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
 
       // Phase 1: Fresh launch to seed pre-migrated data
       // NOTE: Do NOT pass detoxURLBlacklistRegex here — it causes launchApp to hang
