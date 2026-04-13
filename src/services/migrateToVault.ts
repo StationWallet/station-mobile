@@ -10,6 +10,9 @@ import {
   AuthDataValueType,
   LedgerDataValueType,
 } from 'utils/authData'
+import preferences, {
+  PreferencesEnum,
+} from 'nativeModules/preferences'
 import type { KeyImportResult } from './dklsKeyImport'
 
 const VAULT_KEY_PREFIX = 'VAULT-'
@@ -134,6 +137,7 @@ export async function storeFastVault(
           encryptedKey: '',
           password: '',
           ledger: false,
+          terraOnly: true,
         },
       },
     })
@@ -166,6 +170,58 @@ export async function isVaultFastVault(
   } catch {
     return false
   }
+}
+
+/**
+ * One-time backfill: for wallets already migrated to fast vaults before the
+ * `terraOnly` flag existed, inspect their vault's chainPublicKeys and stamp
+ * `terraOnly: true` in authData if the vault only supports Terra.
+ */
+export async function backfillTerraOnlyFlag(): Promise<void> {
+  const done = await preferences.getBool(
+    PreferencesEnum.terraOnlyBackfilled
+  )
+  if (done) return
+
+  const authData = await getAuthData()
+  if (!authData) {
+    await preferences.setBool(
+      PreferencesEnum.terraOnlyBackfilled,
+      true
+    )
+    return
+  }
+
+  let changed = false
+
+  for (const [name, entry] of Object.entries(authData)) {
+    if (entry.ledger) continue
+    const val = entry as AuthDataValueType
+    if (val.terraOnly !== undefined) continue
+
+    const stored = await getStoredVault(name)
+    if (!stored) continue
+
+    try {
+      const vault = fromBinary(VaultSchema, base64.decode(stored))
+      const isTerraOnly =
+        vault.chainPublicKeys.length === 1 &&
+        vault.chainPublicKeys[0].chain === 'Terra'
+
+      if (isTerraOnly) {
+        val.terraOnly = true
+        changed = true
+      }
+    } catch {
+      // Corrupted vault — skip
+    }
+  }
+
+  if (changed) {
+    await upsertAuthData({ authData })
+  }
+
+  await preferences.setBool(PreferencesEnum.terraOnlyBackfilled, true)
 }
 
 export { VAULT_KEY_PREFIX, VAULT_STORE_OPTS, vaultStoreKey }

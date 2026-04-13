@@ -6,6 +6,7 @@ export type AuthDataValueType = {
   encryptedKey: string
   address: string
   password: string
+  terraOnly?: boolean
 }
 
 export type LedgerDataValueType = {

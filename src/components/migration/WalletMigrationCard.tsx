@@ -23,9 +23,19 @@ export default function WalletMigrationCard({
   return (
     <View style={styles.card} testID={testID}>
       <View style={styles.headerRow}>
-        <Text fontType="brockmann-medium" style={styles.name}>
-          {name}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text fontType="brockmann-medium" style={styles.name}>
+            {name}
+          </Text>
+          <View style={styles.terraOnlyBadge}>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.terraOnlyText}
+            >
+              Terra only
+            </Text>
+          </View>
+        </View>
         <Text fontType="satoshi-medium" style={styles.balance}>
           $0.00
         </Text>
@@ -76,9 +86,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   name: {
     fontSize: 16,
     color: MIGRATION.textPrimary,
+  },
+  terraOnlyBadge: {
+    backgroundColor: 'rgba(100, 160, 255, 0.2)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  terraOnlyText: {
+    color: '#64A0FF',
+    fontSize: 11,
   },
   balance: {
     fontSize: 20,

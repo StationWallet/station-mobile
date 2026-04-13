@@ -3,4 +3,5 @@ interface LocalWallet {
   address: string
   ledger: boolean
   path?: number
+  terraOnly?: boolean
 }

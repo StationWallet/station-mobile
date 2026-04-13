@@ -83,3 +83,6 @@ google-service-account.json
 # Status updates
 docs/status-update*.superpowers/
 docs/designs/
+
+# Git worktrees
+.worktrees/

@@ -13,6 +13,7 @@ export enum PreferencesEnum {
   legacyKeystoreMigrated = 'legacyKeystoreMigrated',
   legacyDataFound = 'legacyDataFound',
   vaultsUpgraded = 'vaultsUpgraded',
+  terraOnlyBackfilled = 'terraOnlyBackfilled',
 }
 
 export type PreferencesType = {

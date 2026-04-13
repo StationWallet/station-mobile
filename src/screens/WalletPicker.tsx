@@ -91,11 +91,20 @@ export default function WalletPicker(): React.ReactElement {
               {UTIL.truncate(item.address, [10, 6])}
             </Text>
           </View>
-          {isLegacy && (
-            <View style={styles.legacyBadge}>
-              <Text style={styles.legacyBadgeText}>Legacy</Text>
-            </View>
-          )}
+          <View style={styles.badgeRow}>
+            {item.terraOnly && (
+              <View style={styles.terraOnlyBadge}>
+                <Text style={styles.terraOnlyBadgeText}>
+                  Terra only
+                </Text>
+              </View>
+            )}
+            {isLegacy && (
+              <View style={styles.legacyBadge}>
+                <Text style={styles.legacyBadgeText}>Legacy</Text>
+              </View>
+            )}
+          </View>
         </View>
         {isLegacy && (
           <TouchableOpacity
@@ -172,6 +181,18 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 13,
     marginTop: 4,
+  },
+  badgeRow: { flexDirection: 'row', gap: 6 },
+  terraOnlyBadge: {
+    backgroundColor: 'rgba(100, 160, 255, 0.2)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  terraOnlyBadgeText: {
+    color: '#64A0FF',
+    fontSize: 11,
+    fontWeight: '600',
   },
   legacyBadge: {
     backgroundColor: 'rgba(255, 179, 64, 0.2)',
