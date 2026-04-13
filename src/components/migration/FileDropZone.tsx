@@ -63,7 +63,7 @@ function PageCheckIcon({
   )
 }
 
-const SUCCESS_GREEN = '#13C89D'
+const SUCCESS_GREEN = MIGRATION.successGreen
 
 type Props = {
   onPress: () => void

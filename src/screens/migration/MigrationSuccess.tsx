@@ -66,10 +66,10 @@ function ChevronRight(): React.ReactElement {
 function CheckmarkIcon(): React.ReactElement {
   return (
     <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-      <Circle cx={8} cy={8} r={8} fill="#13c89d" />
+      <Circle cx={8} cy={8} r={8} fill={MIGRATION.successGreen} />
       <Path
         d="M4.5 8.2l2.2 2.2 4.8-4.8"
-        stroke="#f0f4fc"
+        stroke={MIGRATION.textPrimary}
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -218,8 +218,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     gap: 8,
-    backgroundColor: 'rgba(19, 200, 157, 0.08)',
-    borderColor: 'rgba(19, 200, 157, 0.15)',
+    backgroundColor: `${MIGRATION.successGreen}14`,
+    borderColor: `${MIGRATION.successGreen}26`,
     borderWidth: 1,
     borderRadius: 22,
     paddingVertical: 10,
