@@ -69,7 +69,11 @@ export default function AppNavigator(): React.ReactElement | null {
   }, [loadWallets])
 
   const onMigrationComplete = useCallback(async () => {
-    await loadWallets()
+    try {
+      await loadWallets()
+    } catch {
+      // Wallet loading failed — still transition to Main so the user isn't stuck
+    }
     setRootRoute('Main')
   }, [loadWallets])
 

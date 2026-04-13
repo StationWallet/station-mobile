@@ -87,11 +87,20 @@ export default function MigrationSuccess(): React.ReactElement {
   const navigation = useNavigation()
   const onMigrationComplete = useMigrationComplete()
 
+  const wallets = params.wallets
+  const results = params.results ?? []
+  const hasUnmigrated = wallets != null && wallets.length > 0
+
   const handleBack = (): void => {
-    onMigrationComplete()
+    // If nested inside MainNavigator (tapped a migrated wallet from WalletList),
+    // pop the Migration screen to return to WalletList.
     const parent = navigation.getParent()
     if (parent?.canGoBack()) {
+      onMigrationComplete()
       parent.goBack()
+    } else {
+      // Root MigrationNavigator — complete migration and go to Main/WalletList
+      onMigrationComplete()
     }
   }
 
@@ -157,17 +166,36 @@ export default function MigrationSuccess(): React.ReactElement {
           testID="share-og-status"
         />
 
-        <TouchableOpacity
-          onPress={handleBack}
-          testID="migrate-another-wallet"
-        >
-          <Text
-            fontType="brockmann-medium"
-            style={styles.migrateAnother}
+        {hasUnmigrated ? (
+          <TouchableOpacity
+            onPress={() =>
+              (navigation as any).navigate('WalletsFound', {
+                wallets,
+                results,
+              })
+            }
+            testID="migrate-another-wallet"
           >
-            Continue to wallets
-          </Text>
-        </TouchableOpacity>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.migrateAnother}
+            >
+              Migrate another wallet
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={handleBack}
+            testID="migrate-another-wallet"
+          >
+            <Text
+              fontType="brockmann-medium"
+              style={styles.migrateAnother}
+            >
+              Continue to wallets
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {__DEV__ && DevVerifyVault && (

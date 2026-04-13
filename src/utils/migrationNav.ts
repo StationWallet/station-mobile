@@ -10,7 +10,7 @@ type MigrationNav = StackNavigationProp<
 /**
  * After completing a wallet's migration (verify email success),
  * always navigate to MigrationSuccess. The user can tap
- * "Continue to wallets" to return to the wallet list.
+ * "Migrate another wallet" to return to WalletsFound for the next one.
  */
 export function advanceToNextWallet(
   navigation: MigrationNav,
