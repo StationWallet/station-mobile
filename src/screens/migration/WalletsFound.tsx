@@ -73,8 +73,6 @@ export default function WalletsFound(): React.ReactElement {
                   })
                 }
               }}
-              onExport={() => {}}
-              onDelete={() => {}}
               testID={`wallet-card-${index}`}
             />
           )

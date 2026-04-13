@@ -104,18 +104,26 @@ export default function AppNavigator(): React.ReactElement | null {
     [currentTheme]
   )
 
+  const walletNavValue = useMemo(
+    () => ({
+      onWalletCreated,
+      onWalletDisconnected,
+      goToMigration,
+      wallets,
+    }),
+    [onWalletCreated, onWalletDisconnected, goToMigration, wallets]
+  )
+
+  const migrationValue = useMemo(
+    () => ({ onMigrationComplete }),
+    [onMigrationComplete]
+  )
+
   if (rootRoute === null || wallets === null) return null
 
   return (
-    <WalletNavContext.Provider
-      value={{
-        onWalletCreated,
-        onWalletDisconnected,
-        goToMigration,
-        wallets,
-      }}
-    >
-      <MigrationContext.Provider value={{ onMigrationComplete }}>
+    <WalletNavContext.Provider value={walletNavValue}>
+      <MigrationContext.Provider value={migrationValue}>
         <NavigationContainer theme={navTheme}>
           {rootRoute === 'Migration' ? (
             <MigrationNavigator />

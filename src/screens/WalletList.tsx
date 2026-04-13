@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
 import {
   NavigationProp,
-  ParamListBase,
   useNavigation,
 } from '@react-navigation/native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -16,8 +15,10 @@ import Text from 'components/Text'
 import Button from 'components/Button'
 import WalletCard from 'components/WalletCard'
 
+import type { MainStackParams } from 'navigation/MainNavigator'
+
 export default function WalletList(): React.ReactElement {
-  const navigation = useNavigation<NavigationProp<ParamListBase>>()
+  const navigation = useNavigation<NavigationProp<MainStackParams>>()
   const { wallets, onWalletDisconnected } = useWalletNav()
   const [fastVaultMap, setFastVaultMap] = useState<
     Record<string, boolean>
@@ -26,30 +27,31 @@ export default function WalletList(): React.ReactElement {
   useEffect(() => {
     if (wallets.length === 0) return
     let cancelled = false
-    Promise.all(
+    Promise.allSettled(
       wallets.map((w) =>
         isVaultFastVault(w.name).then((isFast) => ({
           name: w.name,
           isFast,
         }))
       )
-    )
-      .then((results) => {
-        if (cancelled) return
-        setFastVaultMap((prev) => {
-          const changed = results.some(
-            ({ name, isFast }) => prev[name] !== isFast
-          )
-          if (!changed && Object.keys(prev).length === results.length)
-            return prev
-          const map: Record<string, boolean> = {}
-          results.forEach(({ name, isFast }) => {
-            map[name] = isFast
-          })
-          return map
-        })
+    ).then((settled) => {
+      if (cancelled) return
+      const map: Record<string, boolean> = {}
+      for (const entry of settled) {
+        if (entry.status === 'fulfilled') {
+          map[entry.value.name] = entry.value.isFast
+        }
+      }
+      setFastVaultMap((prev) => {
+        const keys = Object.keys(map)
+        if (
+          keys.length === Object.keys(prev).length &&
+          keys.every((k) => prev[k] === map[k])
+        )
+          return prev
+        return map
       })
-      .catch(() => {})
+    })
     return (): void => {
       cancelled = true
     }
@@ -89,7 +91,7 @@ export default function WalletList(): React.ReactElement {
 
   const handleDelete = async (wallet: LocalWallet): Promise<void> => {
     await deleteWallet({ walletName: wallet.name })
-    onWalletDisconnected()
+    await onWalletDisconnected()
   }
 
   return (

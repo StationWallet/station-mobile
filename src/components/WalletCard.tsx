@@ -32,8 +32,8 @@ type Props = {
   terraOnly: boolean
   isFastVault: boolean
   onPress: () => void
-  onExport: () => void
-  onDelete: () => void
+  onExport?: () => void
+  onDelete?: () => void
   testID?: string
 }
 
@@ -78,13 +78,15 @@ export default function WalletCard({
             </View>
           )}
         </View>
-        <TouchableOpacity
-          onPress={confirmDelete}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          testID={testID ? `${testID}-delete` : undefined}
-        >
-          <TrashIcon />
-        </TouchableOpacity>
+        {onDelete && (
+          <TouchableOpacity
+            onPress={confirmDelete}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            testID={testID ? `${testID}-delete` : undefined}
+          >
+            <TrashIcon />
+          </TouchableOpacity>
+        )}
       </View>
 
       <Text fontType="brockmann" style={styles.address}>
@@ -94,14 +96,16 @@ export default function WalletCard({
       <View style={styles.divider} />
 
       <View style={styles.buttonRow}>
-        <Button
-          title="Export"
-          theme="secondaryDark"
-          titleFontType="brockmann-medium"
-          onPress={onExport}
-          containerStyle={styles.exportButton}
-          testID={testID ? `${testID}-export` : undefined}
-        />
+        {onExport && (
+          <Button
+            title="Export"
+            theme="secondaryDark"
+            titleFontType="brockmann-medium"
+            onPress={onExport}
+            containerStyle={styles.exportButton}
+            testID={testID ? `${testID}-export` : undefined}
+          />
+        )}
 
         {isFastVault ? (
           <View style={styles.fastVaultBadge}>

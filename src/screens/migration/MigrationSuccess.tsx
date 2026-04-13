@@ -214,7 +214,7 @@ export default function MigrationSuccess(): React.ReactElement {
         ) : (
           <TouchableOpacity
             onPress={handleBack}
-            testID="migrate-another-wallet"
+            testID="continue-to-wallets"
           >
             <Text
               fontType="brockmann-medium"
