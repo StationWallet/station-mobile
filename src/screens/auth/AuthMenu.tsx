@@ -125,15 +125,6 @@ const AuthMenu = ({
                   Seed Corrupt Data (dev)
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                testID="dev-seed-premigrated"
-                style={styles.secondaryButton}
-                onPress={() => navigation.navigate('SeedPreMigrated')}
-              >
-                <Text style={styles.secondaryButtonText}>
-                  Seed Pre-Migrated (dev)
-                </Text>
-              </TouchableOpacity>
             </>
           )}
         </View>

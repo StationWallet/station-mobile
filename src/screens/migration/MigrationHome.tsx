@@ -143,15 +143,6 @@ export default function MigrationHome(): React.ReactElement {
                   Seed Corrupt Data (dev)
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                testID="dev-seed-premigrated"
-                style={styles.devButton}
-                onPress={() => navigation.navigate('SeedPreMigrated')}
-              >
-                <Text style={styles.devButtonText}>
-                  Seed Pre-Migrated (dev)
-                </Text>
-              </TouchableOpacity>
             </View>
           )}
         </View>

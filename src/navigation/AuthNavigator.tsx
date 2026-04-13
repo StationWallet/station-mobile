@@ -20,10 +20,6 @@ const DevSeedCorruptData = __DEV__
   ? require('../components/DevSeedCorruptData').default
   : null
 
-const DevSeedPreMigrated = __DEV__
-  ? require('../components/DevSeedPreMigrated').default
-  : null
-
 const DevVerifyVault = __DEV__
   ? require('../components/DevVerifyVault').default
   : null
@@ -58,12 +54,6 @@ export default function AuthNavigator(): React.ReactElement {
         <Stack.Screen
           name="SeedCorruptData"
           component={DevSeedCorruptData}
-        />
-      )}
-      {__DEV__ && DevSeedPreMigrated && (
-        <Stack.Screen
-          name="SeedPreMigrated"
-          component={DevSeedPreMigrated}
         />
       )}
       {__DEV__ && DevVerifyVault && (

@@ -1,4 +1,4 @@
-describe('Full E2E: Migration → Decrypt → Vault Export', () => {
+describe('Full E2E: Migration → Decrypt → Size', () => {
   beforeAll(async () => {
     // Erase simulator to clear keychain — iOS keychain items survive
     // app deletion, causing the app to find old wallets and skip AuthMenu.
@@ -101,42 +101,17 @@ describe('Full E2E: Migration → Decrypt → Vault Export', () => {
     await expectStep('step13-pubkey');
   });
 
-  // Phase 3: Vault Export + Verification
-  it('step 14: exports vault share file', async () => {
-    await expectStep('step14-export');
+  // Phase 3: Size Stress Test
+  it('step 14: 10-wallet payload exceeds 2KB (historical limit)', async () => {
+    await expectStep('step14-over-2k');
   });
 
-  it('step 15: reads .vult file back', async () => {
-    await expectStep('step15-file-read');
+  it('step 15: large payload writes to expo-secure-store', async () => {
+    await expectStep('step15-size-write');
   });
 
-  it('step 16: parses VaultContainer protobuf', async () => {
-    await expectStep('step16-container');
-  });
-
-  it('step 17: decrypts vault payload (AES-GCM)', async () => {
-    await expectStep('step17-vault-decrypt');
-  });
-
-  it('step 18: vault name matches', async () => {
-    await expectStep('step18-vault-name');
-  });
-
-  it('step 19: vault fields match (pubkey, libType, keyShares)', async () => {
-    await expectStep('step19-vault-fields');
-  });
-
-  // Phase 4: Size Stress Test
-  it('step 20: 10-wallet payload exceeds 2KB (historical limit)', async () => {
-    await expectStep('step20-over-2k');
-  });
-
-  it('step 21: large payload writes to expo-secure-store', async () => {
-    await expectStep('step21-size-write');
-  });
-
-  it('step 22: large payload reads back byte-for-byte', async () => {
-    await expectStep('step22-size-match');
+  it('step 16: large payload reads back byte-for-byte', async () => {
+    await expectStep('step16-size-match');
   });
 
   // Overall

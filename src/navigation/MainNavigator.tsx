@@ -30,10 +30,6 @@ const DevSeedCorruptData = __DEV__
   ? require('../components/DevSeedCorruptData').default
   : null
 
-const DevSeedPreMigrated = __DEV__
-  ? require('../components/DevSeedPreMigrated').default
-  : null
-
 const DevVerifyVault = __DEV__
   ? require('../components/DevVerifyVault').default
   : null
@@ -51,7 +47,6 @@ export type MainStackParams = {
   FullE2ETest: undefined
   SeedLegacyData: undefined
   SeedCorruptData: undefined
-  SeedPreMigrated: undefined
   VerifyVault: undefined
   Migration: {
     screen: 'VaultEmail'
@@ -133,12 +128,6 @@ export default function MainNavigator({
         <Stack.Screen
           name="SeedCorruptData"
           component={DevSeedCorruptData}
-        />
-      )}
-      {__DEV__ && DevSeedPreMigrated && (
-        <Stack.Screen
-          name="SeedPreMigrated"
-          component={DevSeedPreMigrated}
         />
       )}
       {__DEV__ && DevVerifyVault && (

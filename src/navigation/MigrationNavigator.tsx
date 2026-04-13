@@ -27,10 +27,6 @@ const DevSeedCorruptData = __DEV__
   ? require('../components/DevSeedCorruptData').default
   : null
 
-const DevSeedPreMigrated = __DEV__
-  ? require('../components/DevSeedPreMigrated').default
-  : null
-
 export type MigrationStackParams = {
   RiveIntro: undefined
   MigrationHome: undefined
@@ -79,7 +75,6 @@ export type MigrationStackParams = {
   // Dev-only screens for E2E test data seeding
   SeedLegacyData: undefined
   SeedCorruptData: undefined
-  SeedPreMigrated: undefined
 }
 
 const Stack = createStackNavigator<MigrationStackParams>()
@@ -124,12 +119,6 @@ export default function MigrationNavigator(): React.ReactElement {
         <Stack.Screen
           name="SeedCorruptData"
           component={DevSeedCorruptData}
-        />
-      )}
-      {__DEV__ && DevSeedPreMigrated && (
-        <Stack.Screen
-          name="SeedPreMigrated"
-          component={DevSeedPreMigrated}
         />
       )}
     </Stack.Navigator>
