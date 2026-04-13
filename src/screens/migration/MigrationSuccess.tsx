@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import {
   View,
   Image,
+  NativeModules,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native'
@@ -21,9 +22,28 @@ import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
 import { useMigrationComplete } from 'navigation/MigrationContext'
-import images from 'assets/images'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
+
+// Skip Rive only under Detox — its native runtime keeps the iOS main
+// run loop busy, blocking Detox idle detection.
+const isDetox = NativeModules.DetoxManager != null
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamically loaded Rive component with no TS definitions
+let Rive: any = null
+let orbAnimUrl: string | null = null
+
+if (!isDetox) {
+  try {
+    Rive = require('rive-react-native').default
+    orbAnimUrl =
+      Image.resolveAssetSource(
+        require('assets/rive/vulti_orb_loading.riv')
+      )?.uri ?? null
+  } catch {
+    // rive-react-native not available — will render static fallback
+  }
+}
 
 function CopyIcon(): React.ReactElement {
   return (
@@ -134,11 +154,15 @@ export default function MigrationSuccess(): React.ReactElement {
       </View>
 
       <View style={styles.orbitContainer}>
-        <Image
-          source={images.sphere_mesh}
-          style={styles.sphereMesh}
-          resizeMode="contain"
-        />
+        {Rive && orbAnimUrl ? (
+          <Rive
+            url={orbAnimUrl}
+            style={styles.orbAnimation}
+            autoplay
+          />
+        ) : (
+          <View style={styles.orbAnimation} />
+        )}
       </View>
 
       <Text fontType="brockmann-medium" style={styles.orbitText}>
@@ -255,7 +279,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 4,
   },
-  sphereMesh: {
+  orbAnimation: {
     width: 300,
     height: 300,
   },
