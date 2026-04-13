@@ -5,11 +5,26 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native'
+import Svg, { Path } from 'react-native-svg'
 
 import { UTIL } from 'consts'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
 import Button from 'components/Button'
+
+function TrashIcon(): React.ReactElement {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"
+        stroke={MIGRATION.errorRed}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  )
+}
 
 type Props = {
   name: string
@@ -51,16 +66,25 @@ export default function WalletCard({
       activeOpacity={0.7}
     >
       <View style={styles.headerRow}>
-        <Text fontType="brockmann-medium" style={styles.name}>
-          {name}
-        </Text>
-        {terraOnly && (
-          <View style={styles.terraOnlyBadge}>
-            <Text fontType="brockmann" style={styles.terraOnlyText}>
-              Terra only
-            </Text>
-          </View>
-        )}
+        <View style={styles.nameRow}>
+          <Text fontType="brockmann-medium" style={styles.name}>
+            {name}
+          </Text>
+          {terraOnly && (
+            <View style={styles.terraOnlyBadge}>
+              <Text fontType="brockmann" style={styles.terraOnlyText}>
+                Terra only
+              </Text>
+            </View>
+          )}
+        </View>
+        <TouchableOpacity
+          onPress={confirmDelete}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          testID={testID ? `${testID}-delete` : undefined}
+        >
+          <TrashIcon />
+        </TouchableOpacity>
       </View>
 
       <Text fontType="brockmann" style={styles.address}>
@@ -70,15 +94,6 @@ export default function WalletCard({
       <View style={styles.divider} />
 
       <View style={styles.buttonRow}>
-        <TouchableOpacity
-          onPress={confirmDelete}
-          testID={testID ? `${testID}-delete` : undefined}
-        >
-          <Text fontType="brockmann" style={styles.removeText}>
-            Remove
-          </Text>
-        </TouchableOpacity>
-
         <Button
           title="Export"
           theme="secondaryDark"
@@ -122,17 +137,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 8,
+  },
   name: {
     color: MIGRATION.textPrimary,
     fontSize: 16,
-    flex: 1,
   },
   terraOnlyBadge: {
     backgroundColor: 'rgba(100, 160, 255, 0.2)',
     borderRadius: MIGRATION.radiusSmallButton,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    marginLeft: 8,
   },
   terraOnlyText: {
     color: '#64A0FF',
@@ -152,10 +171,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  removeText: {
-    color: MIGRATION.errorRed,
-    fontSize: 14,
   },
   exportButton: {
     height: MIGRATION.smallButtonHeight,
