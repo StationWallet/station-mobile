@@ -7,7 +7,7 @@ import {
   Linking,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 
@@ -16,7 +16,6 @@ import Text from 'components/Text'
 import { DevFlags } from '../../config/env'
 import Button from 'components/Button'
 import InfoCard from 'components/migration/InfoCard'
-import MigrationToolbar from 'components/migration/MigrationToolbar'
 import RocketWithGlow from 'components/migration/RocketWithGlow'
 import {
   discoverLegacyWallets,
@@ -37,6 +36,7 @@ function computeDaysRemaining(): number {
 }
 
 export default function MigrationHome(): React.ReactElement {
+  const insets = useSafeAreaInsets()
   const navigation = useNavigation<Nav>()
   const [wallets, setWallets] = useState<MigrationWallet[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setReady used to track loading state
@@ -65,11 +65,7 @@ export default function MigrationHome(): React.ReactElement {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <MigrationToolbar
-        onBack={() => navigation.goBack()}
-        testID="migration-home-back"
-      />
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -172,7 +168,7 @@ export default function MigrationHome(): React.ReactElement {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   )
 }
 
