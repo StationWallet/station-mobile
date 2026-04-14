@@ -16,7 +16,7 @@ jobs:
   detox:
     name: Detox iOS
     runs-on: macos-latest
-    timeout-minutes: 35
+    timeout-minutes: 60
     env:
       AGENTMAIL_API_KEY: ${{ secrets.AGENTMAIL_API_KEY }}
       AGENTMAIL_EMAIL: ${{ secrets.AGENTMAIL_EMAIL }}
