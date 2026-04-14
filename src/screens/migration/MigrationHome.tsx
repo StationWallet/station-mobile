@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 
+import Svg, { Path } from 'react-native-svg'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
 import { DevFlags } from '../../config/env'
@@ -23,6 +24,27 @@ import {
 } from 'services/migrateToVault'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 import { MIGRATION_FLOW_ENABLED } from 'config/env'
+
+function CalendarClockIcon(): React.ReactElement {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
+        stroke="#4879fd"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M12 6v6l4 2"
+        stroke="#4879fd"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  )
+}
 
 type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
 
@@ -93,14 +115,31 @@ export default function MigrationHome(): React.ReactElement {
             entering={FadeIn.delay(1200).duration(300)}
             style={styles.cardWrapper}
           >
-            <InfoCard daysRemaining={daysRemaining} />
+            <InfoCard
+              daysRemaining={daysRemaining}
+              connectedBottom={!MIGRATION_FLOW_ENABLED}
+            />
+            {!MIGRATION_FLOW_ENABLED && (
+              <View
+                style={styles.checkBackCard}
+                testID="check-back-soon"
+              >
+                <CalendarClockIcon />
+                <Text
+                  fontType="brockmann-medium"
+                  style={styles.checkBackText}
+                >
+                  Check back soon...
+                </Text>
+              </View>
+            )}
           </Animated.View>
 
           <Animated.View
             entering={FadeIn.delay(1800).duration(300)}
             style={styles.buttonGroup}
           >
-            {MIGRATION_FLOW_ENABLED ? (
+            {MIGRATION_FLOW_ENABLED && (
               <>
                 <Button
                   title={
@@ -124,14 +163,6 @@ export default function MigrationHome(): React.ReactElement {
                   testID="import-vault-button"
                 />
               </>
-            ) : (
-              <Text
-                fontType="brockmann-medium"
-                style={styles.checkBackText}
-                testID="check-back-soon"
-              >
-                Check back soon.
-              </Text>
             )}
 
             <TouchableOpacity
@@ -200,7 +231,7 @@ const styles = StyleSheet.create({
     color: MIGRATION.textPrimary,
     textAlign: 'center',
     marginTop: 16,
-    marginBottom: 16,
+    marginBottom: 28,
     lineHeight: 24,
     letterSpacing: -0.36,
   },
@@ -213,11 +244,23 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'center',
   },
+  checkBackCard: {
+    backgroundColor: MIGRATION.surface1,
+    borderBottomLeftRadius: MIGRATION.radiusCard,
+    borderBottomRightRadius: MIGRATION.radiusCard,
+    paddingTop: 16,
+    paddingBottom: 14,
+    paddingHorizontal: 32,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    gap: 8,
+  },
   checkBackText: {
-    fontSize: 20,
-    color: MIGRATION.textTertiary,
-    textAlign: 'center' as const,
-    paddingVertical: 12,
+    fontSize: 13,
+    color: MIGRATION.textPrimary,
+    lineHeight: 18,
+    letterSpacing: 0.06,
   },
   ctaButton: {
     borderRadius: 99,
