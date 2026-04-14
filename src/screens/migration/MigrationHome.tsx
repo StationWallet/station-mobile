@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkBackText: {
-    fontSize: 16,
+    fontSize: 20,
     color: MIGRATION.textTertiary,
     textAlign: 'center' as const,
     paddingVertical: 12,
