@@ -4,6 +4,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Linking,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -130,7 +131,9 @@ export default function MigrationHome(): React.ReactElement {
             <TouchableOpacity
               style={styles.linkButton}
               onPress={() => {
-                // Placeholder — no-op for now
+                Linking.openURL(
+                  'https://docs.vultisig.com/security-and-technology/security-technology'
+                )
               }}
             >
               <Text fontType="brockmann" style={styles.linkText}>
