@@ -136,7 +136,10 @@ export default function WalletCard({
             title={
               <View style={styles.buttonContent}>
                 <DownloadIcon />
-                <Text fontType="brockmann-medium" style={styles.buttonLabel}>
+                <Text
+                  fontType="brockmann-medium"
+                  style={styles.buttonLabel}
+                >
                   Export
                 </Text>
               </View>
@@ -159,7 +162,10 @@ export default function WalletCard({
             title={
               <View style={styles.buttonContent}>
                 <CloudUploadIcon />
-                <Text fontType="brockmann-medium" style={styles.buttonLabel}>
+                <Text
+                  fontType="brockmann-medium"
+                  style={styles.buttonLabel}
+                >
                   Migrate to a vault
                 </Text>
               </View>
