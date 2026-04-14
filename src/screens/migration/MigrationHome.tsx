@@ -90,14 +90,14 @@ export default function MigrationHome(): React.ReactElement {
     <View
       style={[
         styles.container,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
+        { paddingBottom: insets.bottom },
       ]}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.content}>
+        <View style={[styles.content, { paddingTop: insets.top }]}>
           <Animated.View
             entering={FadeIn.delay(0).duration(300)}
             style={styles.animationPlaceholder}
