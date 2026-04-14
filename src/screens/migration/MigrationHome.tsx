@@ -88,10 +88,7 @@ export default function MigrationHome(): React.ReactElement {
 
   return (
     <View
-      style={[
-        styles.container,
-        { paddingBottom: insets.bottom },
-      ]}
+      style={[styles.container, { paddingBottom: insets.bottom }]}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
