@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { RouteProp } from '@react-navigation/native'
+import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -54,7 +55,11 @@ export default function VaultPassword(): React.ReactElement {
 
         <StepProgressBar currentStep={stepBarCurrentStep} />
 
-        <View style={formStyles.content}>
+        <Animated.View
+          entering={FadeInRight.duration(250)}
+          exiting={FadeOutLeft.duration(250)}
+          style={formStyles.content}
+        >
           <Text style={formStyles.title} fontType="brockmann-medium">
             Choose a password
           </Text>
@@ -108,7 +113,7 @@ export default function VaultPassword(): React.ReactElement {
               Passwords do not match.
             </Text>
           )}
-        </View>
+        </Animated.View>
 
         <View style={formStyles.buttonContainer}>
           <Button
