@@ -153,7 +153,16 @@ export default function WalletList(): React.ReactElement {
   return (
     <SafeAreaView style={styles.container}>
       <MigrationToolbar
-        onBack={() => mainNav.goBack()}
+        onBack={() => {
+          if (isMigrationMode) {
+            migrationNav.goBack()
+          } else {
+            mainNav.navigate('Migration', {
+              screen: 'MigrationHome',
+              params: {},
+            })
+          }
+        }}
         testID="wallets-back"
       />
 

@@ -45,7 +45,7 @@ export type MainStackParams = {
   SeedCorruptData: undefined
   VerifyVault: undefined
   Migration: {
-    screen: 'VaultEmail' | 'MigrationSuccess'
+    screen: 'MigrationHome' | 'VaultEmail' | 'MigrationSuccess'
     params: {
       walletName?: string
       walletIndex?: number

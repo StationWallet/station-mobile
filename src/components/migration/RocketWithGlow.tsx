@@ -37,12 +37,16 @@ if (!isDetox) {
  * Two vertically-elongated ellipses create a smooth upward glow,
  * matching the Figma "Migration Wizard - 2" design.
  */
-export default function RocketWithGlow(): React.ReactElement {
+export default function RocketWithGlow({
+  size = SIZE,
+}: {
+  size?: number
+}): React.ReactElement {
   const cx = SVG_W / 2
   const rocketCenterY = SVG_H - SIZE / 2
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { width: size, height: size }]}>
       <Svg
         width={SVG_W}
         height={SVG_H}
@@ -111,6 +115,7 @@ const styles = StyleSheet.create({
     top: -(SVG_H - SIZE),
   },
   riveWrapper: {
+    position: 'absolute',
     width: SIZE,
     height: SIZE,
   },

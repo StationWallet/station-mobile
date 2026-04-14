@@ -74,7 +74,7 @@ export default function MigrationHome(): React.ReactElement {
             entering={FadeIn.delay(0).duration(300)}
             style={styles.animationPlaceholder}
           >
-            <RocketWithGlow />
+            <RocketWithGlow size={140} />
           </Animated.View>
 
           <Animated.View entering={FadeIn.delay(600).duration(300)}>
@@ -185,21 +185,21 @@ const styles = StyleSheet.create({
   },
   animationPlaceholder: {
     width: 200,
-    height: DevFlags.SeedLegacyData ? 40 : 200,
+    height: DevFlags.SeedLegacyData ? 40 : 140,
     alignSelf: 'center',
-    marginTop: 92,
+    marginTop: 48,
   },
   title: {
     fontSize: 22,
     color: MIGRATION.textPrimary,
     textAlign: 'center',
-    marginTop: 24,
-    marginBottom: 24,
+    marginTop: 16,
+    marginBottom: 16,
     lineHeight: 24,
     letterSpacing: -0.36,
   },
   cardWrapper: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   buttonGroup: {
     marginTop: 'auto',
