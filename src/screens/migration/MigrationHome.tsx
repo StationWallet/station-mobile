@@ -15,6 +15,7 @@ import Text from 'components/Text'
 import { DevFlags } from '../../config/env'
 import Button from 'components/Button'
 import InfoCard from 'components/migration/InfoCard'
+import RocketWithGlow from 'components/migration/RocketWithGlow'
 import {
   discoverLegacyWallets,
   MigrationWallet,
@@ -71,7 +72,9 @@ export default function MigrationHome(): React.ReactElement {
           <Animated.View
             entering={FadeIn.delay(0).duration(300)}
             style={styles.animationPlaceholder}
-          />
+          >
+            <RocketWithGlow />
+          </Animated.View>
 
           <Animated.View entering={FadeIn.delay(600).duration(300)}>
             <Text fontType="brockmann-medium" style={styles.title}>
