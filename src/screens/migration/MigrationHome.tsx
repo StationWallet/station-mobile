@@ -16,6 +16,7 @@ import Text from 'components/Text'
 import { DevFlags } from '../../config/env'
 import Button from 'components/Button'
 import InfoCard from 'components/migration/InfoCard'
+import MigrationToolbar from 'components/migration/MigrationToolbar'
 import RocketWithGlow from 'components/migration/RocketWithGlow'
 import {
   discoverLegacyWallets,
@@ -65,6 +66,10 @@ export default function MigrationHome(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.container}>
+      <MigrationToolbar
+        onBack={() => navigation.goBack()}
+        testID="migration-home-back"
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"

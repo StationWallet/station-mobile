@@ -22,6 +22,7 @@ import {
 import { isVaultFastVault } from 'services/migrateToVault'
 import Text from 'components/Text'
 import Button from 'components/Button'
+import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { COLORS, MONO_FONT } from 'consts/theme'
 
 import type { MainStackParams } from 'navigation/MainNavigator'
@@ -110,6 +111,10 @@ export default function ExportPrivateKey(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.container}>
+      <MigrationToolbar
+        onBack={() => navigation.goBack()}
+        testID="export-back"
+      />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.content}
@@ -231,7 +236,7 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     fontSize: 20,
     fontWeight: '600',
-    marginTop: 24,
+    marginTop: 8,
   },
   walletName: {
     color: COLORS.textSecondary,
