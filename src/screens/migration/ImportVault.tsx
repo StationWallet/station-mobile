@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import Svg, { Path, Circle } from 'react-native-svg'
+import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -83,7 +84,11 @@ export default function ImportVault(): React.ReactElement {
         </GlassButton>
       </View>
 
-      <View style={styles.content}>
+      <Animated.View
+        entering={FadeInRight.duration(250)}
+        exiting={FadeOutLeft.duration(250)}
+        style={styles.content}
+      >
         <View style={styles.dropZoneWrapper}>
           <FileDropZone
             fileState={fileState}
@@ -99,7 +104,7 @@ export default function ImportVault(): React.ReactElement {
         >
           Supported file types: .bak & .vult
         </Text>
-      </View>
+      </Animated.View>
 
       <View style={styles.bottom}>
         {fileState === 'success' && fileName ? (
@@ -155,6 +160,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: MIGRATION.textPrimary,
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   content: {
     flex: 1,
@@ -169,6 +175,7 @@ const styles = StyleSheet.create({
     color: MIGRATION.textTertiary,
     textAlign: 'center',
     marginTop: 20,
+    letterSpacing: 0.06,
   },
   bottom: {
     paddingHorizontal: MIGRATION.screenPadding,

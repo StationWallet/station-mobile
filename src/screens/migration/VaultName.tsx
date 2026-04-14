@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
+import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -35,7 +36,11 @@ export default function VaultName(): React.ReactElement {
 
         <StepProgressBar currentStep={1} />
 
-        <View style={formStyles.content}>
+        <Animated.View
+          entering={FadeInRight.duration(250)}
+          exiting={FadeOutLeft.duration(250)}
+          style={formStyles.content}
+        >
           <Text style={formStyles.title} fontType="brockmann-medium">
             Name your vault
           </Text>
@@ -64,7 +69,7 @@ export default function VaultName(): React.ReactElement {
               </TouchableOpacity>
             )}
           </View>
-        </View>
+        </Animated.View>
 
         <View style={formStyles.buttonContainer}>
           <Button
