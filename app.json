@@ -27,6 +27,9 @@
       "bundleIdentifier": "money.terra.station",
       "appleTeamId": "4268K8DFX6",
       "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
       "entitlements": {
         "aps-environment": "production"
       },
