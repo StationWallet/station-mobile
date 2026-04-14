@@ -19,11 +19,13 @@ import type {
 
 export type MigrationMode = 'migrate' | 'create'
 
-const DevSeedLegacyData = __DEV__
+import { DevFlags } from '../config/env'
+
+const DevSeedLegacyData = DevFlags.SeedLegacyData
   ? require('../components/DevSeedLegacyData').default
   : null
 
-const DevSeedCorruptData = __DEV__
+const DevSeedCorruptData = DevFlags.SeedCorruptData
   ? require('../components/DevSeedCorruptData').default
   : null
 
@@ -109,13 +111,13 @@ export default function MigrationNavigator(): React.ReactElement {
         name="MigrationSuccess"
         component={MigrationSuccess}
       />
-      {__DEV__ && DevSeedLegacyData && (
+      {DevSeedLegacyData && (
         <Stack.Screen
           name="SeedLegacyData"
           component={DevSeedLegacyData}
         />
       )}
-      {__DEV__ && DevSeedCorruptData && (
+      {DevSeedCorruptData && (
         <Stack.Screen
           name="SeedCorruptData"
           component={DevSeedCorruptData}

@@ -98,7 +98,9 @@ function CheckmarkIcon(): React.ReactElement {
   )
 }
 
-const DevVerifyVault = __DEV__
+import { DevFlags } from '../../config/env'
+
+const DevVerifyVault = DevFlags.VerifyVault
   ? require('components/DevVerifyVault').default
   : null
 
@@ -226,7 +228,7 @@ export default function MigrationSuccess(): React.ReactElement {
         )}
       </View>
 
-      {__DEV__ && DevVerifyVault && (
+      {DevVerifyVault && (
         <DevVerifyVault
           importedVaultName={
             params.importedVaultName ?? params.migratedWalletName

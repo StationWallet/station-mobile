@@ -12,6 +12,7 @@ import type { StackNavigationProp } from '@react-navigation/stack'
 
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
+import { DevFlags } from '../../config/env'
 import Button from 'components/Button'
 import InfoCard from 'components/migration/InfoCard'
 import {
@@ -136,7 +137,7 @@ export default function MigrationHome(): React.ReactElement {
           </Animated.View>
 
           {/* Dev seed buttons — outside ready gate so they render immediately for E2E tests */}
-          {__DEV__ && (
+          {DevFlags.SeedLegacyData && (
             <View style={styles.devButtons}>
               <TouchableOpacity
                 testID="dev-seed-legacy"
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
   },
   animationPlaceholder: {
     width: 200,
-    height: __DEV__ ? 40 : 200,
+    height: DevFlags.SeedLegacyData ? 40 : 200,
     alignSelf: 'center',
     marginTop: 92,
   },

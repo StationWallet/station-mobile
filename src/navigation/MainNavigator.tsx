@@ -11,24 +11,25 @@ import type {
   MigrationResult,
 } from 'services/migrateToVault'
 import type { MigrationMode } from './MigrationNavigator'
+import { DevFlags } from '../config/env'
 
-const CryptoTestScreen = __DEV__
+const CryptoTestScreen = DevFlags.CryptoTestScreen
   ? require('../components/CryptoTestScreen').default
   : null
 
-const DevFullE2ETest = __DEV__
+const DevFullE2ETest = DevFlags.FullE2ETest
   ? require('../components/DevFullE2ETest').default
   : null
 
-const DevSeedLegacyData = __DEV__
+const DevSeedLegacyData = DevFlags.SeedLegacyData
   ? require('../components/DevSeedLegacyData').default
   : null
 
-const DevSeedCorruptData = __DEV__
+const DevSeedCorruptData = DevFlags.SeedCorruptData
   ? require('../components/DevSeedCorruptData').default
   : null
 
-const DevVerifyVault = __DEV__
+const DevVerifyVault = DevFlags.VerifyVault
   ? require('../components/DevVerifyVault').default
   : null
 
@@ -74,28 +75,28 @@ export default function MainNavigator(): React.ReactElement {
         name="ExportPrivateKey"
         component={ExportPrivateKey}
       />
-      {__DEV__ && CryptoTestScreen && (
+      {CryptoTestScreen && (
         <Stack.Screen
           name="CryptoTest"
           component={CryptoTestScreen}
         />
       )}
-      {__DEV__ && DevFullE2ETest && (
+      {DevFullE2ETest && (
         <Stack.Screen name="FullE2ETest" component={DevFullE2ETest} />
       )}
-      {__DEV__ && DevSeedLegacyData && (
+      {DevSeedLegacyData && (
         <Stack.Screen
           name="SeedLegacyData"
           component={DevSeedLegacyData}
         />
       )}
-      {__DEV__ && DevSeedCorruptData && (
+      {DevSeedCorruptData && (
         <Stack.Screen
           name="SeedCorruptData"
           component={DevSeedCorruptData}
         />
       )}
-      {__DEV__ && DevVerifyVault && (
+      {DevVerifyVault && (
         <Stack.Screen name="VerifyVault" component={DevVerifyVault} />
       )}
       <Stack.Screen name="Migration" component={MigrationNavigator} />
