@@ -19,6 +19,7 @@ import {
   MigrationWallet,
 } from 'services/migrateToVault'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
+import { MIGRATION_FLOW_ENABLED } from 'config/env'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
 
@@ -97,6 +98,7 @@ export default function MigrationHome(): React.ReactElement {
               theme="ctaBlue"
               titleFontType="brockmann-medium"
               onPress={handleCta}
+              disabled={!MIGRATION_FLOW_ENABLED}
               containerStyle={styles.ctaButton}
               testID="migration-cta"
             />
@@ -106,6 +108,7 @@ export default function MigrationHome(): React.ReactElement {
               theme="secondaryDark"
               titleFontType="brockmann-medium"
               onPress={() => navigation.navigate('ImportVault')}
+              disabled={!MIGRATION_FLOW_ENABLED}
               containerStyle={styles.secondaryButton}
               testID="import-vault-button"
             />
