@@ -123,7 +123,7 @@ export default function MigrationHome(): React.ReactElement {
                 style={styles.checkBackText}
                 testID="check-back-soon"
               >
-                Check back soon
+                Check back soon.
               </Text>
             )}
 
