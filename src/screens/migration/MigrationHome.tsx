@@ -4,9 +4,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Linking,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 
@@ -15,6 +16,7 @@ import Text from 'components/Text'
 import { DevFlags } from '../../config/env'
 import Button from 'components/Button'
 import InfoCard from 'components/migration/InfoCard'
+import RocketWithGlow from 'components/migration/RocketWithGlow'
 import {
   discoverLegacyWallets,
   MigrationWallet,
@@ -34,6 +36,7 @@ function computeDaysRemaining(): number {
 }
 
 export default function MigrationHome(): React.ReactElement {
+  const insets = useSafeAreaInsets()
   const navigation = useNavigation<Nav>()
   const [wallets, setWallets] = useState<MigrationWallet[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setReady used to track loading state
@@ -55,14 +58,19 @@ export default function MigrationHome(): React.ReactElement {
 
   const handleCta = (): void => {
     if (hasLegacyWallets) {
-      navigation.navigate('WalletsFound', { wallets })
+      navigation.navigate('WalletsFound')
     } else {
       navigation.navigate('VaultName')
     }
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -71,7 +79,9 @@ export default function MigrationHome(): React.ReactElement {
           <Animated.View
             entering={FadeIn.delay(0).duration(300)}
             style={styles.animationPlaceholder}
-          />
+          >
+            <RocketWithGlow size={140} />
+          </Animated.View>
 
           <Animated.View entering={FadeIn.delay(600).duration(300)}>
             <Text fontType="brockmann-medium" style={styles.title}>
@@ -120,14 +130,16 @@ export default function MigrationHome(): React.ReactElement {
                 style={styles.checkBackText}
                 testID="check-back-soon"
               >
-                Check back soon
+                Check back soon.
               </Text>
             )}
 
             <TouchableOpacity
               style={styles.linkButton}
               onPress={() => {
-                // Placeholder — no-op for now
+                Linking.openURL(
+                  'https://docs.vultisig.com/security-and-technology/security-technology'
+                )
               }}
             >
               <Text fontType="brockmann" style={styles.linkText}>
@@ -161,7 +173,7 @@ export default function MigrationHome(): React.ReactElement {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   )
 }
 
@@ -179,21 +191,21 @@ const styles = StyleSheet.create({
   },
   animationPlaceholder: {
     width: 200,
-    height: DevFlags.SeedLegacyData ? 40 : 200,
+    height: DevFlags.SeedLegacyData ? 40 : 140,
     alignSelf: 'center',
-    marginTop: 92,
+    marginTop: 48,
   },
   title: {
     fontSize: 22,
     color: MIGRATION.textPrimary,
     textAlign: 'center',
-    marginTop: 24,
-    marginBottom: 24,
+    marginTop: 16,
+    marginBottom: 16,
     lineHeight: 24,
     letterSpacing: -0.36,
   },
   cardWrapper: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   buttonGroup: {
     marginTop: 'auto',

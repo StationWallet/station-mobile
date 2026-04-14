@@ -1,26 +1,45 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
-import Svg, { Path } from 'react-native-svg'
+import Svg, {
+  Circle,
+  Defs,
+  LinearGradient,
+  Path,
+  Stop,
+} from 'react-native-svg'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
 import { MIGRATION_FLOW_ENABLED } from 'config/env'
 
-function ShieldCheckIcon(): React.ReactElement {
+function LightningIcon(): React.ReactElement {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-        stroke="#5ca7ff"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+    <Svg width={24} height={24} viewBox="24 7 32 32" fill="none">
+      <Defs>
+        <LinearGradient
+          id="boltGrad"
+          x1="39.57"
+          y1="16.07"
+          x2="41.67"
+          y2="27.27"
+          gradientUnits="userSpaceOnUse"
+        >
+          <Stop stopColor="#F2C375" />
+          <Stop offset="1" stopColor="#FFAA1C" />
+        </LinearGradient>
+      </Defs>
+      <Circle cx={39.57} cy={22.57} r={12.9} fill="#03132C" />
+      <Circle
+        cx={39.57}
+        cy={22.57}
+        r={12.9}
+        stroke="white"
+        strokeOpacity={0.1}
+        strokeWidth={1.4}
+        fill="none"
       />
       <Path
-        d="M9 12l2 2 4-4"
-        stroke="#5ca7ff"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M40.765 16.8133C40.765 16.0804 39.8194 15.786 39.4034 16.3893L34.2962 23.7947C33.9545 24.2902 34.3091 24.9656 34.911 24.9656H38.3751V28.3379C38.3751 29.0708 39.3207 29.3653 39.7368 28.762L44.8439 21.3566C45.1856 20.8611 44.831 20.1857 44.2291 20.1857H40.765V16.8133Z"
+        fill="url(#boltGrad)"
       />
     </Svg>
   )
@@ -57,7 +76,7 @@ export default function InfoCard({
   return (
     <View style={styles.card}>
       <View style={styles.titleRow}>
-        <ShieldCheckIcon />
+        <LightningIcon />
         <Text fontType="brockmann-medium" style={styles.title}>
           A new type of wallet
         </Text>

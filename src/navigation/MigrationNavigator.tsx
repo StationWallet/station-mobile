@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack'
 
 import RiveIntro from '../screens/migration/RiveIntro'
 import MigrationHome from '../screens/migration/MigrationHome'
-import WalletsFound from '../screens/migration/WalletsFound'
+import WalletList from '../screens/WalletList'
 import VaultName from '../screens/migration/VaultName'
 import VaultEmail from '../screens/migration/VaultEmail'
 import VaultPassword from '../screens/migration/VaultPassword'
@@ -32,10 +32,7 @@ const DevSeedCorruptData = DevFlags.SeedCorruptData
 export type MigrationStackParams = {
   RiveIntro: undefined
   MigrationHome: undefined
-  WalletsFound: {
-    wallets: MigrationWallet[]
-    results?: MigrationResult[]
-  }
+  WalletsFound: undefined
   VaultName: undefined
   VaultEmail: {
     walletName: string
@@ -89,6 +86,7 @@ export default function MigrationNavigator(): React.ReactElement {
         headerShown: false,
         animationEnabled: true,
         gestureEnabled: false,
+        cardStyle: { backgroundColor: '#02122b' },
       }}
     >
       <Stack.Screen name="RiveIntro" component={RiveIntro} />
@@ -97,7 +95,7 @@ export default function MigrationNavigator(): React.ReactElement {
         component={MigrationHome}
         options={{ animationEnabled: false }}
       />
-      <Stack.Screen name="WalletsFound" component={WalletsFound} />
+      <Stack.Screen name="WalletsFound" component={WalletList} />
       <Stack.Screen name="VaultName" component={VaultName} />
       <Stack.Screen name="VaultEmail" component={VaultEmail} />
       <Stack.Screen name="VaultPassword" component={VaultPassword} />

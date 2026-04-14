@@ -114,7 +114,6 @@ export default function MigrationSuccess(): React.ReactElement {
   const onMigrationComplete = useMigrationComplete()
 
   const wallets = params.wallets
-  const results = params.results ?? []
   const hasUnmigrated = wallets != null && wallets.length > 0
 
   const handleBack = (): void => {
@@ -198,12 +197,7 @@ export default function MigrationSuccess(): React.ReactElement {
 
         {hasUnmigrated ? (
           <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('WalletsFound', {
-                wallets,
-                results,
-              })
-            }
+            onPress={() => navigation.navigate('WalletsFound')}
             testID="migrate-another-wallet"
           >
             <Text

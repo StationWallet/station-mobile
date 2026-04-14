@@ -76,7 +76,11 @@ export const decryptKey = (
   password: string
 ): string => {
   try {
-    return decrypt(encryptedKey, password)
+    const result = decrypt(encryptedKey, password)
+    if (!result) {
+      throw new Error('Incorrect password')
+    }
+    return result
   } catch {
     throw new Error('Incorrect password')
   }

@@ -5,6 +5,7 @@ import {
   NativeModules,
   PanResponder,
   Pressable,
+  StatusBar,
   View,
   StyleSheet,
   useWindowDimensions,
@@ -139,6 +140,7 @@ export default function RiveIntro(): React.ReactElement {
 
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
+      <StatusBar barStyle="dark-content" />
       {/* Wallet Rive animation */}
       {Rive && walletAnimUrl ? (
         <Animated.View
