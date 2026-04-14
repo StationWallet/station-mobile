@@ -55,7 +55,11 @@ export default function AppNavigator(): React.ReactElement | null {
 
       if (!MIGRATION_FLOW_ENABLED) {
         setRootRoute('Migration')
-      } else if (loaded.length > 0 && !vaultsUpgraded && legacyDataFound) {
+      } else if (
+        loaded.length > 0 &&
+        !vaultsUpgraded &&
+        legacyDataFound
+      ) {
         setRootRoute('Migration')
       } else if (loaded.length === 0) {
         // In dev mode, show Auth first so E2E dev seed buttons are accessible.

@@ -8,6 +8,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { COLORS } from 'consts/theme'
+import { DevFlags } from '../../config/env'
 import authStyles from './authStyles'
 import { useWalletNav } from 'navigation/hooks'
 
@@ -76,7 +77,7 @@ const AuthMenu = ({
             </Text>
           </TouchableOpacity>
 
-          {__DEV__ && (
+          {DevFlags.FullE2ETest && (
             <>
               {goToMigration && (
                 <TouchableOpacity

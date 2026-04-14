@@ -6,6 +6,7 @@ module.exports = {
   moduleNameMapper: {
     '^react-native-url-polyfill/auto$': '<rootDir>/__mocks__/empty.js',
     '^react-native$': '<rootDir>/__mocks__/react-native.js',
+    '^expo/virtual/env$': '<rootDir>/__mocks__/expo-virtual-env.js',
   },
   testMatch: [
     '**/__tests__/**/*.test.{js,ts,tsx}',
