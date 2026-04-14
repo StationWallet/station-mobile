@@ -19,6 +19,7 @@ import {
   MigrationWallet,
 } from 'services/migrateToVault'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
+import { MIGRATION_FLOW_ENABLED } from 'config/env'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
 
@@ -88,27 +89,39 @@ export default function MigrationHome(): React.ReactElement {
             entering={FadeIn.delay(1800).duration(300)}
             style={styles.buttonGroup}
           >
-            <Button
-              title={
-                hasLegacyWallets
-                  ? 'Start Migration'
-                  : 'Create a Fast Vault'
-              }
-              theme="ctaBlue"
-              titleFontType="brockmann-medium"
-              onPress={handleCta}
-              containerStyle={styles.ctaButton}
-              testID="migration-cta"
-            />
+            {MIGRATION_FLOW_ENABLED ? (
+              <>
+                <Button
+                  title={
+                    hasLegacyWallets
+                      ? 'Start Migration'
+                      : 'Create a Fast Vault'
+                  }
+                  theme="ctaBlue"
+                  titleFontType="brockmann-medium"
+                  onPress={handleCta}
+                  containerStyle={styles.ctaButton}
+                  testID="migration-cta"
+                />
 
-            <Button
-              title="I already have a Fast Vault"
-              theme="secondaryDark"
-              titleFontType="brockmann-medium"
-              onPress={() => navigation.navigate('ImportVault')}
-              containerStyle={styles.secondaryButton}
-              testID="import-vault-button"
-            />
+                <Button
+                  title="I already have a Fast Vault"
+                  theme="secondaryDark"
+                  titleFontType="brockmann-medium"
+                  onPress={() => navigation.navigate('ImportVault')}
+                  containerStyle={styles.secondaryButton}
+                  testID="import-vault-button"
+                />
+              </>
+            ) : (
+              <Text
+                fontType="brockmann-medium"
+                style={styles.checkBackText}
+                testID="check-back-soon"
+              >
+                Check back soon
+              </Text>
+            )}
 
             <TouchableOpacity
               style={styles.linkButton}
@@ -186,6 +199,12 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     gap: 12,
     alignItems: 'center',
+  },
+  checkBackText: {
+    fontSize: 20,
+    color: MIGRATION.textTertiary,
+    textAlign: 'center' as const,
+    paddingVertical: 12,
   },
   ctaButton: {
     borderRadius: 99,

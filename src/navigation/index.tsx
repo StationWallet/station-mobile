@@ -21,6 +21,7 @@ import { WalletNavContext } from './hooks'
 import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
+import { MIGRATION_FLOW_ENABLED } from 'config/env'
 
 export {
   useWalletCreated,
@@ -52,7 +53,9 @@ export default function AppNavigator(): React.ReactElement | null {
         PreferencesEnum.legacyDataFound
       )
 
-      if (loaded.length > 0 && !vaultsUpgraded && legacyDataFound) {
+      if (!MIGRATION_FLOW_ENABLED) {
+        setRootRoute('Migration')
+      } else if (loaded.length > 0 && !vaultsUpgraded && legacyDataFound) {
         setRootRoute('Migration')
       } else if (loaded.length === 0) {
         // In dev mode, show Auth first so E2E dev seed buttons are accessible.
