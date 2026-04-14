@@ -68,13 +68,20 @@ function ClockIcon(): React.ReactElement {
 
 type Props = {
   daysRemaining: number
+  connectedBottom?: boolean
 }
 
 export default function InfoCard({
   daysRemaining,
+  connectedBottom = false,
 }: Props): React.ReactElement {
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        connectedBottom && styles.cardConnectedBottom,
+      ]}
+    >
       <View style={styles.titleRow}>
         <LightningIcon />
         <Text fontType="brockmann-medium" style={styles.title}>
@@ -82,17 +89,17 @@ export default function InfoCard({
         </Text>
       </View>
 
-      <Text fontType="brockmann" style={styles.body}>
+      <Text fontType="brockmann-medium" style={styles.body}>
         Faster transactions. Stronger security.{'\n'}
         One password instead of 12 words.
       </Text>
 
-      <Text fontType="brockmann" style={styles.body}>
+      <Text fontType="brockmann-medium" style={styles.body}>
         Fast Vaults are the next evolution of self-custody, built for
         what&apos;s coming to Station.
       </Text>
 
-      <Text fontType="brockmann" style={styles.body}>
+      <Text fontType="brockmann-medium" style={styles.body}>
         Early explorers get{' '}
         <Text fontType="brockmann-bold" style={styles.bodyBold}>
           Station OG
@@ -125,6 +132,11 @@ const styles = StyleSheet.create({
     padding: MIGRATION.cardPadding,
     gap: 12,
   },
+  cardConnectedBottom: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderBottomWidth: 0,
+  },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -135,13 +147,14 @@ const styles = StyleSheet.create({
     color: MIGRATION.textPrimary,
   },
   body: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
     color: MIGRATION.textTertiary,
+    letterSpacing: 0.06,
   },
   bodyBold: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
     color: MIGRATION.textPrimary,
   },
   countdownRow: {
