@@ -34,6 +34,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+    // Embossed shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   layerBase: {
     ...StyleSheet.absoluteFillObject,
@@ -44,10 +50,14 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#11284a',
     borderRadius: 296,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   layerHighlight: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 296,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.15)',
   },
 })

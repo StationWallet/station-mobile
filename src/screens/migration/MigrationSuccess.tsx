@@ -199,10 +199,7 @@ export default function MigrationSuccess(): React.ReactElement {
         {hasUnmigrated ? (
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate('WalletsFound', {
-                wallets,
-                results,
-              })
+              navigation.navigate('WalletsFound')
             }
             testID="migrate-another-wallet"
           >

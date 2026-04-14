@@ -57,7 +57,7 @@ export default function MigrationHome(): React.ReactElement {
 
   const handleCta = (): void => {
     if (hasLegacyWallets) {
-      navigation.navigate('WalletsFound', { wallets })
+      navigation.navigate('WalletsFound')
     } else {
       navigation.navigate('VaultName')
     }

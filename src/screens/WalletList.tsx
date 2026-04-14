@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
 import {
   useNavigation,
@@ -12,7 +12,6 @@ import { useWalletNav } from 'navigation/hooks'
 import { settings } from 'utils/storage'
 import { deleteWallet } from 'utils/wallet'
 import { isVaultFastVault } from 'services/migrateToVault'
-import type { MigrationWallet, MigrationResult } from 'services/migrateToVault'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -24,41 +23,24 @@ import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 export default function WalletList(): React.ReactElement {
   // This screen is registered in both MainNavigator (as 'WalletList')
-  // and MigrationNavigator (as 'WalletsFound'). The available routes
-  // differ at runtime — use separate typed navigations per mode.
+  // and MigrationNavigator (as 'WalletsFound'). We detect which
+  // navigator we're in via route.name to use the correct navigation.
   const mainNav = useNavigation<NavigationProp<MainStackParams>>()
   const migrationNav = useNavigation<StackNavigationProp<MigrationStackParams>>()
-  const route = useRoute<{ key: string; name: string; params?: { wallets?: MigrationWallet[]; results?: MigrationResult[] } }>()
+  const route = useRoute()
+  const inMigrationNav = route.name === 'WalletsFound'
 
-  // When wallets are passed via params we're in the migration flow
-  const migrationWallets = route.params?.wallets
-  const migrationResults = route.params?.results
-  const isMigrationMode = migrationWallets != null
-
-  // Main-mode wallet source
-  const { wallets: localWallets, onWalletDisconnected } = useWalletNav()
+  const { wallets, onWalletDisconnected } = useWalletNav()
 
   const [fastVaultMap, setFastVaultMap] = useState<
     Record<string, boolean>
   >({})
 
-  // In migration mode, track which wallets have been migrated via results
-  const migratedNames = useMemo(
-    () =>
-      new Set(
-        (migrationResults ?? [])
-          .filter((r) => r.success)
-          .map((r) => r.wallet.name)
-      ),
-    [migrationResults]
-  )
-
-  // Main-mode: check fast-vault status for each wallet
   useEffect(() => {
-    if (isMigrationMode || localWallets.length === 0) return
+    if (wallets.length === 0) return
     let cancelled = false
     Promise.allSettled(
-      localWallets.map((w) =>
+      wallets.map((w) =>
         isVaultFastVault(w.name).then((isFast) => ({
           name: w.name,
           isFast,
@@ -85,32 +67,42 @@ export default function WalletList(): React.ReactElement {
     return (): void => {
       cancelled = true
     }
-  }, [isMigrationMode, localWallets])
+  }, [wallets])
 
-  // --- Main-mode handlers ---
-
-  const handleMainPress = async (
-    wallet: LocalWallet
-  ): Promise<void> => {
+  const handlePress = async (wallet: LocalWallet): Promise<void> => {
     await settings.set({ walletName: wallet.name })
 
     if (fastVaultMap[wallet.name]) {
-      mainNav.navigate('Migration', {
-        screen: 'MigrationSuccess',
-        params: { migratedWalletName: wallet.name },
+      if (inMigrationNav) {
+        migrationNav.navigate('MigrationSuccess', {
+          migratedWalletName: wallet.name,
+        })
+      } else {
+        mainNav.navigate('Migration', {
+          screen: 'MigrationSuccess',
+          params: { migratedWalletName: wallet.name },
+        })
+      }
+    } else if (inMigrationNav) {
+      migrationNav.navigate('VaultEmail', {
+        walletName: wallet.name,
+        wallets: wallets.map((w) => ({
+          name: w.name,
+          address: w.address,
+          ledger: w.ledger,
+        })),
+        mode: 'migrate',
       })
     } else {
       mainNav.navigate('Migration', {
         screen: 'VaultEmail',
         params: {
           walletName: wallet.name,
-          wallets: [
-            {
-              name: wallet.name,
-              address: wallet.address,
-              ledger: wallet.ledger,
-            },
-          ],
+          wallets: wallets.map((w) => ({
+            name: w.name,
+            address: w.address,
+            ledger: w.ledger,
+          })),
           mode: 'migrate',
         },
       })
@@ -128,33 +120,11 @@ export default function WalletList(): React.ReactElement {
     await onWalletDisconnected()
   }
 
-  // --- Migration-mode handlers ---
-
-  const handleMigrationPress = (wallet: MigrationWallet): void => {
-    const migrated =
-      migratedNames.has(wallet.name) || wallet.ledger
-    if (migrated) {
-      migrationNav.navigate('MigrationSuccess', {
-        migratedWalletName: wallet.name,
-        wallets: migrationWallets,
-        results: migrationResults,
-      })
-    } else {
-      migrationNav.navigate('VaultEmail', {
-        walletName: wallet.name,
-        wallets: migrationWallets,
-        mode: 'migrate',
-      })
-    }
-  }
-
-  // --- Render ---
-
   return (
     <SafeAreaView style={styles.container}>
       <MigrationToolbar
         onBack={() => {
-          if (isMigrationMode) {
+          if (inMigrationNav) {
             migrationNav.goBack()
           } else {
             mainNav.navigate('Migration', {
@@ -170,9 +140,8 @@ export default function WalletList(): React.ReactElement {
         Your wallets
       </Text>
       <Text fontType="brockmann" style={styles.subtitle}>
-        {isMigrationMode
-          ? 'Handle each one separately.'
-          : `${localWallets.length} wallet${localWallets.length !== 1 ? 's' : ''} on this device`}
+        {wallets.length} wallet{wallets.length !== 1 ? 's' : ''} on
+        this device
       </Text>
 
       <ScrollView
@@ -180,48 +149,30 @@ export default function WalletList(): React.ReactElement {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {isMigrationMode
-          ? migrationWallets.map((wallet, index) => {
-              const migrated =
-                migratedNames.has(wallet.name) || wallet.ledger
-              return (
-                <WalletCard
-                  key={wallet.name}
-                  name={wallet.name}
-                  address={wallet.address}
-                  terraOnly={false}
-                  isFastVault={migrated}
-                  onPress={() => handleMigrationPress(wallet)}
-                  testID={`wallet-card-${index}`}
-                />
-              )
-            })
-          : localWallets.map((wallet, index) => (
-              <WalletCard
-                key={wallet.name}
-                name={wallet.name}
-                address={wallet.address}
-                terraOnly={wallet.terraOnly === true}
-                isFastVault={fastVaultMap[wallet.name] === true}
-                onPress={() => handleMainPress(wallet)}
-                onExport={() => handleExport(wallet)}
-                onDelete={() => handleDelete(wallet)}
-                testID={`wallet-card-${index}`}
-              />
-            ))}
+        {wallets.map((wallet, index) => (
+          <WalletCard
+            key={wallet.name}
+            name={wallet.name}
+            address={wallet.address}
+            terraOnly={wallet.terraOnly === true}
+            isFastVault={fastVaultMap[wallet.name] === true}
+            onPress={() => handlePress(wallet)}
+            onExport={() => handleExport(wallet)}
+            onDelete={() => handleDelete(wallet)}
+            testID={`wallet-card-${index}`}
+          />
+        ))}
       </ScrollView>
 
-      {!isMigrationMode && (
-        <View style={styles.footer}>
-          <Button
-            title="Add Wallet"
-            theme="ctaBlue"
-            titleFontType="brockmann-medium"
-            onPress={() => mainNav.navigate('AddWalletMenu')}
-            containerStyle={styles.addButton}
-          />
-        </View>
-      )}
+      <View style={styles.footer}>
+        <Button
+          title="Add Wallet"
+          theme="ctaBlue"
+          titleFontType="brockmann-medium"
+          onPress={() => mainNav.navigate('AddWalletMenu')}
+          containerStyle={styles.addButton}
+        />
+      </View>
     </SafeAreaView>
   )
 }
@@ -235,7 +186,7 @@ const styles = StyleSheet.create({
   title: {
     color: MIGRATION.textPrimary,
     fontSize: 22,
-    marginTop: 8,
+    marginTop: 24,
   },
   subtitle: {
     color: MIGRATION.textTertiary,

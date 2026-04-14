@@ -32,10 +32,7 @@ const DevSeedCorruptData = DevFlags.SeedCorruptData
 export type MigrationStackParams = {
   RiveIntro: undefined
   MigrationHome: undefined
-  WalletsFound: {
-    wallets: MigrationWallet[]
-    results?: MigrationResult[]
-  }
+  WalletsFound: undefined
   VaultName: undefined
   VaultEmail: {
     walletName: string
