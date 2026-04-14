@@ -86,6 +86,7 @@ export default function MigrationNavigator(): React.ReactElement {
         headerShown: false,
         animationEnabled: true,
         gestureEnabled: false,
+        cardStyle: { backgroundColor: '#02122b' },
       }}
     >
       <Stack.Screen name="RiveIntro" component={RiveIntro} />

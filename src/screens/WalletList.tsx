@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
-import {
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import type { NavigationProp } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -26,7 +23,8 @@ export default function WalletList(): React.ReactElement {
   // and MigrationNavigator (as 'WalletsFound'). We detect which
   // navigator we're in via route.name to use the correct navigation.
   const mainNav = useNavigation<NavigationProp<MainStackParams>>()
-  const migrationNav = useNavigation<StackNavigationProp<MigrationStackParams>>()
+  const migrationNav =
+    useNavigation<StackNavigationProp<MigrationStackParams>>()
   const route = useRoute()
   const inMigrationNav = route.name === 'WalletsFound'
 
@@ -69,6 +67,12 @@ export default function WalletList(): React.ReactElement {
     }
   }, [wallets])
 
+  const walletSummaries = wallets.map((w) => ({
+    name: w.name,
+    address: w.address,
+    ledger: w.ledger,
+  }))
+
   const handlePress = async (wallet: LocalWallet): Promise<void> => {
     await settings.set({ walletName: wallet.name })
 
@@ -86,11 +90,7 @@ export default function WalletList(): React.ReactElement {
     } else if (inMigrationNav) {
       migrationNav.navigate('VaultEmail', {
         walletName: wallet.name,
-        wallets: wallets.map((w) => ({
-          name: w.name,
-          address: w.address,
-          ledger: w.ledger,
-        })),
+        wallets: walletSummaries,
         mode: 'migrate',
       })
     } else {
@@ -98,11 +98,7 @@ export default function WalletList(): React.ReactElement {
         screen: 'VaultEmail',
         params: {
           walletName: wallet.name,
-          wallets: wallets.map((w) => ({
-            name: w.name,
-            address: w.address,
-            ledger: w.ledger,
-          })),
+          wallets: walletSummaries,
           mode: 'migrate',
         },
       })
@@ -181,18 +177,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: MIGRATION.bg,
-    paddingHorizontal: MIGRATION.screenPadding,
   },
   title: {
     color: MIGRATION.textPrimary,
     fontSize: 22,
     marginTop: 24,
+    paddingHorizontal: MIGRATION.screenPadding,
   },
   subtitle: {
     color: MIGRATION.textTertiary,
     fontSize: 14,
     marginTop: 8,
     marginBottom: 24,
+    paddingHorizontal: MIGRATION.screenPadding,
   },
   scrollView: {
     flex: 1,
@@ -200,9 +197,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     gap: MIGRATION.cardGap,
     paddingBottom: 16,
+    paddingHorizontal: MIGRATION.screenPadding,
   },
   footer: {
     paddingVertical: 16,
+    paddingHorizontal: MIGRATION.screenPadding,
   },
   addButton: {
     width: '100%',

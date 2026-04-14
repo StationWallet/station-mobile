@@ -4,7 +4,7 @@ export const env = {
 } as const
 
 /** Set to `true` when the full migration/vault-creation flow is ready to ship. */
-export const MIGRATION_FLOW_ENABLED = true
+export const MIGRATION_FLOW_ENABLED = false
 
 const showDevFeatures =
   __DEV__ && process.env.EXPO_PUBLIC_SHOW_DEV_FEATURES === 'true'

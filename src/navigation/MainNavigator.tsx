@@ -63,7 +63,12 @@ const Stack = createStackNavigator<MainStackParams>()
 
 export default function MainNavigator(): React.ReactElement {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: '#02122b' },
+      }}
+    >
       <Stack.Screen name="WalletList" component={WalletList} />
       <Stack.Screen name="AddWalletMenu" component={AuthMenu} />
       <Stack.Screen name="AddNewWallet" component={NewWalletStack} />

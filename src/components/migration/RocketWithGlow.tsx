@@ -54,22 +54,39 @@ export default function RocketWithGlow({
         style={styles.glow}
       >
         <Defs>
-          {/* Wide cone glow */}
           <RadialGradient id="glowMain" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%" stopColor="#1850d4" stopOpacity="0.45" />
-            <Stop offset="30%" stopColor="#1245b0" stopOpacity="0.28" />
-            <Stop offset="60%" stopColor="#0c2d7a" stopOpacity="0.12" />
+            <Stop
+              offset="0%"
+              stopColor="#1850d4"
+              stopOpacity="0.45"
+            />
+            <Stop
+              offset="30%"
+              stopColor="#1245b0"
+              stopOpacity="0.28"
+            />
+            <Stop
+              offset="60%"
+              stopColor="#0c2d7a"
+              stopOpacity="0.12"
+            />
             <Stop offset="100%" stopColor="#02122b" stopOpacity="0" />
           </RadialGradient>
-          {/* Bright core near rocket */}
           <RadialGradient id="glowCore" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%" stopColor="#2563eb" stopOpacity="0.55" />
-            <Stop offset="40%" stopColor="#1d4ed8" stopOpacity="0.25" />
+            <Stop
+              offset="0%"
+              stopColor="#2563eb"
+              stopOpacity="0.55"
+            />
+            <Stop
+              offset="40%"
+              stopColor="#1d4ed8"
+              stopOpacity="0.25"
+            />
             <Stop offset="100%" stopColor="#02122b" stopOpacity="0" />
           </RadialGradient>
         </Defs>
 
-        {/* Main cone — wide, tall ellipse centered above rocket */}
         <Ellipse
           cx={cx}
           cy={rocketCenterY - 140}
@@ -77,7 +94,6 @@ export default function RocketWithGlow({
           ry={340}
           fill="url(#glowMain)"
         />
-        {/* Bright core — smaller ellipse near rocket center */}
         <Ellipse
           cx={cx}
           cy={rocketCenterY - 30}
@@ -87,7 +103,6 @@ export default function RocketWithGlow({
         />
       </Svg>
 
-      {/* Station wallet Rive animation — same as RiveIntro */}
       {Rive && walletAnimUrl ? (
         <View style={styles.riveWrapper}>
           <Rive

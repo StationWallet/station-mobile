@@ -27,9 +27,7 @@ function LightningIcon(): React.ReactElement {
           <Stop offset="1" stopColor="#FFAA1C" />
         </LinearGradient>
       </Defs>
-      {/* Dark circle background */}
       <Circle cx={39.57} cy={22.57} r={12.9} fill="#03132C" />
-      {/* Subtle white border */}
       <Circle
         cx={39.57}
         cy={22.57}
@@ -39,7 +37,6 @@ function LightningIcon(): React.ReactElement {
         strokeWidth={1.4}
         fill="none"
       />
-      {/* Lightning bolt */}
       <Path
         d="M40.765 16.8133C40.765 16.0804 39.8194 15.786 39.4034 16.3893L34.2962 23.7947C33.9545 24.2902 34.3091 24.9656 34.911 24.9656H38.3751V28.3379C38.3751 29.0708 39.3207 29.3653 39.7368 28.762L44.8439 21.3566C45.1856 20.8611 44.831 20.1857 44.2291 20.1857H40.765V16.8133Z"
         fill="url(#boltGrad)"
