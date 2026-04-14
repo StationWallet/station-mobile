@@ -5,12 +5,47 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native'
-import Svg, { Path } from 'react-native-svg'
+import Svg, { G, Path, Rect, ClipPath, Defs } from 'react-native-svg'
 
 import { UTIL } from 'consts'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
 import Button from 'components/Button'
+
+function DownloadIcon(): React.ReactElement {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+      <Path
+        d="M14 10V12.6667C14 13.0203 13.8595 13.3594 13.6095 13.6095C13.3594 13.8595 13.0203 14 12.6667 14H3.33333C2.97971 14 2.64057 13.8595 2.39052 13.6095C2.14048 13.3594 2 13.0203 2 12.6667V10M4.66667 6.66667L8 10M8 10L11.3333 6.66667M8 10V2"
+        stroke={MIGRATION.textPrimary}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  )
+}
+
+function CloudUploadIcon(): React.ReactElement {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+      <Defs>
+        <ClipPath id="cloudClip">
+          <Rect width={16} height={16} fill="white" />
+        </ClipPath>
+      </Defs>
+      <G clipPath="url(#cloudClip)">
+        <Path
+          d="M7.99984 8.66671V14M7.99984 8.66671L5.33317 11.3334M7.99984 8.66671L10.6665 11.3334M2.66657 9.93272C2.17126 9.42667 1.79761 8.81453 1.57392 8.14268C1.35023 7.47083 1.28237 6.75688 1.37547 6.05492C1.46858 5.35296 1.7202 4.68139 2.1113 4.09108C2.50239 3.50077 3.02269 3.0072 3.63279 2.64776C4.24289 2.28831 4.92678 2.07242 5.63268 2.01644C6.33857 1.96046 7.04795 2.06585 7.70708 2.32463C8.36621 2.58341 8.9578 2.98879 9.43706 3.51008C9.91631 4.03136 10.2706 4.65488 10.4732 5.33339H11.6666C12.3102 5.33331 12.9369 5.54027 13.4539 5.92368C13.9709 6.30709 14.3509 6.84663 14.5377 7.46259C14.7246 8.07855 14.7084 8.73828 14.4915 9.3443C14.2746 9.95033 13.8685 10.4705 13.3332 10.8281"
+          stroke={MIGRATION.textPrimary}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </G>
+    </Svg>
+  )
+}
 
 function TrashIcon(): React.ReactElement {
   return (
@@ -98,9 +133,15 @@ export default function WalletCard({
       <View style={styles.buttonRow}>
         {onExport && (
           <Button
-            title="Export"
+            title={
+              <View style={styles.buttonContent}>
+                <DownloadIcon />
+                <Text fontType="brockmann-medium" style={styles.buttonLabel}>
+                  Export
+                </Text>
+              </View>
+            }
             theme="secondaryDark"
-            titleFontType="brockmann-medium"
             onPress={onExport}
             containerStyle={styles.exportButton}
             testID={testID ? `${testID}-export` : undefined}
@@ -115,9 +156,15 @@ export default function WalletCard({
           </View>
         ) : (
           <Button
-            title="Migrate to a vault"
+            title={
+              <View style={styles.buttonContent}>
+                <CloudUploadIcon />
+                <Text fontType="brockmann-medium" style={styles.buttonLabel}>
+                  Migrate to a vault
+                </Text>
+              </View>
+            }
             theme="ctaBlue"
-            titleFontType="brockmann-medium"
             onPress={onPress}
             containerStyle={styles.migrateButton}
             testID={testID ? `${testID}-migrate` : undefined}
@@ -198,5 +245,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: MIGRATION.radiusSmallButton,
     marginLeft: 'auto',
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  buttonLabel: {
+    color: MIGRATION.textPrimary,
+    fontSize: 14,
   },
 })
