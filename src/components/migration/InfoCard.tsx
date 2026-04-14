@@ -3,6 +3,7 @@ import { View, StyleSheet } from 'react-native'
 import Svg, { Path } from 'react-native-svg'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
+import { MIGRATION_FLOW_ENABLED } from 'config/env'
 
 function ShieldCheckIcon(): React.ReactElement {
   return (
@@ -84,12 +85,14 @@ export default function InfoCard({
         .
       </Text>
 
-      <View style={styles.countdownRow}>
-        <ClockIcon />
-        <Text fontType="brockmann" style={styles.countdown}>
-          The window closes in {daysRemaining} days.
-        </Text>
-      </View>
+      {MIGRATION_FLOW_ENABLED && (
+        <View style={styles.countdownRow}>
+          <ClockIcon />
+          <Text fontType="brockmann" style={styles.countdown}>
+            The window closes in {daysRemaining} days.
+          </Text>
+        </View>
+      )}
     </View>
   )
 }
