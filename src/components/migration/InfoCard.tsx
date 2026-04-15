@@ -117,13 +117,12 @@ export default function InfoCard({
               <View
                 style={{
                   position: 'absolute',
-                  bottom: -4,
-                  alignSelf: 'center',
-                  left: 5,
-                  width: 30,
+                  width: 20,
                   height: 10,
+                  left: 10,
+                  top: 30,
                   borderRadius: 50,
-                  boxShadow: '0 -4px 10px 0 rgba(255, 170, 28, 0.25)',
+                  boxShadow: '0 -6px 16px 0 rgba(255, 170, 28, 0.35)',
                 }}
               />
             </View>
