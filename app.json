@@ -60,6 +60,7 @@
       "expo-sharing",
       "expo-updates",
       "expo-document-picker",
+      "@vultisig/mpc-native",
       [
         "expo-build-properties",
         {
