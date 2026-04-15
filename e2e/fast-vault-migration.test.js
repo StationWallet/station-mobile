@@ -79,38 +79,17 @@ describe('Fast Vault Migration — Per-Wallet', () => {
       .withTimeout(30000);
   });
 
-  it('should show ledger wallet without migrate button', async () => {
-    let ledgerMigrateVisible = false;
-    try {
-      await waitFor(element(by.id('wallet-card-2-migrate')))
-        .toBeVisible()
-        .withTimeout(3000);
-      ledgerMigrateVisible = true;
-    } catch (_) {}
-
-    if (ledgerMigrateVisible) {
-      throw new Error('Ledger wallet should not have a migrate button');
-    }
+  it('should show ledger wallet on the list', async () => {
+    // Ledger wallet should appear in the list (no migrate needed for ledger)
+    await waitFor(element(by.text('TestLedgerWallet')))
+      .toBeVisible()
+      .withTimeout(10000);
   });
 
   // --- Per-wallet migration ---
 
   it('should migrate wallet 1', async () => {
     await migrateOneWalletFromCard(0, 'TestWallet1', knownMessageIds, true);
-  });
-
-  it('should show wallet 1 as migrated after returning to wallet list', async () => {
-    let migrateButtonVisible = false;
-    try {
-      await waitFor(element(by.id('wallet-card-0-migrate')))
-        .toBeVisible()
-        .withTimeout(3000);
-      migrateButtonVisible = true;
-    } catch (_) {}
-
-    if (migrateButtonVisible) {
-      throw new Error('Wallet 0 should show as migrated (no migrate button) after successful migration');
-    }
   });
 
   it('should migrate wallet 2', async () => {

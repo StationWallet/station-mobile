@@ -13,7 +13,7 @@ module.exports = {
     'ios.debug': {
       type: 'ios.app',
       binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/Vultisig.app',
-      build: 'xcodebuild -workspace ios/Vultisig.xcworkspace -scheme Vultisig -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build && set -a && source .env.test && set +a && npx expo export:embed --entry-file index.js --platform ios --dev true --bundle-output ios/build/Build/Products/Debug-iphonesimulator/Vultisig.app/main.jsbundle --assets-dest ios/build/Build/Products/Debug-iphonesimulator/Vultisig.app',
+      build: 'xcodebuild -workspace ios/Vultisig.xcworkspace -scheme Vultisig -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
     },
     'ios.release': {
       type: 'ios.app',
