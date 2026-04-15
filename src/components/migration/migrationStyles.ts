@@ -12,12 +12,14 @@ export const formStyles = StyleSheet.create({
     lineHeight: 24,
     letterSpacing: -0.36,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
     color: MIGRATION.textTertiary,
     lineHeight: 20,
     marginBottom: 32,
+    textAlign: 'center',
   },
   buttonContainer: {
     paddingHorizontal: 24,

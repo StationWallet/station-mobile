@@ -40,9 +40,14 @@ export default function WalletList(): React.ReactElement {
   const [fastVaultMap, setFastVaultMap] = useState<
     Record<string, boolean>
   >({})
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (wallets.length === 0) return
+    if (wallets.length === 0) {
+      setLoading(false)
+      return
+    }
+    setLoading(true)
     let cancelled = false
     Promise.allSettled(
       wallets.map((w) =>
@@ -68,6 +73,7 @@ export default function WalletList(): React.ReactElement {
           return prev
         return map
       })
+      setLoading(false)
     })
     return (): void => {
       cancelled = true
@@ -125,6 +131,13 @@ export default function WalletList(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.container}>
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <Text fontType="brockmann-medium" style={styles.loadingText}>
+            Loading wallets...
+          </Text>
+        </View>
+      )}
       <MigrationToolbar
         onBack={() => {
           if (inMigrationNav) {
@@ -172,7 +185,16 @@ export default function WalletList(): React.ReactElement {
           title="Add Wallet"
           theme="ctaBlue"
           titleFontType="brockmann-medium"
-          onPress={() => mainNav.navigate('AddWalletMenu')}
+          onPress={() => {
+            if (inMigrationNav) {
+              migrationNav.navigate('VaultSetup')
+            } else {
+              mainNav.navigate('Migration', {
+                screen: 'VaultSetup',
+                params: undefined,
+              } as any)
+            }
+          }}
           containerStyle={styles.addButton}
         />
       </View>
@@ -184,6 +206,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: MIGRATION.bg,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: MIGRATION.bg,
+    zIndex: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: MIGRATION.textTertiary,
+    fontSize: 15,
   },
   title: {
     color: MIGRATION.textPrimary,
