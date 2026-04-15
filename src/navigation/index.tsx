@@ -88,9 +88,7 @@ export default function AppNavigator(): React.ReactElement | null {
     await loadWallets()
   }, [loadWallets])
 
-  const onWalletCreated = useCallback(async () => {
-    await loadWallets()
-  }, [loadWallets])
+  const onWalletCreated = refreshWallets
 
   const onWalletDisconnected = useCallback(async () => {
     const loaded = await loadWallets()
