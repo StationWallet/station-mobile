@@ -38,10 +38,9 @@ export default function VaultEmail(): React.ReactElement {
   } = route.params
 
   const [email, setEmail] = useState(prefillEmail ?? '')
-  const [touched, setTouched] = useState(false)
 
   const valid = isValidEmail(email)
-  const showError = touched && !valid
+  const showError = email.length > 0 && !valid
 
   const stepBarCurrentStep = mode === 'create' ? 2 : 1
 
@@ -74,7 +73,6 @@ export default function VaultEmail(): React.ReactElement {
             style={[styles.input, showError && styles.inputError]}
             value={email}
             onChangeText={setEmail}
-            onBlur={() => setTouched(true)}
             placeholder="you@example.com"
             placeholderTextColor={MIGRATION.textTertiary}
             keyboardType="email-address"
@@ -85,7 +83,7 @@ export default function VaultEmail(): React.ReactElement {
 
           {showError && (
             <Text style={styles.errorText} fontType="brockmann">
-              Please enter a valid email address.
+              Incorrect e-mail, please check
             </Text>
           )}
         </Animated.View>

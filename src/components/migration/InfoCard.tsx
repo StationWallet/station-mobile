@@ -104,12 +104,13 @@ export default function InfoCard({
         ]}
       >
         <View style={styles.titleRow}>
-          <View style={{ position: 'relative' }}>
+          <View style={{ position: 'relative', overflow: 'hidden' }}>
             <LightningIcon />
             <View
               style={{
                 position: 'absolute',
                 bottom: -12,
+                alignSelf: 'center',
                 left: 3,
                 width: 20,
                 height: 10,

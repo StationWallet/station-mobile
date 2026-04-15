@@ -33,17 +33,12 @@ export default function VaultPassword(): React.ReactElement {
 
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
-  const [passwordTouched, setPasswordTouched] = useState(false)
-  const [confirmTouched, setConfirmTouched] = useState(false)
 
-  const passwordTooShort = password.length > 0 && password.length < 6
-  const passwordsDontMatch =
-    confirm.length > 0 && confirm !== password
+  const isPasswordValid = password.length >= 6
+  const showPasswordError = password.length > 0 && !isPasswordValid
+  const showConfirmError = confirm.length > 0 && confirm !== password
 
-  const showPasswordError = passwordTouched && passwordTooShort
-  const showConfirmError = confirmTouched && passwordsDontMatch
-
-  const isValid = password.length >= 6 && confirm === password
+  const isValid = isPasswordValid && confirm === password
 
   const stepBarCurrentStep = mode === 'create' ? 3 : 2
   const buttonText = mode === 'create' ? 'Create vault' : 'Continue'
@@ -80,7 +75,6 @@ export default function VaultPassword(): React.ReactElement {
             ]}
             value={password}
             onChangeText={setPassword}
-            onBlur={() => setPasswordTouched(true)}
             placeholder="At least 6 characters"
             placeholderTextColor={MIGRATION.textTertiary}
             secureTextEntry
@@ -103,7 +97,6 @@ export default function VaultPassword(): React.ReactElement {
             ]}
             value={confirm}
             onChangeText={setConfirm}
-            onBlur={() => setConfirmTouched(true)}
             placeholder="Confirm password"
             placeholderTextColor={MIGRATION.textTertiary}
             secureTextEntry
