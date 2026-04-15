@@ -143,6 +143,7 @@ export default function MigrationSuccess(): React.ReactElement {
   }, [])
 
   return (
+    <View style={styles.screen}>
     <SafeAreaView style={styles.container}>
       <MigrationToolbar onBack={handleBack} testID="success-back" />
 
@@ -237,10 +238,15 @@ export default function MigrationSuccess(): React.ReactElement {
         />
       )}
     </SafeAreaView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: MIGRATION.bg,
+  },
   container: {
     flex: 1,
     backgroundColor: MIGRATION.bg,
