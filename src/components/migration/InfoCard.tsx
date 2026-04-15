@@ -1,7 +1,6 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import Svg, {
-  Circle,
   Defs,
   LinearGradient,
   Path,
@@ -13,32 +12,22 @@ import { MIGRATION_FLOW_ENABLED } from 'config/env'
 
 function LightningIcon(): React.ReactElement {
   return (
-    <Svg width={30} height={30} viewBox="24 7 32 32" fill="none">
+    <Svg width={15} height={15} viewBox="0 0 15 15" fill="none">
       <Defs>
         <LinearGradient
           id="boltGrad"
-          x1="39.57"
-          y1="16.07"
-          x2="41.67"
-          y2="27.27"
+          x1="7.165"
+          y1="0.664"
+          x2="9.263"
+          y2="11.872"
           gradientUnits="userSpaceOnUse"
         >
           <Stop stopColor="#F2C375" />
           <Stop offset="1" stopColor="#FFAA1C" />
         </LinearGradient>
       </Defs>
-      <Circle cx={39.57} cy={22.57} r={12.9} fill="#03132C" />
-      <Circle
-        cx={39.57}
-        cy={22.57}
-        r={12.9}
-        stroke="white"
-        strokeOpacity={0.1}
-        strokeWidth={2.87}
-        fill="none"
-      />
       <Path
-        d="M40.765 16.8133C40.765 16.0804 39.8194 15.786 39.4034 16.3893L34.2962 23.7947C33.9545 24.2902 34.3091 24.9656 34.911 24.9656H38.3751V28.3379C38.3751 29.0708 39.3207 29.3653 39.7368 28.762L44.8439 21.3566C45.1856 20.8611 44.831 20.1857 44.2291 20.1857H40.765V16.8133Z"
+        d="M8.36 1.41232C8.36 0.679429 7.41436 0.384987 6.99833 0.988304L1.89113 8.39374C1.54944 8.88917 1.9041 9.56457 2.50595 9.56457H5.97005V12.9369C5.97005 13.6698 6.91564 13.9643 7.33173 13.361L12.4389 5.95557C12.7806 5.46012 12.4259 4.7847 11.8241 4.7847H8.36V1.41232Z"
         fill="url(#boltGrad)"
       />
     </Svg>
@@ -109,16 +98,19 @@ export default function InfoCard({
                 width: 30,
                 height: 30,
                 borderRadius: 15,
-                overflow: 'hidden',
+                borderWidth: 2,
+                borderColor: 'rgba(255,255,255,0.1)',
+                backgroundColor: '#03132C',
                 alignItems: 'center',
                 justifyContent: 'center',
+                overflow: 'hidden',
               }}
             >
               <LightningIcon />
               <View
                 style={{
                   position: 'absolute',
-                  bottom: -8,
+                  bottom: -12,
                   width: 20,
                   height: 10,
                   borderRadius: 50,
