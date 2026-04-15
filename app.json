@@ -61,6 +61,7 @@
       "expo-updates",
       "expo-document-picker",
       "@vultisig/mpc-native",
+      "./plugins/withTrustwalletMavenRepo",
       [
         "expo-build-properties",
         {
