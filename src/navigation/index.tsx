@@ -123,7 +123,13 @@ export default function AppNavigator(): React.ReactElement | null {
       wallets,
       refreshWallets,
     }),
-    [onWalletCreated, onWalletDisconnected, goToMigration, wallets, refreshWallets]
+    [
+      onWalletCreated,
+      onWalletDisconnected,
+      goToMigration,
+      wallets,
+      refreshWallets,
+    ]
   )
 
   const migrationValue = useMemo(

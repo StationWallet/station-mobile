@@ -7,7 +7,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useWalletNav } from 'navigation/hooks'
 import { settings } from 'utils/storage'
-import { getWallets as fetchWallets, deleteWallet } from 'utils/wallet'
+import {
+  getWallets as fetchWallets,
+  deleteWallet,
+} from 'utils/wallet'
 import { isVaultFastVault } from 'services/migrateToVault'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
@@ -28,7 +31,8 @@ export default function WalletList(): React.ReactElement {
   const route = useRoute()
   const inMigrationNav = route.name === 'WalletsFound'
 
-  const { wallets: contextWallets, onWalletDisconnected } = useWalletNav()
+  const { wallets: contextWallets, onWalletDisconnected } =
+    useWalletNav()
 
   // Read wallets directly from the store on mount — the context may
   // have stale data if migration completed after the initial wallet load.
@@ -38,7 +42,8 @@ export default function WalletList(): React.ReactElement {
   }, [])
 
   // Use local wallets if context is empty (race condition with migration)
-  const wallets = contextWallets.length > 0 ? contextWallets : localWallets
+  const wallets =
+    contextWallets.length > 0 ? contextWallets : localWallets
 
   const [fastVaultMap, setFastVaultMap] = useState<
     Record<string, boolean>

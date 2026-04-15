@@ -107,7 +107,8 @@ export async function exportVaultShare(
  * Opens the system share sheet for a .vult file.
  */
 export async function shareVaultFile(fileUri: string): Promise<void> {
-  const Sharing = require('expo-sharing') as typeof import('expo-sharing')
+  const Sharing =
+    require('expo-sharing') as typeof import('expo-sharing')
   await Sharing.shareAsync(fileUri, {
     mimeType: 'application/octet-stream',
     dialogTitle: 'Export Vault Share',
