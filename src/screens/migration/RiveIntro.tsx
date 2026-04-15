@@ -1,9 +1,9 @@
 import React, { useCallback, useRef, useState } from 'react'
 import {
   Animated,
-  Image,
   NativeModules,
   PanResponder,
+  PixelRatio,
   Pressable,
   StatusBar,
   View,
@@ -23,20 +23,14 @@ const isDetox = NativeModules.DetoxManager != null
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamically loaded Rive component with no TS definitions
 let Rive: any = null
-let walletAnimUrl: string | null = null
-let backgroundAnimUrl: string | null = null
+let walletAnimSource: number | null = null
+let backgroundAnimSource: number | null = null
 
 if (!isDetox) {
   try {
     Rive = require('rive-react-native').default
-    walletAnimUrl =
-      Image.resolveAssetSource(
-        require('../../../assets/animations/station_wallet_animation.riv')
-      )?.uri ?? null
-    backgroundAnimUrl =
-      Image.resolveAssetSource(
-        require('../../../assets/animations/agent_background_transition.riv')
-      )?.uri ?? null
+    walletAnimSource = require('../../../assets/animations/station_wallet_animation.riv')
+    backgroundAnimSource = require('../../../assets/animations/agent_background_transition.riv')
   } catch {
     // rive-react-native not available — will render static fallback
   }
@@ -142,7 +136,7 @@ export default function RiveIntro(): React.ReactElement {
     <View style={styles.container} {...panResponder.panHandlers}>
       <StatusBar barStyle="dark-content" />
       {/* Wallet Rive animation */}
-      {Rive && walletAnimUrl ? (
+      {Rive && walletAnimSource ? (
         <Animated.View
           style={[
             styles.walletAnimation,
@@ -158,9 +152,10 @@ export default function RiveIntro(): React.ReactElement {
           ]}
         >
           <Rive
-            url={walletAnimUrl}
+            source={walletAnimSource}
             style={StyleSheet.absoluteFill}
             autoplay
+            layoutScaleFactor={PixelRatio.get()}
           />
         </Animated.View>
       ) : (
@@ -210,11 +205,12 @@ export default function RiveIntro(): React.ReactElement {
           style={[StyleSheet.absoluteFill, { opacity: bgOpacity }]}
           pointerEvents="none"
         >
-          {Rive && backgroundAnimUrl ? (
+          {Rive && backgroundAnimSource ? (
             <Rive
-              url={backgroundAnimUrl}
+              source={backgroundAnimSource}
               style={StyleSheet.absoluteFill}
               autoplay
+              layoutScaleFactor={PixelRatio.get()}
             />
           ) : (
             <View
