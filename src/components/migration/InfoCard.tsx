@@ -110,19 +110,19 @@ export default function InfoCard({
                 height: 30,
                 borderRadius: 15,
                 overflow: 'hidden',
-                position: 'relative',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
               <LightningIcon />
               <View
                 style={{
                   position: 'absolute',
+                  bottom: -12,
                   width: 20,
                   height: 10,
-                  left: 5,
-                  top: 30,
                   borderRadius: 50,
-                  boxShadow: '0 -6px 16px 0 rgba(255, 170, 28, 0.35)',
+                  boxShadow: '0 -6px 16px 0 #FFAA1C',
                 }}
               />
             </View>
