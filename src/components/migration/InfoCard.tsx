@@ -13,7 +13,7 @@ import { MIGRATION_FLOW_ENABLED } from 'config/env'
 
 function LightningIcon(): React.ReactElement {
   return (
-    <Svg width={40} height={40} viewBox="24 7 32 32" fill="none">
+    <Svg width={24} height={24} viewBox="24 7 32 32" fill="none">
       <Defs>
         <LinearGradient
           id="boltGrad"
@@ -106,9 +106,9 @@ export default function InfoCard({
         <View style={styles.contentRow}>
           <View
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
+                width: 24,
+                height: 24,
+                borderRadius: 12,
                 overflow: 'hidden',
                 position: 'relative',
               }}
@@ -117,10 +117,10 @@ export default function InfoCard({
               <View
                 style={{
                   position: 'absolute',
-                  width: 20,
+                  width: 16,
                   height: 10,
-                  left: 10,
-                  top: 30,
+                  left: 4,
+                  top: 18,
                   borderRadius: 50,
                   boxShadow: '0 -6px 16px 0 rgba(255, 170, 28, 0.35)',
                 }}
