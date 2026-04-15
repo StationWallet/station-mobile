@@ -45,18 +45,36 @@ function LightningIcon(): React.ReactElement {
   )
 }
 
-function ClockIcon(): React.ReactElement {
+function CalendarClockIcon(): React.ReactElement {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      {/* Calendar body */}
       <Path
-        d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
+        d="M8 2v3M16 2v3M3 8h18M5 4h14a2 2 0 012 2v4H3V6a2 2 0 012-2z"
         stroke="#4879fd"
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      {/* Calendar bottom left */}
       <Path
-        d="M12 6v6l4 2"
+        d="M3 10v8a2 2 0 002 2h6"
+        stroke="#4879fd"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Clock circle */}
+      <Path
+        d="M18 22a4 4 0 100-8 4 4 0 000 8z"
+        stroke="#4879fd"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Clock hands */}
+      <Path
+        d="M18 16.5v1.5l1 1"
         stroke="#4879fd"
         strokeWidth={1.5}
         strokeLinecap="round"
@@ -77,7 +95,7 @@ export default function InfoCard({
 }: Props): React.ReactElement {
   return (
     <View>
-      {/* Main card */}
+      {/* Main card — zIndex 1 so it sits on top of the countdown strip */}
       <View
         style={[
           styles.card,
@@ -117,10 +135,10 @@ export default function InfoCard({
         </Text>
       </View>
 
-      {/* Bottom strip with countdown */}
+      {/* Bottom strip with countdown — sits behind the main card */}
       {MIGRATION_FLOW_ENABLED && (
         <View style={styles.countdownStrip}>
-          <ClockIcon />
+          <CalendarClockIcon />
           <Text fontType="brockmann-medium" style={styles.countdown}>
             The window closes in {daysRemaining} days.
           </Text>
@@ -139,6 +157,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 16,
     gap: 12,
+    zIndex: 1,
   },
   cardConnectedBottom: {
     borderBottomLeftRadius: 0,
@@ -146,8 +165,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   cardWithCountdown: {
-    borderBottomLeftRadius: MIGRATION.radiusCard,
-    borderBottomRightRadius: MIGRATION.radiusCard,
+    // Keep full border-radius — the card sits ON TOP of the strip
+    // so its bottom border-radius creates a nice curved overlap effect
   },
   titleRow: {
     flexDirection: 'row',
@@ -156,9 +175,10 @@ const styles = StyleSheet.create({
   },
   lightningIconContainer: {
     shadowColor: '#FFAA1C',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 10,
+    elevation: 8,
   },
   title: {
     fontSize: 15,
@@ -179,15 +199,17 @@ const styles = StyleSheet.create({
   },
   countdownStrip: {
     backgroundColor: MIGRATION.surface1,
-    borderRadius: MIGRATION.radiusCard,
-    marginTop: -12,
-    paddingTop: 24,
+    borderBottomLeftRadius: MIGRATION.radiusCard,
+    borderBottomRightRadius: MIGRATION.radiusCard,
+    marginTop: -20,
+    paddingTop: 32,
     paddingBottom: 14,
     paddingHorizontal: 32,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    zIndex: 0,
   },
   countdown: {
     fontSize: 12,

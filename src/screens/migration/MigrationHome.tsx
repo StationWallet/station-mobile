@@ -30,14 +30,28 @@ function CalendarClockIcon(): React.ReactElement {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
       <Path
-        d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
+        d="M8 2v3M16 2v3M3 8h18M5 4h14a2 2 0 012 2v4H3V6a2 2 0 012-2z"
         stroke="#4879fd"
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <Path
-        d="M12 6v6l4 2"
+        d="M3 10v8a2 2 0 002 2h6"
+        stroke="#4879fd"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M18 22a4 4 0 100-8 4 4 0 000 8z"
+        stroke="#4879fd"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M18 16.5v1.5l1 1"
         stroke="#4879fd"
         strokeWidth={1.5}
         strokeLinecap="round"
@@ -83,7 +97,7 @@ export default function MigrationHome(): React.ReactElement {
     if (hasLegacyWallets) {
       navigation.navigate('WalletsFound')
     } else {
-      navigation.navigate('VaultName')
+      navigation.navigate('VaultSetup')
     }
   }
 
@@ -254,6 +268,7 @@ const styles = StyleSheet.create({
     backgroundColor: MIGRATION.surface1,
     borderBottomLeftRadius: MIGRATION.radiusCard,
     borderBottomRightRadius: MIGRATION.radiusCard,
+    marginTop: -20,
     paddingTop: 32,
     paddingBottom: 14,
     paddingHorizontal: 32,
@@ -261,6 +276,7 @@ const styles = StyleSheet.create({
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
     gap: 8,
+    zIndex: 0,
   },
   checkBackText: {
     fontSize: 12,
