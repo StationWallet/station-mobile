@@ -4,9 +4,13 @@ import React, {
   useState,
   useCallback,
 } from 'react'
-import { View, StyleSheet, Dimensions } from 'react-native'
+import { View, StyleSheet, Dimensions, PixelRatio } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import { useNavigation, useRoute } from '@react-navigation/native'
+import {
+  useNavigation,
+  useRoute,
+  useIsFocused,
+} from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { RouteProp } from '@react-navigation/native'
 
@@ -54,6 +58,7 @@ export default function KeygenProgress(): React.ReactElement {
     mode,
   } = route.params
 
+  const isFocused = useIsFocused()
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -222,21 +227,24 @@ export default function KeygenProgress(): React.ReactElement {
 
   return (
     <View style={styles.container}>
-      {/* Full-screen Rive animation */}
+      {/* Full-screen Rive animation — unmount when navigated away to stop audio */}
       <View style={styles.riveContainer}>
-        <RiveComponent
-          ref={setRiveRef}
-          source={require('../../../assets/animations/keygen_fast.riv')}
-          autoplay
-          fit={RiveFitEnum.Layout}
-          style={styles.riveView}
-          dataBinding={AutoBindFn(autoBind)}
-          onStateChanged={() => {
-            if (!autoBind) {
-              setAutoBind(true)
-            }
-          }}
-        />
+        {isFocused && (
+          <RiveComponent
+            ref={setRiveRef}
+            source={require('../../../assets/animations/keygen_fast.riv')}
+            autoplay
+            fit={RiveFitEnum.Layout}
+            layoutScaleFactor={PixelRatio.get()}
+            style={styles.riveView}
+            dataBinding={AutoBindFn(autoBind)}
+            onStateChanged={() => {
+              if (!autoBind) {
+                setAutoBind(true)
+              }
+            }}
+          />
+        )}
       </View>
 
       {/* Error overlay */}
