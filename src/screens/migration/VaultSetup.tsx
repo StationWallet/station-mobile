@@ -1,9 +1,19 @@
 import React from 'react'
-import { View, StyleSheet, Dimensions, PixelRatio } from 'react-native'
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  PixelRatio,
+} from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
-import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg'
+import Svg, {
+  Path,
+  Defs,
+  LinearGradient,
+  Stop,
+} from 'react-native-svg'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -12,7 +22,9 @@ import { MIGRATION } from 'consts/migration'
 import { formStyles } from 'components/migration/migrationStyles'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-let RiveComponent: React.ComponentType<Record<string, unknown>> | null = null
+let RiveComponent: React.ComponentType<
+  Record<string, unknown>
+> | null = null
 try {
   RiveComponent = require('rive-react-native').default
 } catch {
@@ -27,7 +39,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 type Nav = StackNavigationProp<MigrationStackParams, 'VaultSetup'>
 
-function LightningIcon() {
+function LightningIcon(): React.ReactElement {
   return (
     <View style={styles.iconOuter}>
       <View style={styles.iconInner}>
@@ -62,7 +74,7 @@ function InfoBullet({
   icon: React.ReactNode
   title: string
   description: string
-}) {
+}): React.ReactElement {
   return (
     <View style={styles.bulletRow}>
       <View style={styles.bulletIcon}>{icon}</View>
@@ -78,7 +90,7 @@ function InfoBullet({
   )
 }
 
-function DeviceIcon() {
+function DeviceIcon(): React.ReactElement {
   return (
     <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
       <Path
@@ -89,7 +101,7 @@ function DeviceIcon() {
   )
 }
 
-function ShieldIcon() {
+function ShieldIcon(): React.ReactElement {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
       <Path
@@ -100,7 +112,7 @@ function ShieldIcon() {
   )
 }
 
-function LockIcon() {
+function LockIcon(): React.ReactElement {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
       <Path
@@ -127,7 +139,10 @@ export default function VaultSetup(): React.ReactElement {
         <View style={styles.chip}>
           <LightningIcon />
           <View style={styles.chipText}>
-            <Text fontType="brockmann-medium" style={styles.chipTitle}>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.chipTitle}
+            >
               Fast Vault
             </Text>
             <Text fontType="brockmann" style={styles.chipSubtitle}>

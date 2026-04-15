@@ -30,8 +30,6 @@ import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 type Nav = StackNavigationProp<MigrationStackParams, 'VerifyEmail'>
 type Route = RouteProp<MigrationStackParams, 'VerifyEmail'>
 
-const CODE_LENGTH = 4
-
 function EmailCircleIcon(): React.ReactElement {
   return (
     <View style={styles.emailIconOuter}>
@@ -172,7 +170,10 @@ export default function VerifyEmail(): React.ReactElement {
                   ]}
                 >
                   {digit ? (
-                    <Text style={styles.digitText} fontType="brockmann-bold">
+                    <Text
+                      style={styles.digitText}
+                      fontType="brockmann-bold"
+                    >
                       {digit}
                     </Text>
                   ) : isActive ? (
@@ -190,7 +191,10 @@ export default function VerifyEmail(): React.ReactElement {
             onPress={handlePaste}
             style={styles.pasteButton}
           >
-            <Text style={styles.pasteText} fontType="brockmann-medium">
+            <Text
+              style={styles.pasteText}
+              fontType="brockmann-medium"
+            >
               Paste
             </Text>
           </Pressable>
@@ -228,7 +232,10 @@ export default function VerifyEmail(): React.ReactElement {
             }}
             style={styles.differentEmailButton}
           >
-            <Text style={styles.differentEmailText} fontType="brockmann-medium">
+            <Text
+              style={styles.differentEmailText}
+              fontType="brockmann-medium"
+            >
               Use a different email
             </Text>
           </Pressable>
