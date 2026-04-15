@@ -104,21 +104,29 @@ export default function InfoCard({
         ]}
       >
         <View style={styles.titleRow}>
-          <View style={{ position: 'relative', overflow: 'hidden' }}>
-            <LightningIcon />
-            <View
+          <View
               style={{
-                position: 'absolute',
-                bottom: -12,
-                alignSelf: 'center',
-                left: 3,
-                width: 20,
-                height: 10,
-                borderRadius: 50,
-                boxShadow: '0 -6px 16px 0 #FFAA1C',
+                width: 25,
+                height: 25,
+                borderRadius: 12.5,
+                overflow: 'hidden',
+                position: 'relative',
               }}
-            />
-          </View>
+            >
+              <LightningIcon />
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: -6,
+                  alignSelf: 'center',
+                  left: 3,
+                  width: 20,
+                  height: 10,
+                  borderRadius: 50,
+                  boxShadow: '0 -6px 16px 0 #FFAA1C',
+                }}
+              />
+            </View>
           <Text fontType="brockmann-medium" style={styles.title}>
             A new type of wallet
           </Text>
