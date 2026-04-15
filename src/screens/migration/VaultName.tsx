@@ -7,7 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import Animated, {
@@ -27,15 +27,18 @@ type Nav = StackNavigationProp<MigrationStackParams, 'VaultName'>
 
 export default function VaultName(): React.ReactElement {
   const navigation = useNavigation<Nav>()
+  const insets = useSafeAreaInsets()
   const [name, setName] = useState('')
 
   return (
-    <SafeAreaView style={formStyles.container}>
+    <View style={formStyles.container}>
       <KeyboardAvoidingView
         style={formStyles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <MigrationToolbar onBack={() => navigation.goBack()} />
+        <View style={{ paddingTop: insets.top }}>
+          <MigrationToolbar onBack={() => navigation.goBack()} />
+        </View>
 
         <StepProgressBar currentStep={1} />
 
@@ -74,7 +77,12 @@ export default function VaultName(): React.ReactElement {
           </View>
         </Animated.View>
 
-        <View style={formStyles.buttonContainer}>
+        <View
+          style={[
+            formStyles.buttonContainer,
+            { paddingBottom: Math.max(insets.bottom, 16) },
+          ]}
+        >
           <Button
             testID="vault-name-next"
             title="Next"
@@ -91,7 +99,7 @@ export default function VaultName(): React.ReactElement {
           />
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   )
 }
 

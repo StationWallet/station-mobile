@@ -1,6 +1,5 @@
 import React, { useEffect, useState, ReactElement } from 'react'
 import { Dimensions, Image, StyleSheet, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { COLOR } from 'consts'
@@ -52,7 +51,7 @@ const Update = (props: Props): ReactElement => {
         },
       ]}
     >
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <Image
           source={images.loading_image}
           style={{ width: 160, height: 160 }}
@@ -79,7 +78,7 @@ const Update = (props: Props): ReactElement => {
             ]}
           />
         </View>
-      </SafeAreaView>
+      </View>
     </View>
   )
 }

@@ -6,7 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { RouteProp } from '@react-navigation/native'
@@ -44,13 +44,17 @@ export default function VaultEmail(): React.ReactElement {
 
   const stepBarCurrentStep = mode === 'create' ? 2 : 1
 
+  const insets = useSafeAreaInsets()
+
   return (
-    <SafeAreaView style={formStyles.container}>
+    <View style={formStyles.container}>
       <KeyboardAvoidingView
         style={formStyles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <MigrationToolbar onBack={() => navigation.goBack()} />
+        <View style={{ paddingTop: insets.top }}>
+          <MigrationToolbar onBack={() => navigation.goBack()} />
+        </View>
 
         <StepProgressBar currentStep={stepBarCurrentStep} />
 
@@ -88,7 +92,12 @@ export default function VaultEmail(): React.ReactElement {
           )}
         </Animated.View>
 
-        <View style={formStyles.buttonContainer}>
+        <View
+          style={[
+            formStyles.buttonContainer,
+            { paddingBottom: Math.max(insets.bottom, 16) },
+          ]}
+        >
           <Button
             testID="vault-email-next"
             title="Next"
@@ -107,7 +116,7 @@ export default function VaultEmail(): React.ReactElement {
           />
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   )
 }
 

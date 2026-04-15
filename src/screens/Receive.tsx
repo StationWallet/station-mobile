@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react'
 import { View, StyleSheet } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as Clipboard from 'expo-clipboard'
 import QRCode from 'react-native-qrcode-svg'
 import { RouteProp, useRoute } from '@react-navigation/native'
@@ -14,13 +14,22 @@ type RouteParams = { Receive: { address: string } }
 export default function Receive(): React.ReactElement {
   const { params } = useRoute<RouteProp<RouteParams, 'Receive'>>()
   const { address } = params
+  const insets = useSafeAreaInsets()
 
   const copyAddress = useCallback(async () => {
     await Clipboard.setStringAsync(address)
   }, [address])
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: insets.top,
+          paddingBottom: Math.max(insets.bottom, 16),
+        },
+      ]}
+    >
       <Text style={styles.title}>Receive</Text>
 
       <View style={styles.qrContainer}>
@@ -41,7 +50,7 @@ export default function Receive(): React.ReactElement {
         onPress={copyAddress}
         containerStyle={styles.copyButton}
       />
-    </SafeAreaView>
+    </View>
   )
 }
 
