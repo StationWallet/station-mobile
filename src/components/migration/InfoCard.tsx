@@ -103,7 +103,7 @@ export default function InfoCard({
           MIGRATION_FLOW_ENABLED && styles.cardWithCountdown,
         ]}
       >
-        <View style={styles.titleRow}>
+        <View style={styles.contentRow}>
           <View
               style={{
                 width: 25,
@@ -127,32 +127,34 @@ export default function InfoCard({
                 }}
               />
             </View>
-          <Text fontType="brockmann-medium" style={styles.title}>
-            A new type of wallet
-          </Text>
+          <View style={styles.textColumn}>
+            <Text fontType="brockmann-medium" style={styles.title}>
+              A new type of wallet
+            </Text>
+
+            <Text fontType="brockmann-medium" style={styles.body}>
+              Faster transactions. Stronger security.{'\n'}
+              One password instead of 12 words.
+            </Text>
+
+            <Text fontType="brockmann-medium" style={styles.body}>
+              Fast Vaults are the next evolution of self-custody, built
+              for what&apos;s coming to Station.
+            </Text>
+
+            <Text fontType="brockmann-medium" style={styles.body}>
+              Early explorers get{' '}
+              <Text fontType="brockmann-bold" style={styles.bodyBold}>
+                Station OG
+              </Text>{' '}
+              status and a{' '}
+              <Text fontType="brockmann-bold" style={styles.bodyBold}>
+                $VULT airdrop
+              </Text>
+              .
+            </Text>
+          </View>
         </View>
-
-        <Text fontType="brockmann-medium" style={styles.body}>
-          Faster transactions. Stronger security.{'\n'}
-          One password instead of 12 words.
-        </Text>
-
-        <Text fontType="brockmann-medium" style={styles.body}>
-          Fast Vaults are the next evolution of self-custody, built
-          for what&apos;s coming to Station.
-        </Text>
-
-        <Text fontType="brockmann-medium" style={styles.body}>
-          Early explorers get{' '}
-          <Text fontType="brockmann-bold" style={styles.bodyBold}>
-            Station OG
-          </Text>{' '}
-          status and a{' '}
-          <Text fontType="brockmann-bold" style={styles.bodyBold}>
-            $VULT airdrop
-          </Text>
-          .
-        </Text>
       </View>
 
       {/* Bottom strip with countdown — sits behind the main card */}
@@ -188,9 +190,13 @@ const styles = StyleSheet.create({
     // Keep full border-radius — the card sits ON TOP of the strip
     // so its bottom border-radius creates a nice curved overlap effect
   },
-  titleRow: {
+  contentRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  textColumn: {
+    flex: 1,
     gap: 12,
   },
   title: {
