@@ -18,7 +18,7 @@ import { DevFlags } from '../../config/env'
 import Button from 'components/Button'
 import InfoCard from 'components/migration/InfoCard'
 import RocketWithGlow from 'components/migration/RocketWithGlow'
-import BackgroundGlow from 'components/migration/BackgroundGlow'
+import PrimaryBackground from 'components/PrimaryBackground'
 import {
   discoverLegacyWallets,
   MigrationWallet,
@@ -88,8 +88,10 @@ export default function MigrationHome(): React.ReactElement {
   }
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-      <BackgroundGlow />
+    <View
+      style={[styles.container, { paddingBottom: insets.bottom }]}
+    >
+      <PrimaryBackground />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -101,7 +103,7 @@ export default function MigrationHome(): React.ReactElement {
             entering={FadeIn.delay(0).duration(300)}
             style={[
               styles.animationPlaceholder,
-              { marginTop: Math.max(0, 92 - insets.top) },
+              { marginTop: Math.max(20, 140 - insets.top) },
             ]}
           >
             <RocketWithGlow size={200} />
@@ -175,7 +177,10 @@ export default function MigrationHome(): React.ReactElement {
                 )
               }}
             >
-              <Text fontType="brockmann-medium" style={styles.linkText}>
+              <Text
+                fontType="brockmann-medium"
+                style={styles.linkText}
+              >
                 Learn more about Vault security
               </Text>
             </TouchableOpacity>

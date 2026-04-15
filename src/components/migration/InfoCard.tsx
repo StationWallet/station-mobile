@@ -86,7 +86,9 @@ export default function InfoCard({
         ]}
       >
         <View style={styles.titleRow}>
-          <LightningIcon />
+          <View style={styles.lightningIconContainer}>
+            <LightningIcon />
+          </View>
           <Text fontType="brockmann-medium" style={styles.title}>
             A new type of wallet
           </Text>
@@ -98,8 +100,8 @@ export default function InfoCard({
         </Text>
 
         <Text fontType="brockmann-medium" style={styles.body}>
-          Fast Vaults are the next evolution of self-custody, built for
-          what&apos;s coming to Station.
+          Fast Vaults are the next evolution of self-custody, built
+          for what&apos;s coming to Station.
         </Text>
 
         <Text fontType="brockmann-medium" style={styles.body}>
@@ -144,14 +146,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   cardWithCountdown: {
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    borderBottomWidth: 0,
+    borderBottomLeftRadius: MIGRATION.radiusCard,
+    borderBottomRightRadius: MIGRATION.radiusCard,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  lightningIconContainer: {
+    shadowColor: '#FFAA1C',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
   },
   title: {
     fontSize: 15,
@@ -172,9 +179,9 @@ const styles = StyleSheet.create({
   },
   countdownStrip: {
     backgroundColor: MIGRATION.surface1,
-    borderBottomLeftRadius: MIGRATION.radiusCard,
-    borderBottomRightRadius: MIGRATION.radiusCard,
-    paddingTop: 32,
+    borderRadius: MIGRATION.radiusCard,
+    marginTop: -12,
+    paddingTop: 24,
     paddingBottom: 14,
     paddingHorizontal: 32,
     flexDirection: 'row',
