@@ -68,6 +68,9 @@ android/app/src/main/java/money/terra/station/generated/BasePackageList.java
 
 .scannerwork
 
+# Environment files (contain secrets)
+.env*
+
 # Expo
 .expo/
 ios/
