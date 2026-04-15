@@ -4,18 +4,19 @@ import React, {
   useState,
   useCallback,
 } from 'react'
-import { View, StyleSheet } from 'react-native'
-import Animated, {
-  FadeIn,
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { View, StyleSheet, Dimensions } from 'react-native'
+import Animated, { FadeIn } from 'react-native-reanimated'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { RouteProp } from '@react-navigation/native'
+
+import RiveComponent, {
+  useRive,
+  useRiveBoolean,
+  useRiveNumber,
+  Fit as RiveFitEnum,
+  AutoBind as AutoBindFn,
+} from 'rive-react-native'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -38,6 +39,8 @@ import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 type Nav = StackNavigationProp<MigrationStackParams, 'KeygenProgress'>
 type Route = RouteProp<MigrationStackParams, 'KeygenProgress'>
 
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+
 export default function KeygenProgress(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
@@ -54,22 +57,72 @@ export default function KeygenProgress(): React.ReactElement {
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+  const mountedRef = useRef(true)
 
-  const progressValue = useSharedValue(0)
+  // Rive data binding state
+  const [autoBind, setAutoBind] = useState(false)
+  const [setRiveRef, riveRef] = useRive()
+  const [, setConnected] = useRiveBoolean(riveRef, 'Connected')
+  const [, setRiveProgress] = useRiveNumber(riveRef, 'progessPercentage')
+  const [, setPosX] = useRiveNumber(riveRef, 'posXcircles')
 
-  const progressBarStyle = useAnimatedStyle(() => ({
-    width: `${progressValue.value}%` as `${number}%`,
-  }))
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  // Set initial position once autoBind is ready
+  useEffect(() => {
+    if (riveRef && autoBind && mountedRef.current) {
+      try {
+        setPosX(SCREEN_WIDTH / 2)
+        if (riveRef.setNumber) {
+          riveRef.setNumber('posXcircles', SCREEN_WIDTH / 2)
+          if (riveRef.play) riveRef.play()
+        }
+      } catch {
+        /* Rive view may have unmounted */
+      }
+    }
+  }, [riveRef, autoBind, setPosX])
+
+  // Update Connected boolean based on progress
+  useEffect(() => {
+    if (riveRef && mountedRef.current) {
+      try {
+        const isConnected = progress >= 35
+        setConnected(isConnected)
+        if (riveRef.setBoolean) {
+          riveRef.setBoolean('Connected', isConnected)
+          if (riveRef.play) riveRef.play()
+        }
+      } catch {
+        // Rive native view not ready yet
+      }
+    }
+  }, [progress, riveRef, setConnected])
+
+  // Update progress in Rive
+  useEffect(() => {
+    if (riveRef && autoBind && mountedRef.current) {
+      try {
+        setRiveProgress(progress)
+        if (riveRef.setNumber) {
+          riveRef.setNumber('progessPercentage', progress)
+          if (riveRef.play) riveRef.play()
+        }
+      } catch {
+        // Rive native view may not be ready
+      }
+    }
+  }, [progress, riveRef, autoBind, setRiveProgress])
 
   const updateProgress = useCallback(
     (p: KeyImportProgress) => {
       setProgress(p.progress)
-      progressValue.value = withTiming(p.progress, {
-        duration: 800,
-        easing: Easing.out(Easing.cubic),
-      })
     },
-    [progressValue]
+    []
   )
 
   const advance = useCallback(
@@ -82,7 +135,6 @@ export default function KeygenProgress(): React.ReactElement {
   const runCeremony = useCallback(async (): Promise<void> => {
     setError(null)
     setProgress(0)
-    progressValue.value = 0
 
     const controller = new AbortController()
     abortRef.current = controller
@@ -91,8 +143,6 @@ export default function KeygenProgress(): React.ReactElement {
       let result: KeyImportResult
 
       if (mode === 'create') {
-        // Fresh vault creation — generate a new random secp256k1 private key
-        // and import it into a 2-of-2 DKLS fast vault.
         const privateKeyHex = randomHex(32)
         result = await importKeyToFastVault({
           name: walletName,
@@ -103,13 +153,11 @@ export default function KeygenProgress(): React.ReactElement {
           signal: controller.signal,
         })
       } else {
-        // mode === 'migrate' — import existing key into fast vault
         const authEntry = await getAuthDataValue(walletName)
         if (!authEntry || authEntry.ledger) {
           throw new Error('No auth data found for wallet')
         }
         const standardData = authEntry as AuthDataValueType
-        // Legacy stored password (for decrypting the old key) — NOT the new vault password
         const privateKeyHex = decrypt(
           standardData.encryptedKey,
           standardData.password
@@ -151,7 +199,6 @@ export default function KeygenProgress(): React.ReactElement {
     wallets,
     walletIndex,
     updateProgress,
-    progressValue,
   ])
 
   useEffect(() => {
@@ -160,8 +207,6 @@ export default function KeygenProgress(): React.ReactElement {
       abortRef.current?.abort()
     }
   }, []) // Run ceremony once on mount — runCeremony intentionally excluded
-
-  const phaseText = progress < 35 ? 'Connecting...' : 'Generating...'
 
   const handleSkip = useCallback(() => {
     abortRef.current?.abort()
@@ -176,68 +221,61 @@ export default function KeygenProgress(): React.ReactElement {
   }, [runCeremony])
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Animated.View
-        entering={FadeIn.duration(400)}
-        style={styles.content}
-      >
-        <Text style={styles.walletLabel} fontType="brockmann">
-          Wallet {walletIndex + 1}/{wallets.length}: {walletName}
-        </Text>
+    <View style={styles.container}>
+      {/* Full-screen Rive animation */}
+      <View style={styles.riveContainer}>
+        <RiveComponent
+          ref={setRiveRef}
+          source={require('../../../assets/animations/keygen_fast.riv')}
+          autoplay
+          fit={RiveFitEnum.Layout}
+          style={styles.riveView}
+          dataBinding={AutoBindFn(autoBind)}
+          onStateChanged={() => {
+            if (!autoBind) {
+              setAutoBind(true)
+            }
+          }}
+        />
+      </View>
 
-        <Text style={styles.title} fontType="brockmann-bold">
-          Fast Vault Setup
-        </Text>
-
-        <View style={styles.phaseContainer}>
-          <Text style={styles.phaseText} fontType="brockmann-medium">
-            {error ? 'Failed' : phaseText}
-          </Text>
-          <Text style={styles.progressPercent} fontType="brockmann">
-            {Math.round(progress)}%
-          </Text>
-        </View>
-
-        <View style={styles.progressTrack}>
-          <Animated.View
-            style={[styles.progressFill, progressBarStyle]}
-          />
-        </View>
-
-        {error && (
-          <View style={styles.errorSection}>
-            <View style={styles.errorCard}>
-              <Text
-                testID="keygen-error-text"
-                style={styles.errorText}
-                fontType="brockmann"
-              >
-                {error}
-              </Text>
-            </View>
-
-            <View style={styles.buttonRow}>
-              <Button
-                testID="keygen-skip"
-                title="Skip"
-                theme="secondaryDark"
-                titleFontType="brockmann-medium"
-                onPress={handleSkip}
-                containerStyle={styles.skipButton}
-              />
-              <Button
-                testID="keygen-retry"
-                title="Retry"
-                theme="ctaBlue"
-                titleFontType="brockmann-medium"
-                onPress={handleRetry}
-                containerStyle={styles.retryButton}
-              />
-            </View>
+      {/* Error overlay */}
+      {error && (
+        <Animated.View
+          entering={FadeIn.duration(400)}
+          style={styles.errorOverlay}
+        >
+          <View style={styles.errorCard}>
+            <Text
+              testID="keygen-error-text"
+              style={styles.errorText}
+              fontType="brockmann"
+            >
+              {error}
+            </Text>
           </View>
-        )}
-      </Animated.View>
-    </SafeAreaView>
+
+          <View style={styles.buttonRow}>
+            <Button
+              testID="keygen-skip"
+              title="Skip"
+              theme="secondaryDark"
+              titleFontType="brockmann-medium"
+              onPress={handleSkip}
+              containerStyle={styles.skipButton}
+            />
+            <Button
+              testID="keygen-retry"
+              title="Retry"
+              theme="ctaBlue"
+              titleFontType="brockmann-medium"
+              onPress={handleRetry}
+              containerStyle={styles.retryButton}
+            />
+          </View>
+        </Animated.View>
+      )}
+    </View>
   )
 }
 
@@ -245,53 +283,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: MIGRATION.bg,
-    justifyContent: 'center',
   },
-  content: {
-    paddingHorizontal: 24,
-    alignItems: 'center',
+  riveContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
-  walletLabel: {
-    fontSize: 13,
-    color: MIGRATION.textTertiary,
-    marginBottom: 12,
-    alignSelf: 'flex-start',
+  riveView: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
   },
-  title: {
-    fontSize: 28,
-    color: MIGRATION.textPrimary,
-    marginBottom: 40,
-    alignSelf: 'flex-start',
-  },
-  phaseContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignSelf: 'stretch',
-    marginBottom: 10,
-  },
-  phaseText: {
-    fontSize: 15,
-    color: MIGRATION.ctaBlue,
-  },
-  progressPercent: {
-    fontSize: 15,
-    color: MIGRATION.textTertiary,
-  },
-  progressTrack: {
-    alignSelf: 'stretch',
-    height: 6,
-    backgroundColor: MIGRATION.surface1,
-    borderRadius: MIGRATION.radiusPill,
-    overflow: 'hidden',
-    marginBottom: 40,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: MIGRATION.ctaBlue,
-    borderRadius: MIGRATION.radiusPill,
-  },
-  errorSection: {
-    alignSelf: 'stretch',
+  errorOverlay: {
+    position: 'absolute',
+    bottom: 80,
+    left: 24,
+    right: 24,
   },
   errorCard: {
     backgroundColor: 'rgba(255, 92, 92, 0.1)',
