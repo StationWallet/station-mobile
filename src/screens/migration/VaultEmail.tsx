@@ -10,7 +10,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { RouteProp } from '@react-navigation/native'
-import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated'
+import Animated, {
+  FadeInRight,
+  FadeOutLeft,
+} from 'react-native-reanimated'
 
 import Text from 'components/Text'
 import Button from 'components/Button'

@@ -3,7 +3,10 @@ import { View, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import Svg, { Path, Circle } from 'react-native-svg'
-import Animated, { FadeInRight, FadeOutLeft } from 'react-native-reanimated'
+import Animated, {
+  FadeInRight,
+  FadeOutLeft,
+} from 'react-native-reanimated'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
