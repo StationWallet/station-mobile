@@ -223,11 +223,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 10,
     borderRadius: 50,
-    shadowColor: '#0C4EFF',
-    shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 1,
-    shadowRadius: 16,
-    elevation: 8,
+    boxShadow: '0 -6px 16px 0 #0C4EFF',
   },
   connector: {
     width: 16,
