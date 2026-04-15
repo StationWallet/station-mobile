@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { View, StyleSheet } from 'react-native'
-import Svg, { Path, Rect } from 'react-native-svg'
+import Svg, { Path } from 'react-native-svg'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -131,7 +131,11 @@ function StepCircle({
     borderColor: interpolateColor(
       bgProgress.value,
       [0, 1, 2],
-      ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.2)', 'transparent']
+      [
+        'rgba(255,255,255,0.1)',
+        'rgba(255,255,255,0.2)',
+        'transparent',
+      ]
     ),
   }))
 
