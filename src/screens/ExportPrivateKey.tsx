@@ -12,7 +12,7 @@ import {
   useRoute,
   useNavigation,
 } from '@react-navigation/native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { getDecyrptedKey } from 'utils/wallet'
 import {
@@ -31,6 +31,7 @@ export default function ExportPrivateKey(): React.ReactElement {
   const { params } =
     useRoute<RouteProp<MainStackParams, 'ExportPrivateKey'>>()
   const navigation = useNavigation()
+  const insets = useSafeAreaInsets()
   const { wallet } = params
 
   const [password, setPassword] = useState('')
@@ -110,11 +111,13 @@ export default function ExportPrivateKey(): React.ReactElement {
     }, [isFastVault, privateKey, wallet.name, exportPassword])
 
   return (
-    <SafeAreaView style={styles.container}>
-      <MigrationToolbar
-        onBack={() => navigation.goBack()}
-        testID="export-back"
-      />
+    <View style={styles.container}>
+      <View style={{ paddingTop: insets.top }}>
+        <MigrationToolbar
+          onBack={() => navigation.goBack()}
+          testID="export-back"
+        />
+      </View>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.content}
@@ -225,7 +228,7 @@ export default function ExportPrivateKey(): React.ReactElement {
           containerStyle={styles.button}
         />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   )
 }
 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import {
+  View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { createWallet } from 'utils/wallet'
 import { COLORS } from 'consts/theme'
 import WalletSuccessScreen from '../WalletSuccessScreen'
@@ -33,6 +34,7 @@ const WalletCreated = ({
   const [wallet, setWallet] = useState<LocalWallet | null>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(true)
+  const insets = useSafeAreaInsets()
 
   useEffect(() => {
     const persist = async (): Promise<void> => {
@@ -60,16 +62,34 @@ const WalletCreated = ({
 
   if (saving) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered]}>
+      <View
+        style={[
+          styles.container,
+          styles.centered,
+          {
+            paddingTop: insets.top,
+            paddingBottom: Math.max(insets.bottom, 16),
+          },
+        ]}
+      >
         <ActivityIndicator size="large" color={COLORS.accent} />
         <Text style={styles.savingText}>Creating wallet...</Text>
-      </SafeAreaView>
+      </View>
     )
   }
 
   if (error) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered]}>
+      <View
+        style={[
+          styles.container,
+          styles.centered,
+          {
+            paddingTop: insets.top,
+            paddingBottom: Math.max(insets.bottom, 16),
+          },
+        ]}
+      >
         <Text style={styles.errorIcon}>!</Text>
         <Text style={styles.errorTitle}>Error</Text>
         <Text style={styles.errorText}>{error}</Text>
@@ -79,7 +99,7 @@ const WalletCreated = ({
         >
           <Text style={styles.buttonText}>Go Back</Text>
         </TouchableOpacity>
-      </SafeAreaView>
+      </View>
     )
   }
 

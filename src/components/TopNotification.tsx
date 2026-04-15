@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react'
 import { StyleSheet, View, TouchableOpacity } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MessageComponentProps } from 'react-native-flash-message'
 import _ from 'lodash'
 
@@ -14,9 +14,10 @@ const TopNotification = ({
   hideMessage,
 }: MessageComponentProps & { hideMessage(): void }): ReactElement => {
   const { type, description, message: title } = message
+  const insets = useSafeAreaInsets()
 
   return (
-    <SafeAreaView>
+    <View style={{ paddingTop: insets.top }}>
       <View
         style={[
           styles.container,
@@ -81,7 +82,7 @@ const TopNotification = ({
           </View>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   )
 }
 

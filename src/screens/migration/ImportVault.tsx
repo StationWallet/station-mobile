@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { View, StyleSheet, Pressable } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import Svg, { Path, Circle } from 'react-native-svg'
 import Animated, {
@@ -102,9 +102,11 @@ export default function ImportVault(): React.ReactElement {
 
   const canContinue = fileState === 'success'
 
+  const insets = useSafeAreaInsets()
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.toolbar}>
+    <View style={styles.container}>
+      <View style={[styles.toolbar, { paddingTop: insets.top + 8 }]}>
         <GlassButton
           onPress={() => navigation.goBack()}
           testID="import-vault-back"
@@ -150,7 +152,12 @@ export default function ImportVault(): React.ReactElement {
         </Text>
       </Animated.View>
 
-      <View style={styles.bottom}>
+      <View
+        style={[
+          styles.bottom,
+          { paddingBottom: Math.max(insets.bottom, 16) },
+        ]}
+      >
         {fileState === 'success' && fileName ? (
           <View style={styles.selectedBadgeRow}>
             <View style={styles.selectedBadge}>
@@ -183,7 +190,7 @@ export default function ImportVault(): React.ReactElement {
         error={passwordError ?? undefined}
         loading={decrypting}
       />
-    </SafeAreaView>
+    </View>
   )
 }
 

@@ -5,7 +5,7 @@ import {
   Dimensions,
   PixelRatio,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import Svg, {
@@ -125,10 +125,13 @@ function LockIcon(): React.ReactElement {
 
 export default function VaultSetup(): React.ReactElement {
   const navigation = useNavigation<Nav>()
+  const insets = useSafeAreaInsets()
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <MigrationToolbar onBack={() => navigation.goBack()} />
+    <View style={styles.container}>
+      <View style={{ paddingTop: insets.top }}>
+        <MigrationToolbar onBack={() => navigation.goBack()} />
+      </View>
 
       <View style={styles.content}>
         <Text fontType="brockmann-medium" style={styles.title}>
@@ -186,7 +189,12 @@ export default function VaultSetup(): React.ReactElement {
         />
       </View>
 
-      <View style={styles.bottom}>
+      <View
+        style={[
+          styles.bottom,
+          { paddingBottom: Math.max(insets.bottom, 16) },
+        ]}
+      >
         <Button
           testID="vault-setup-get-started"
           title="Get started"
@@ -196,7 +204,7 @@ export default function VaultSetup(): React.ReactElement {
           onPress={() => navigation.navigate('VaultName')}
         />
       </View>
-    </SafeAreaView>
+    </View>
   )
 }
 

@@ -9,7 +9,10 @@ import WalletCreated from '../screens/auth/NewWallet/WalletCreated'
 const Stack = createStackNavigator()
 
 const NewWalletStack = (): ReactElement => (
-  <Stack.Navigator initialRouteName="NewWalletStep1">
+  <Stack.Navigator
+    initialRouteName="NewWalletStep1"
+    screenOptions={{ cardStyle: { backgroundColor: '#02122B' } }}
+  >
     <Stack.Screen
       name="NewWalletStep1"
       component={NewWalletStep1}

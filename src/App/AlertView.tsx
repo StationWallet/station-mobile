@@ -1,20 +1,23 @@
 import React, { ReactElement, ReactNode, useState } from 'react'
 import { View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const AlertView = ({
   alertViewProps,
 }: {
   alertViewProps: AlertView
 }): ReactElement => {
+  const insets = useSafeAreaInsets()
   return alertViewProps.isOpen ? (
-    <SafeAreaView
+    <View
       style={{
         position: 'absolute',
         width: '100%',
         height: '100%',
         flex: 1,
         backgroundColor: 'rgba(0,0,0,.5)',
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
       }}
     >
       <View
@@ -27,7 +30,7 @@ const AlertView = ({
       >
         {alertViewProps.content}
       </View>
-    </SafeAreaView>
+    </View>
   ) : (
     <View />
   )

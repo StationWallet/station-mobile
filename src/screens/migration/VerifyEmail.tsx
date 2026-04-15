@@ -13,7 +13,7 @@ import {
   Pressable,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Animated, { FadeIn } from 'react-native-reanimated'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
@@ -133,11 +133,13 @@ export default function VerifyEmail(): React.ReactElement {
     }
   }, [handleSubmit])
 
+  const insets = useSafeAreaInsets()
+
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Animated.View
         entering={FadeIn.duration(400)}
-        style={styles.content}
+        style={[styles.content, { paddingTop: insets.top }]}
       >
         <EmailCircleIcon />
 
@@ -241,7 +243,7 @@ export default function VerifyEmail(): React.ReactElement {
           </Pressable>
         </View>
       </Animated.View>
-    </SafeAreaView>
+    </View>
   )
 }
 

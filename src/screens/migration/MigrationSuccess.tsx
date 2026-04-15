@@ -6,7 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import {
   RouteProp,
@@ -104,9 +104,13 @@ export default function MigrationSuccess(): React.ReactElement {
     preferences.setBool(PreferencesEnum.vaultsUpgraded, true)
   }, [])
 
+  const insets = useSafeAreaInsets()
+
   return (
-    <SafeAreaView style={styles.container}>
-      <MigrationToolbar onBack={handleBack} testID="success-back" />
+    <View style={styles.container}>
+      <View style={{ paddingTop: insets.top }}>
+        <MigrationToolbar onBack={handleBack} testID="success-back" />
+      </View>
 
       <Text fontType="brockmann-bold" style={styles.title}>
         You are aboard, Station OG!
@@ -171,7 +175,12 @@ export default function MigrationSuccess(): React.ReactElement {
         {'[ Entering orbit soon... ]'}
       </Text>
 
-      <View style={styles.bottomActions}>
+      <View
+        style={[
+          styles.bottomActions,
+          { paddingBottom: Math.max(insets.bottom, 16) },
+        ]}
+      >
         <Button
           title="Share your OG status"
           theme="ctaBlue"
@@ -216,7 +225,7 @@ export default function MigrationSuccess(): React.ReactElement {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   )
 }
 

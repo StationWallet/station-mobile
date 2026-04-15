@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { COLORS } from 'consts/theme'
 import { DevFlags } from '../../config/env'
 import authStyles from './authStyles'
@@ -23,16 +23,20 @@ const AuthMenu = ({
   }
 }): React.ReactElement => {
   const { goToMigration } = useWalletNav()
+  const insets = useSafeAreaInsets()
   const navState = navigation.getState()
   const isAddMode = navState?.routes?.some(
     (r: { name: string }) => r.name === 'AddWalletMenu'
   )
 
   return (
-    <SafeAreaView style={authStyles.container}>
+    <View style={authStyles.container}>
       <PrimaryBackground />
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + 120 },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.logoArea}>
@@ -140,7 +144,7 @@ const AuthMenu = ({
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
       )}
-    </SafeAreaView>
+    </View>
   )
 }
 

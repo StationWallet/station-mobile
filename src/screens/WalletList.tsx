@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { NavigationProp } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useWalletNav } from 'navigation/hooks'
 import { settings } from 'utils/storage'
@@ -122,8 +122,10 @@ export default function WalletList(): React.ReactElement {
     await onWalletDisconnected()
   }
 
+  const insets = useSafeAreaInsets()
+
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {loading && (
         <View style={styles.loadingOverlay}>
           <Text
@@ -134,19 +136,21 @@ export default function WalletList(): React.ReactElement {
           </Text>
         </View>
       )}
-      <MigrationToolbar
-        onBack={() => {
-          if (inMigrationNav) {
-            migrationNav.goBack()
-          } else {
-            mainNav.navigate('Migration', {
-              screen: 'MigrationHome',
-              params: {},
-            })
-          }
-        }}
-        testID="wallets-back"
-      />
+      <View style={{ paddingTop: insets.top }}>
+        <MigrationToolbar
+          onBack={() => {
+            if (inMigrationNav) {
+              migrationNav.goBack()
+            } else {
+              mainNav.navigate('Migration', {
+                screen: 'MigrationHome',
+                params: {},
+              })
+            }
+          }}
+          testID="wallets-back"
+        />
+      </View>
 
       <Text fontType="brockmann-medium" style={styles.title}>
         Your wallets
@@ -176,7 +180,12 @@ export default function WalletList(): React.ReactElement {
         ))}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View
+        style={[
+          styles.footer,
+          { paddingBottom: Math.max(insets.bottom, 16) },
+        ]}
+      >
         <Button
           title="Add Wallet"
           theme="ctaBlue"
@@ -194,7 +203,7 @@ export default function WalletList(): React.ReactElement {
           containerStyle={styles.addButton}
         />
       </View>
-    </SafeAreaView>
+    </View>
   )
 }
 
