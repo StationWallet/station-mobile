@@ -1,0 +1,127 @@
+# =============================================================================
+# .easignore — EAS Build upload exclusions
+# =============================================================================
+# When this file exists, EAS uses it INSTEAD of .gitignore to decide what to
+# include in the build archive. Therefore it must contain everything from
+# .gitignore plus any additional entries we want excluded from builds.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Everything from .gitignore
+# ---------------------------------------------------------------------------
+
+# OSX
+.DS_Store
+
+# Xcode
+build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+
+# Android/IntelliJ
+build/
+.idea
+.gradle
+local.properties
+*.iml
+
+# node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# BUCK
+buck-out/
+\.buckd/
+*.keystore
+!debug.keystore
+
+# fastlane
+*/fastlane/report.xml
+*/fastlane/Preview.html
+*/fastlane/screenshots
+
+# Bundle artifact
+*.jsbundle
+
+# CocoaPods
+/ios/Pods/
+.vscode/launch.json
+
+# Android build
+android/app/release/
+android/*.hprof
+
+# Auto generated expo
+android/app/src/main/java/money/terra/station/generated/BasePackageList.java
+
+.scannerwork
+
+# Environment files (contain secrets)
+.env*
+
+# Expo
+.expo/
+ios/
+!modules/**/ios/
+android/
+!modules/**/android/
+*.tsbuildinfo
+
+# EAS credentials (secrets — never commit)
+credentials.json
+google-service-account.json
+
+# Status updates
+docs/status-update*.superpowers/
+docs/designs/
+
+# Git worktrees
+.worktrees/
+
+# ---------------------------------------------------------------------------
+# Additional EAS-only exclusions (not needed for builds)
+# ---------------------------------------------------------------------------
+
+# Git history — EAS doesn't need the full repo history
+.git/
+
+# Claude Code worktrees and config
+.claude/
+
+# Test coverage reports
+coverage/
+
+# Build artifacts from local runs
+artifacts/
+
+# Playwright MCP config
+.playwright-mcp/
+
+# Documentation — not needed for builds
+docs/
+
+# Superpowers config
+.superpowers/
+
+# MCP config
+.mcp.json
+
+# Test files — not needed for builds
+__tests__/
+
+# End-to-end tests — not needed for builds
+e2e/
