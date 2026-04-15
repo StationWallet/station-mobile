@@ -17,19 +17,14 @@ const {
   getExistingMessageIds,
   migrateOneWalletFromCard,
 } = require('./helpers/agentmail');
+const { eraseSimulator } = require('./helpers/simulator');
 
 describe('Migration Onboarding Flow', () => {
   let knownMessageIds = new Set();
 
   describe('1. Clean install — no legacy wallets', () => {
     beforeAll(async () => {
-      // Single simulator erase for the entire test suite
-      const { execSync } = require('child_process');
-      const udid = device.id;
-      execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
-        timeout: 120000,
-      });
-      execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
+      eraseSimulator(device.id);
 
       await device.launchApp({ delete: true, newInstance: true });
       await device.disableSynchronization();
