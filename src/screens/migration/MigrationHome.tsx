@@ -166,7 +166,7 @@ export default function MigrationHome(): React.ReactElement {
               style={styles.linkButton}
               onPress={() => {
                 Linking.openURL(
-                  'https://docs.vultisig.com/security-and-technology/security-technology'
+                  'https://docs.vultisig.com/getting-started/getting-started#what-makes-vultisig-different'
                 )
               }}
             >
