@@ -46,7 +46,7 @@ const Button = (props: ButtonProps): ReactElement => {
     fontSize: size === 'sm' ? 14 : 16,
   }
   const containerStyle: StyleProp<ViewStyle> = {
-    height: size === 'sm' ? 40 : 60,
+    height: size === 'sm' ? 40 : 46,
   }
 
   switch (theme) {
@@ -94,8 +94,9 @@ const Button = (props: ButtonProps): ReactElement => {
   }
 
   if (disabled) {
-    containerStyle.backgroundColor = '#0b1a3a'
-    containerStyle.borderColor = '#0b1a3a'
+    containerStyle.opacity = 0.35
+    containerStyle.backgroundColor = '#121C4A'
+    containerStyle.borderColor = '#121C4A'
     titleStyle.color = '#718096'
   }
 
@@ -125,8 +126,12 @@ export default Button
 const styles = StyleSheet.create({
   container: {
     borderWidth: 0,
-    borderRadius: 30,
+    borderRadius: 99,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#0F1C3E',
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 1,
+    shadowRadius: 0.5,
   },
 })

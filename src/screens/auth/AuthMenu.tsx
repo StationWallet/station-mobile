@@ -11,6 +11,7 @@ import { COLORS } from 'consts/theme'
 import { DevFlags } from '../../config/env'
 import authStyles from './authStyles'
 import { useWalletNav } from 'navigation/hooks'
+import PrimaryBackground from 'components/PrimaryBackground'
 
 const AuthMenu = ({
   navigation,
@@ -29,6 +30,7 @@ const AuthMenu = ({
 
   return (
     <SafeAreaView style={authStyles.container}>
+      <PrimaryBackground />
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -151,7 +153,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingTop: 120,
+    paddingBottom: 40,
   },
   logoArea: {
     alignItems: 'center',
@@ -175,16 +178,21 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   secondaryButton: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: '#11284A',
     borderRadius: 99,
-    paddingVertical: 16,
+    height: 46,
+    justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: 'rgba(255,255,255,0.03)',
+    shadowColor: '#0F1C3E',
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 1,
+    shadowRadius: 0.5,
   },
   secondaryButtonText: {
-    color: COLORS.textPrimary,
-    fontSize: 16,
+    color: '#F0F4FC',
+    fontSize: 14,
     fontWeight: '600',
   },
   cancelButton: {
