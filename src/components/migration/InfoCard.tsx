@@ -13,7 +13,7 @@ import { MIGRATION_FLOW_ENABLED } from 'config/env'
 
 function LightningIcon(): React.ReactElement {
   return (
-    <Svg width={24} height={24} viewBox="24 7 32 32" fill="none">
+    <Svg width={25} height={25} viewBox="24 7 32 32" fill="none">
       <Defs>
         <LinearGradient
           id="boltGrad"
@@ -34,7 +34,7 @@ function LightningIcon(): React.ReactElement {
         r={12.9}
         stroke="white"
         strokeOpacity={0.1}
-        strokeWidth={1.4}
+        strokeWidth={2.87}
         fill="none"
       />
       <Path
@@ -76,45 +76,50 @@ export default function InfoCard({
   connectedBottom = false,
 }: Props): React.ReactElement {
   return (
-    <View
-      style={[
-        styles.card,
-        connectedBottom && styles.cardConnectedBottom,
-      ]}
-    >
-      <View style={styles.titleRow}>
-        <LightningIcon />
-        <Text fontType="brockmann-medium" style={styles.title}>
-          A new type of wallet
+    <View>
+      {/* Main card */}
+      <View
+        style={[
+          styles.card,
+          connectedBottom && styles.cardConnectedBottom,
+          MIGRATION_FLOW_ENABLED && styles.cardWithCountdown,
+        ]}
+      >
+        <View style={styles.titleRow}>
+          <LightningIcon />
+          <Text fontType="brockmann-medium" style={styles.title}>
+            A new type of wallet
+          </Text>
+        </View>
+
+        <Text fontType="brockmann-medium" style={styles.body}>
+          Faster transactions. Stronger security.{'\n'}
+          One password instead of 12 words.
+        </Text>
+
+        <Text fontType="brockmann-medium" style={styles.body}>
+          Fast Vaults are the next evolution of self-custody, built for
+          what&apos;s coming to Station.
+        </Text>
+
+        <Text fontType="brockmann-medium" style={styles.body}>
+          Early explorers get{' '}
+          <Text fontType="brockmann-bold" style={styles.bodyBold}>
+            Station OG
+          </Text>{' '}
+          status and a{' '}
+          <Text fontType="brockmann-bold" style={styles.bodyBold}>
+            $VULT airdrop
+          </Text>
+          .
         </Text>
       </View>
 
-      <Text fontType="brockmann-medium" style={styles.body}>
-        Faster transactions. Stronger security.{'\n'}
-        One password instead of 12 words.
-      </Text>
-
-      <Text fontType="brockmann-medium" style={styles.body}>
-        Fast Vaults are the next evolution of self-custody, built for
-        what&apos;s coming to Station.
-      </Text>
-
-      <Text fontType="brockmann-medium" style={styles.body}>
-        Early explorers get{' '}
-        <Text fontType="brockmann-bold" style={styles.bodyBold}>
-          Station OG
-        </Text>{' '}
-        status and a{' '}
-        <Text fontType="brockmann-bold" style={styles.bodyBold}>
-          $VULT airdrop
-        </Text>
-        .
-      </Text>
-
+      {/* Bottom strip with countdown */}
       {MIGRATION_FLOW_ENABLED && (
-        <View style={styles.countdownRow}>
+        <View style={styles.countdownStrip}>
           <ClockIcon />
-          <Text fontType="brockmann" style={styles.countdown}>
+          <Text fontType="brockmann-medium" style={styles.countdown}>
             The window closes in {daysRemaining} days.
           </Text>
         </View>
@@ -129,7 +134,8 @@ const styles = StyleSheet.create({
     borderColor: MIGRATION.borderLight,
     borderWidth: 1,
     borderRadius: MIGRATION.radiusCard,
-    padding: MIGRATION.cardPadding,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
     gap: 12,
   },
   cardConnectedBottom: {
@@ -137,13 +143,20 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 0,
     borderBottomWidth: 0,
   },
+  cardWithCountdown: {
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    borderBottomWidth: 0,
+  },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
   title: {
     fontSize: 15,
+    lineHeight: 17,
+    letterSpacing: -0.18,
     color: MIGRATION.textPrimary,
   },
   body: {
@@ -157,17 +170,22 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: MIGRATION.textPrimary,
   },
-  countdownRow: {
+  countdownStrip: {
+    backgroundColor: MIGRATION.surface1,
+    borderBottomLeftRadius: MIGRATION.radiusCard,
+    borderBottomRightRadius: MIGRATION.radiusCard,
+    paddingTop: 32,
+    paddingBottom: 14,
+    paddingHorizontal: 32,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
-    marginTop: 4,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: MIGRATION.borderLight,
   },
   countdown: {
-    fontSize: 13,
-    color: MIGRATION.textTertiary,
+    fontSize: 12,
+    lineHeight: 16,
+    color: MIGRATION.textPrimary,
+    textAlign: 'center',
   },
 })
