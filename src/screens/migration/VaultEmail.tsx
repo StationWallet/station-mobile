@@ -48,7 +48,7 @@ export default function VaultEmail(): React.ReactElement {
     <SafeAreaView style={formStyles.container}>
       <KeyboardAvoidingView
         style={formStyles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <MigrationToolbar onBack={() => navigation.goBack()} />
 

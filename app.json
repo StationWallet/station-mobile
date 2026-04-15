@@ -47,7 +47,7 @@
       },
       "package": "money.terra.station",
       "versionCode": 1,
-      "softwareKeyboardLayoutMode": "resize",
+
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",

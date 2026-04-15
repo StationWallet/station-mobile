@@ -200,13 +200,12 @@ export default function DecryptPasswordSheet({
       onShow={handleShow}
       onRequestClose={handleDismiss}
     >
-      {Platform.OS === 'ios' ? (
-        <KeyboardAvoidingView style={styles.flex} behavior="padding">
-          {content}
-        </KeyboardAvoidingView>
-      ) : (
-        content
-      )}
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        {content}
+      </KeyboardAvoidingView>
     </Modal>
   )
 }
