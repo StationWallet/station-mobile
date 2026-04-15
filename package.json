@@ -92,6 +92,9 @@
     "rive-react-native": "^9.8.1",
     "stream-browserify": "^3.0.0"
   },
+  "overrides": {
+    "expo-build-properties": "~55.0.13"
+  },
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "@babel/runtime": "^7.24.0",
