@@ -1,5 +1,5 @@
-import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import React, { useState } from 'react'
+import { View, StyleSheet, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import Svg, { Path, Circle } from 'react-native-svg'
@@ -51,8 +51,40 @@ function InfoIcon(): React.ReactElement {
   )
 }
 
+function ImportTooltip({
+  visible,
+  onDismiss,
+}: {
+  visible: boolean
+  onDismiss: () => void
+}): React.ReactElement | null {
+  if (!visible) return null
+
+  return (
+    <>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Dismiss tooltip"
+        style={styles.tooltipBackdrop}
+        onPress={onDismiss}
+      />
+      <View style={styles.tooltip}>
+        <View style={styles.tooltipCaret} />
+        <Text fontType="satoshi-medium" style={styles.tooltipTitle}>
+          Import vault share
+        </Text>
+        <Text fontType="brockmann" style={styles.tooltipDescription}>
+          Use a vault share to recover your vault. Supported file types: .bak &
+          .vult
+        </Text>
+      </View>
+    </>
+  )
+}
+
 export default function ImportVault(): React.ReactElement {
   const navigation = useNavigation()
+  const [showTooltip, setShowTooltip] = useState(false)
   const {
     loading,
     fileName,
@@ -82,9 +114,18 @@ export default function ImportVault(): React.ReactElement {
         <Text fontType="brockmann-medium" style={styles.toolbarTitle}>
           Import Vault
         </Text>
-        <GlassButton onPress={() => {}} testID="import-vault-info">
-          <InfoIcon />
-        </GlassButton>
+        <View style={styles.infoButtonWrapper}>
+          <GlassButton
+            onPress={() => setShowTooltip(v => !v)}
+            testID="import-vault-info"
+          >
+            <InfoIcon />
+          </GlassButton>
+          <ImportTooltip
+            visible={showTooltip}
+            onDismiss={() => setShowTooltip(false)}
+          />
+        </View>
       </View>
 
       <Animated.View
@@ -207,5 +248,54 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: MIGRATION.radiusPill,
     height: MIGRATION.ctaHeight,
+  },
+  infoButtonWrapper: {
+    position: 'relative' as const,
+  },
+  tooltipBackdrop: {
+    position: 'absolute' as const,
+    top: -100,
+    left: -500,
+    right: -500,
+    bottom: -1000,
+    zIndex: 999,
+  },
+  tooltip: {
+    position: 'absolute' as const,
+    top: '100%' as unknown as number,
+    right: 0,
+    marginTop: 14,
+    width: 280,
+    backgroundColor: '#F0F4FC',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    zIndex: 1000,
+    shadowColor: '#000000',
+    shadowOpacity: 0.18,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 14,
+    elevation: 8,
+  },
+  tooltipCaret: {
+    position: 'absolute' as const,
+    top: -6,
+    right: 14,
+    width: 14,
+    height: 14,
+    backgroundColor: '#F0F4FC',
+    borderRadius: 2,
+    transform: [{ rotate: '45deg' }],
+  },
+  tooltipTitle: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#02122B',
+    marginBottom: 3,
+  },
+  tooltipDescription: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#02122B',
   },
 })
