@@ -1,12 +1,20 @@
 describe('Legacy Keystore Migration', () => {
   beforeAll(async () => {
-    await device.launchApp({ newInstance: true });
+    // Erase simulator to clear keychain — iOS keychain items survive app deletion
+    const { execSync } = require('child_process');
+    const udid = device.id;
+    execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
+      timeout: 120000,
+    });
+    execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
+
+    await device.launchApp({ delete: true, newInstance: true });
     await device.disableSynchronization();
 
     // Tap the dev-only "Full E2E Test" button on AuthMenu
     await waitFor(element(by.id('dev-full-e2e-test')))
       .toBeVisible()
-      .withTimeout(30000);
+      .withTimeout(90000);
     await element(by.id('dev-full-e2e-test')).tap();
 
     // Wait for test results to render

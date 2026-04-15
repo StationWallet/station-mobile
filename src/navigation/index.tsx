@@ -84,6 +84,10 @@ export default function AppNavigator(): React.ReactElement | null {
     setRootRoute('Main')
   }, [loadWallets])
 
+  const refreshWallets = useCallback(async () => {
+    await loadWallets()
+  }, [loadWallets])
+
   const onWalletCreated = useCallback(async () => {
     await loadWallets()
   }, [loadWallets])
@@ -117,8 +121,9 @@ export default function AppNavigator(): React.ReactElement | null {
       onWalletDisconnected,
       goToMigration,
       wallets,
+      refreshWallets,
     }),
-    [onWalletCreated, onWalletDisconnected, goToMigration, wallets]
+    [onWalletCreated, onWalletDisconnected, goToMigration, wallets, refreshWallets]
   )
 
   const migrationValue = useMemo(

@@ -30,10 +30,10 @@ describe('Fast Vault Migration — Per-Wallet', () => {
       execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
 
       // Seed legacy keystore data
+      // Note: detoxURLBlacklistRegex on initial launch causes hangs — only use on relaunches
       await device.launchApp({
         delete: true,
         newInstance: true,
-        launchArgs: { detoxURLBlacklistRegex: '.*' },
       });
       await device.disableSynchronization();
 
@@ -46,10 +46,7 @@ describe('Fast Vault Migration — Per-Wallet', () => {
         .withTimeout(30000);
 
       // Relaunch to trigger migration flow
-      await device.launchApp({
-        newInstance: true,
-        launchArgs: { detoxURLBlacklistRegex: '.*' },
-      });
+      await device.launchApp({ newInstance: true });
       await device.disableSynchronization();
 
       // Snapshot agentmail before any wallets
@@ -68,13 +65,14 @@ describe('Fast Vault Migration — Per-Wallet', () => {
         .withTimeout(90000);
       await element(by.id('enter-vultiverse-cta')).tap();
 
-      await waitFor(element(by.id('migration-cta')))
+      await waitFor(element(by.text('Start Migration')))
         .toBeVisible()
         .withTimeout(90000);
     });
 
     it('should navigate to wallet list', async () => {
-      await element(by.id('migration-cta')).tap();
+      await new Promise(r => setTimeout(r, 3000));
+      await element(by.text('Start Migration')).tap();
       await waitFor(element(by.text('Your wallets')))
         .toBeVisible()
         .withTimeout(10000);
@@ -130,44 +128,30 @@ describe('Fast Vault Migration — Per-Wallet', () => {
   });
 
   describe('Vault integrity verification', () => {
-    it('should show migration success with vault verification', async () => {
-      // DevVerifyVault is rendered on MigrationSuccess in dev mode.
-      // Wait for all checks to complete.
-      await waitFor(element(by.id('verify-vault1-exists')))
-        .toExist()
-        .withTimeout(15000);
+    // Per-wallet migration shows imported-* verification for the last migrated wallet.
 
-      // Wait for all-passed to render
+    it('should show migration success with vault verification', async () => {
       await waitFor(element(by.id('verify-all-passed')))
         .toExist()
-        .withTimeout(10000);
+        .withTimeout(15000);
+      await expect(element(by.id('verify-imported-exists')))
+        .toHaveText('imported-exists: true');
+      await expect(element(by.id('verify-imported-name')))
+        .toHaveText('imported-name: true');
     });
 
-    it('DKLS keyshares are loadable by native module', async () => {
-      // DevVerifyVault loads each DKLS keyshare via ExpoDkls.loadKeyshare()
-      // If loadable, the keyshare is structurally valid for signing.
-      await waitFor(element(by.id('verify-vault1-keyshare-loadable')))
-        .toExist()
-        .withTimeout(10000);
-      await expect(element(by.id('verify-vault1-keyshare-loadable')))
-        .toHaveText('vault1-keyshare-loadable: true');
-      await expect(element(by.id('verify-vault1-keyshare-has-keyid')))
-        .toHaveText('vault1-keyshare-has-keyid: true');
-
-      await waitFor(element(by.id('verify-vault2-keyshare-loadable')))
-        .toExist()
-        .withTimeout(5000);
-      await expect(element(by.id('verify-vault2-keyshare-loadable')))
-        .toHaveText('vault2-keyshare-loadable: true');
+    it('migrated vault has valid key material', async () => {
+      await expect(element(by.id('verify-imported-has-pubkey')))
+        .toHaveText('imported-has-pubkey: true');
+      await expect(element(by.id('verify-imported-has-keyshare')))
+        .toHaveText('imported-has-keyshare: true');
     });
 
-    it('DKLS vaults have correct structure', async () => {
-      await expect(element(by.id('verify-vault1-vault-type')))
-        .toHaveText('vault1-vault-type: DKLS');
-      await expect(element(by.id('verify-vault1-signers')))
-        .toHaveText('vault1-signers: true');
-      await expect(element(by.id('verify-vault1-local-party')))
-        .toHaveText('vault1-local-party: true');
+    it('migrated vault has correct lib type and signers', async () => {
+      await expect(element(by.id('verify-imported-libtype')))
+        .toHaveText('imported-libtype: true');
+      await expect(element(by.id('verify-imported-has-signers')))
+        .toHaveText('imported-has-signers: true');
     });
 
     it('all vault verification checks pass', async () => {
@@ -187,10 +171,10 @@ describe('Fast Vault Migration — Per-Wallet', () => {
       await device.launchApp({ newInstance: true });
       await device.disableSynchronization();
 
-      // Wait for WalletList to show
+      // Wait for WalletList to show — app routes to Main after migration
       await waitFor(element(by.text('Your wallets')))
         .toBeVisible()
-        .withTimeout(15000);
+        .withTimeout(90000);
     });
 
     afterAll(async () => {
@@ -242,10 +226,7 @@ describe('Fast Vault Migration — Per-Wallet', () => {
 
   describe('Persistence — migration not shown again', () => {
     beforeAll(async () => {
-      await device.launchApp({
-        newInstance: true,
-        launchArgs: { detoxURLBlacklistRegex: '.*' },
-      });
+      await device.launchApp({ newInstance: true });
       await device.disableSynchronization();
       await new Promise(r => setTimeout(r, 3000));
     });

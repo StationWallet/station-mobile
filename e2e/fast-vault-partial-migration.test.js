@@ -59,13 +59,14 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
         .withTimeout(90000);
       await element(by.id('enter-vultiverse-cta')).tap();
 
-      await waitFor(element(by.id('migration-cta')))
+      await waitFor(element(by.text('Start Migration')))
         .toBeVisible()
         .withTimeout(90000);
     });
 
     it('navigates to wallet list', async () => {
-      await element(by.id('migration-cta')).tap();
+      await new Promise(r => setTimeout(r, 3000));
+      await element(by.text('Start Migration')).tap();
       await waitFor(element(by.text('Your wallets')))
         .toBeVisible()
         .withTimeout(10000);

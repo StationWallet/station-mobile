@@ -1,12 +1,20 @@
 describe('Crypto Parity', () => {
   beforeAll(async () => {
-    await device.launchApp({ newInstance: true });
+    // Erase simulator to clear keychain — iOS keychain items survive app deletion
+    const { execSync } = require('child_process');
+    const udid = device.id;
+    execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
+      timeout: 120000,
+    });
+    execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
+
+    await device.launchApp({ delete: true, newInstance: true });
     await device.disableSynchronization();
 
     // Tap the dev-only "Crypto Tests" button on AuthMenu
     await waitFor(element(by.id('dev-crypto-test')))
       .toBeVisible()
-      .withTimeout(30000);
+      .withTimeout(90000);
     await element(by.id('dev-crypto-test')).tap();
 
     // Wait for crypto test results to render

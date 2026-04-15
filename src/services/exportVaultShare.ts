@@ -7,7 +7,8 @@ import {
   cacheDirectory,
   writeAsStringAsync,
 } from 'expo-file-system/legacy'
-import * as Sharing from 'expo-sharing'
+// expo-sharing is lazy-loaded in shareVaultFile() to avoid
+// "Cannot find native module" crashes during Detox test startup.
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container_pb'
@@ -106,6 +107,7 @@ export async function exportVaultShare(
  * Opens the system share sheet for a .vult file.
  */
 export async function shareVaultFile(fileUri: string): Promise<void> {
+  const Sharing = require('expo-sharing') as typeof import('expo-sharing')
   await Sharing.shareAsync(fileUri, {
     mimeType: 'application/octet-stream',
     dialogTitle: 'Export Vault Share',

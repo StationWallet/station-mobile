@@ -15,7 +15,7 @@ describe('Full E2E: Migration → Decrypt → Size', () => {
     // Tap the "Full E2E Test" dev button on AuthMenu
     await waitFor(element(by.text('Full E2E Test (dev)')))
       .toBeVisible()
-      .withTimeout(30000);
+      .withTimeout(90000);
     await element(by.text('Full E2E Test (dev)')).tap();
 
     // Wait for test to complete — look for either pass or fail

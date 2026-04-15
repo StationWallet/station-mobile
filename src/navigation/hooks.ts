@@ -5,6 +5,7 @@ export interface WalletNav {
   onWalletDisconnected: () => void
   goToMigration?: () => void
   wallets: LocalWallet[]
+  refreshWallets: () => Promise<void>
 }
 
 export const WalletNavContext = createContext<WalletNav>({
@@ -12,6 +13,7 @@ export const WalletNavContext = createContext<WalletNav>({
   onWalletDisconnected: (): void => {},
   goToMigration: undefined,
   wallets: [],
+  refreshWallets: async (): Promise<void> => {},
 })
 
 export const useWalletCreated = (): (() => void) =>
