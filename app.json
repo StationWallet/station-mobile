@@ -59,7 +59,15 @@
       "@config-plugins/detox",
       "expo-sharing",
       "expo-updates",
-      "expo-document-picker"
+      "expo-document-picker",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "pageSizeCompat": true
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {
