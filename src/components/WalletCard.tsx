@@ -5,7 +5,15 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native'
-import Svg, { G, Path, Rect, ClipPath, Defs, LinearGradient, Stop } from 'react-native-svg'
+import Svg, {
+  G,
+  Path,
+  Rect,
+  ClipPath,
+  Defs,
+  LinearGradient,
+  Stop,
+} from 'react-native-svg'
 
 import { UTIL } from 'consts'
 import { MIGRATION } from 'consts/migration'
@@ -156,17 +164,35 @@ export default function WalletCard({
         {isFastVault ? (
           <View style={styles.fastVaultChip}>
             <View style={styles.fastVaultIconCircle}>
-              <Svg width={12} height={12} viewBox="0 0 15 15" fill="none">
+              <Svg
+                width={12}
+                height={12}
+                viewBox="0 0 15 15"
+                fill="none"
+              >
                 <Defs>
-                  <LinearGradient id="chipBoltGrad" x1="7.165" y1="0.664" x2="9.263" y2="11.872" gradientUnits="userSpaceOnUse">
+                  <LinearGradient
+                    id="chipBoltGrad"
+                    x1="7.165"
+                    y1="0.664"
+                    x2="9.263"
+                    y2="11.872"
+                    gradientUnits="userSpaceOnUse"
+                  >
                     <Stop stopColor="#F2C375" />
                     <Stop offset="1" stopColor="#FFAA1C" />
                   </LinearGradient>
                 </Defs>
-                <Path d="M8.36 1.41232C8.36 0.679429 7.41436 0.384987 6.99833 0.988304L1.89113 8.39374C1.54944 8.88917 1.9041 9.56457 2.50595 9.56457H5.97005V12.9369C5.97005 13.6698 6.91564 13.9643 7.33173 13.361L12.4389 5.95557C12.7806 5.46012 12.4259 4.7847 11.8241 4.7847H8.36V1.41232Z" fill="url(#chipBoltGrad)" />
+                <Path
+                  d="M8.36 1.41232C8.36 0.679429 7.41436 0.384987 6.99833 0.988304L1.89113 8.39374C1.54944 8.88917 1.9041 9.56457 2.50595 9.56457H5.97005V12.9369C5.97005 13.6698 6.91564 13.9643 7.33173 13.361L12.4389 5.95557C12.7806 5.46012 12.4259 4.7847 11.8241 4.7847H8.36V1.41232Z"
+                  fill="url(#chipBoltGrad)"
+                />
               </Svg>
             </View>
-            <Text fontType="brockmann-medium" style={styles.fastVaultChipText}>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.fastVaultChipText}
+            >
               Fast Vault
             </Text>
           </View>

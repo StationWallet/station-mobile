@@ -74,8 +74,8 @@ function ImportTooltip({
           Import vault share
         </Text>
         <Text fontType="brockmann" style={styles.tooltipDescription}>
-          Use a vault share to recover your vault. Supported file types: .bak &
-          .vult
+          Use a vault share to recover your vault. Supported file
+          types: .bak & .vult
         </Text>
       </View>
     </>
@@ -116,7 +116,7 @@ export default function ImportVault(): React.ReactElement {
         </Text>
         <View style={styles.infoButtonWrapper}>
           <GlassButton
-            onPress={() => setShowTooltip(v => !v)}
+            onPress={() => setShowTooltip((v) => !v)}
             testID="import-vault-info"
           >
             <InfoIcon />

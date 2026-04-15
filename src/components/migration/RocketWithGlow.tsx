@@ -1,5 +1,10 @@
 import React from 'react'
-import { NativeModules, PixelRatio, StyleSheet, View } from 'react-native'
+import {
+  NativeModules,
+  PixelRatio,
+  StyleSheet,
+  View,
+} from 'react-native'
 import Svg, {
   Defs,
   RadialGradient,

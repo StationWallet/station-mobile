@@ -94,30 +94,30 @@ export default function InfoCard({
       >
         <View style={styles.contentRow}>
           <View
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 15,
+              borderWidth: 2,
+              borderColor: 'rgba(255,255,255,0.1)',
+              backgroundColor: '#03132C',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}
+          >
+            <LightningIcon />
+            <View
               style={{
-                width: 30,
-                height: 30,
-                borderRadius: 15,
-                borderWidth: 2,
-                borderColor: 'rgba(255,255,255,0.1)',
-                backgroundColor: '#03132C',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
+                position: 'absolute',
+                bottom: -12,
+                width: 20,
+                height: 10,
+                borderRadius: 50,
+                boxShadow: '0 -6px 16px 0 rgba(255, 170, 28, 0.4)',
               }}
-            >
-              <LightningIcon />
-              <View
-                style={{
-                  position: 'absolute',
-                  bottom: -12,
-                  width: 20,
-                  height: 10,
-                  borderRadius: 50,
-                  boxShadow: '0 -6px 16px 0 rgba(255, 170, 28, 0.4)',
-                }}
-              />
-            </View>
+            />
+          </View>
           <View style={styles.textColumn}>
             <Text fontType="brockmann-medium" style={styles.title}>
               A new type of wallet
@@ -129,8 +129,8 @@ export default function InfoCard({
             </Text>
 
             <Text fontType="brockmann-medium" style={styles.body}>
-              Fast Vaults are the next evolution of self-custody, built
-              for what&apos;s coming to Station.
+              Fast Vaults are the next evolution of self-custody,
+              built for what&apos;s coming to Station.
             </Text>
 
             <Text fontType="brockmann-medium" style={styles.body}>

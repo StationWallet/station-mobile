@@ -15,7 +15,6 @@ import {
 } from '@react-navigation/native'
 import Svg, {
   Path,
-  Rect,
   Circle,
   Defs,
   RadialGradient,
@@ -49,43 +48,6 @@ if (!isDetox) {
   } catch {
     // rive-react-native not available — will render static fallback
   }
-}
-
-function CopyIcon(): React.ReactElement {
-  return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Rect
-        x={9}
-        y={9}
-        width={13}
-        height={13}
-        rx={2}
-        stroke={MIGRATION.textPrimary}
-        strokeWidth={1.5}
-      />
-      <Path
-        d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
-        stroke={MIGRATION.textPrimary}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  )
-}
-
-function ChevronRight(): React.ReactElement {
-  return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M9 18l6-6-6-6"
-        stroke={MIGRATION.textPrimary}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  )
 }
 
 function CheckmarkIcon(): React.ReactElement {
@@ -168,12 +130,30 @@ export default function MigrationSuccess(): React.ReactElement {
         <Svg width={360} height={360} style={styles.glowSvg}>
           <Defs>
             <RadialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
-              <Stop offset="0%" stopColor="#0B4EFF" stopOpacity={0.3} />
-              <Stop offset="35%" stopColor="#0B4EFF" stopOpacity={0.12} />
-              <Stop offset="100%" stopColor="#02122b" stopOpacity={0} />
+              <Stop
+                offset="0%"
+                stopColor="#0B4EFF"
+                stopOpacity={0.3}
+              />
+              <Stop
+                offset="35%"
+                stopColor="#0B4EFF"
+                stopOpacity={0.12}
+              />
+              <Stop
+                offset="100%"
+                stopColor="#02122b"
+                stopOpacity={0}
+              />
             </RadialGradient>
           </Defs>
-          <Ellipse cx={180} cy={180} rx={180} ry={180} fill="url(#orbGlow)" />
+          <Ellipse
+            cx={180}
+            cy={180}
+            rx={180}
+            ry={180}
+            fill="url(#orbGlow)"
+          />
         </Svg>
         {Rive && orbAnimSource ? (
           <Rive
@@ -187,7 +167,7 @@ export default function MigrationSuccess(): React.ReactElement {
         )}
       </View>
 
-      <Text fontType="gotham" style={styles.orbitText}>
+      <Text fontType="brockmann-medium" style={styles.orbitText}>
         {'[ Entering orbit soon... ]'}
       </Text>
 
@@ -312,16 +292,6 @@ const styles = StyleSheet.create({
   },
   shareButtonText: {
     fontSize: 14,
-  },
-  shareRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  shareText: {
-    fontSize: 14,
-    color: MIGRATION.textPrimary,
-    lineHeight: 18,
   },
   migrateAnother: {
     fontSize: 13,

@@ -4,7 +4,12 @@ import React, {
   useState,
   useCallback,
 } from 'react'
-import { View, StyleSheet, Dimensions, PixelRatio } from 'react-native'
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  PixelRatio,
+} from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
 import {
   useNavigation,
@@ -43,7 +48,8 @@ import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 type Nav = StackNavigationProp<MigrationStackParams, 'KeygenProgress'>
 type Route = RouteProp<MigrationStackParams, 'KeygenProgress'>
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } =
+  Dimensions.get('window')
 
 export default function KeygenProgress(): React.ReactElement {
   const navigation = useNavigation<Nav>()
@@ -68,11 +74,14 @@ export default function KeygenProgress(): React.ReactElement {
   const [autoBind, setAutoBind] = useState(false)
   const [setRiveRef, riveRef] = useRive()
   const [, setConnected] = useRiveBoolean(riveRef, 'Connected')
-  const [, setRiveProgress] = useRiveNumber(riveRef, 'progessPercentage')
+  const [, setRiveProgress] = useRiveNumber(
+    riveRef,
+    'progessPercentage'
+  )
   const [, setPosX] = useRiveNumber(riveRef, 'posXcircles')
 
   useEffect(() => {
-    return () => {
+    return (): void => {
       mountedRef.current = false
     }
   }, [])
@@ -123,12 +132,9 @@ export default function KeygenProgress(): React.ReactElement {
     }
   }, [progress, riveRef, autoBind, setRiveProgress])
 
-  const updateProgress = useCallback(
-    (p: KeyImportProgress) => {
-      setProgress(p.progress)
-    },
-    []
-  )
+  const updateProgress = useCallback((p: KeyImportProgress) => {
+    setProgress(p.progress)
+  }, [])
 
   const advance = useCallback(
     (newResult: MigrationResult) => {

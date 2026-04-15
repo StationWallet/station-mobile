@@ -6,7 +6,10 @@ import Svg, {
   LinearGradient as SvgLinearGradient,
   Stop,
 } from 'react-native-svg'
-import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import {
+  Gesture,
+  GestureDetector,
+} from 'react-native-gesture-handler'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -108,11 +111,7 @@ export default function GlassButton({
                 x2="100%"
                 y2="100%"
               >
-                <Stop
-                  offset="0%"
-                  stopColor="white"
-                  stopOpacity="1"
-                />
+                <Stop offset="0%" stopColor="white" stopOpacity="1" />
                 <Stop
                   offset="35%"
                   stopColor="white"

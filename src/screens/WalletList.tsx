@@ -133,7 +133,10 @@ export default function WalletList(): React.ReactElement {
     <SafeAreaView style={styles.container}>
       {loading && (
         <View style={styles.loadingOverlay}>
-          <Text fontType="brockmann-medium" style={styles.loadingText}>
+          <Text
+            fontType="brockmann-medium"
+            style={styles.loadingText}
+          >
             Loading wallets...
           </Text>
         </View>
@@ -192,7 +195,7 @@ export default function WalletList(): React.ReactElement {
               mainNav.navigate('Migration', {
                 screen: 'VaultSetup',
                 params: undefined,
-              } as any)
+              } as { screen: 'VaultSetup'; params: undefined })
             }
           }}
           containerStyle={styles.addButton}

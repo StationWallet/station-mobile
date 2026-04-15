@@ -67,9 +67,8 @@ async function runMpcProtocol(
     while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
       if (signal?.aborted) throw new Error('Aborted')
       try {
-        const outMsg = ExpoDkls.keygenSessionOutputMessage(
-          sessionHandle
-        )
+        const outMsg =
+          ExpoDkls.keygenSessionOutputMessage(sessionHandle)
         if (!outMsg) {
           await sleep(100)
           continue
