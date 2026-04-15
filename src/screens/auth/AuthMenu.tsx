@@ -185,10 +185,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.03)',
-    shadowColor: '#0F1C3E',
-    shadowOffset: { width: 0, height: -1 },
-    shadowOpacity: 1,
-    shadowRadius: 0.5,
+    overflow: 'hidden',
+    boxShadow:
+      '0 -1px 0.5px 0 #0F1C3E inset, 0 1px 1px 0 rgba(255, 255, 255, 0.10) inset',
   },
   secondaryButtonText: {
     color: '#F0F4FC',

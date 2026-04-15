@@ -48,10 +48,9 @@ const authStyles = StyleSheet.create({
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
     marginTop: 'auto' as const,
-    shadowColor: '#0F1C3E',
-    shadowOffset: { width: 0, height: -1 },
-    shadowOpacity: 1,
-    shadowRadius: 0.5,
+    overflow: 'hidden' as const,
+    boxShadow:
+      '0 -1px 0.5px 0 #0F1C3E inset, 0 1px 1px 0 rgba(255, 255, 255, 0.10) inset',
   },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },

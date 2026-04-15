@@ -43,7 +43,7 @@ export type ButtonProps = {
 const Button = (props: ButtonProps): ReactElement => {
   const { theme, disabled, size } = props
   const titleStyle: StyleProp<TextStyle> = {
-    fontSize: size === 'sm' ? 14 : 16,
+    fontSize: 14,
   }
   const containerStyle: StyleProp<ViewStyle> = {
     height: size === 'sm' ? 40 : 46,
@@ -84,6 +84,7 @@ const Button = (props: ButtonProps): ReactElement => {
       titleStyle.color = '#f0f4fc'
       containerStyle.backgroundColor = '#11284a'
       containerStyle.borderColor = 'rgba(255,255,255,0.03)'
+      containerStyle.borderWidth = 1
       break
     case 'white':
     default:
@@ -110,7 +111,7 @@ const Button = (props: ButtonProps): ReactElement => {
       {typeof props.title === 'string' ? (
         <Text
           style={[titleStyle, props.titleStyle]}
-          fontType={props.titleFontType || 'medium'}
+          fontType={props.titleFontType || 'brockmann-medium'}
         >
           {props.title}
         </Text>
@@ -129,9 +130,8 @@ const styles = StyleSheet.create({
     borderRadius: 99,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#0F1C3E',
-    shadowOffset: { width: 0, height: -1 },
-    shadowOpacity: 1,
-    shadowRadius: 0.5,
+    overflow: 'hidden',
+    boxShadow:
+      '0 -1px 0.5px 0 #0F1C3E inset, 0 1px 1px 0 rgba(255, 255, 255, 0.10) inset',
   },
 })
