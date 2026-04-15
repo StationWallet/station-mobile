@@ -1,5 +1,0 @@
-framework  module "goschnorr" {
-    header "goschnorr.h"
-    
-    export *
-}

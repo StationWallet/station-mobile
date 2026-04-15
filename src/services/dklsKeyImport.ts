@@ -1,4 +1,4 @@
-import ExpoDkls from '../../modules/expo-dkls'
+import { ExpoMpcNative as ExpoDkls } from '@vultisig/mpc-native'
 import {
   joinRelaySession,
   waitForParties,
@@ -67,7 +67,7 @@ async function runMpcProtocol(
     while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
       if (signal?.aborted) throw new Error('Aborted')
       try {
-        const outMsg = await ExpoDkls.getOutboundMessage(
+        const outMsg = ExpoDkls.keygenSessionOutputMessage(
           sessionHandle
         )
         if (!outMsg) {
@@ -80,7 +80,7 @@ async function runMpcProtocol(
 
         let idx = 0
         while (true) {
-          const receiver = await ExpoDkls.getMessageReceiver(
+          const receiver = ExpoDkls.keygenSessionMessageReceiver(
             sessionHandle,
             outMsg,
             idx
@@ -129,7 +129,7 @@ async function runMpcProtocol(
           if (processedMessages.has(cacheKey)) continue
 
           const decrypted = decryptAesGcm(msg.body, cipherKey)
-          const finished = await ExpoDkls.inputMessage(
+          const finished = ExpoDkls.keygenSessionInputMessage(
             sessionHandle,
             decrypted
           )
@@ -269,12 +269,12 @@ export async function importKeyToFastVault(options: {
 
   report({ step: 'ecdsa', message: 'Importing key...', progress: 35 })
 
-  const importResult = (await ExpoDkls.createDklsKeyImportSession(
+  const importResult = ExpoDkls.createDklsKeyImportInitiator(
     privateKeyHex,
     hexChainCode,
     2,
     [localPartyId, serverPartyId]
-  )) as { setupMessage: string; sessionHandle: number }
+  ) as { setupMessage: string; sessionHandle: number }
 
   const sessionHandle = importResult.sessionHandle
 

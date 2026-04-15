@@ -8,11 +8,11 @@ import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
 import { getStoredVault } from 'services/migrateToVault'
 
-// Lazy-load expo-dkls to avoid crashes in non-native contexts
+// Lazy-load mpc-native to avoid crashes in non-native contexts
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamically loaded native module with no TS definitions
 let ExpoDkls: any = null
 try {
-  ExpoDkls = require('../../modules/expo-dkls').default
+  ExpoDkls = require('@vultisig/mpc-native').ExpoMpcNative
 } catch {}
 
 // Must match the test vectors in DevSeedLegacyData
@@ -158,13 +158,13 @@ export default function DevVerifyVault({
           // This is the closest we can get to signing validation without a co-signer.
           if (ExpoDkls && vault1.keyShares[0].keyshare) {
             try {
-              const handle = await ExpoDkls.loadKeyshare(
+              const handle = await ExpoDkls.dklsKeyshareFromBytes(
                 vault1.keyShares[0].keyshare
               )
               // If loadKeyshare returns a handle without throwing, the keyshare is valid
               r['vault1-keyshare-loadable'] = 'true'
               // Extract key ID and verify it's non-empty
-              const keyId = await ExpoDkls.getKeyshareKeyId(handle)
+              const keyId = await ExpoDkls.dklsKeyshareKeyId(handle)
               r['vault1-keyshare-has-keyid'] = String(
                 keyId.length > 0
               )
@@ -238,7 +238,7 @@ export default function DevVerifyVault({
           // Load keyshare to validate
           if (ExpoDkls && vault2.keyShares[0].keyshare) {
             try {
-              const handle = await ExpoDkls.loadKeyshare(
+              const handle = await ExpoDkls.dklsKeyshareFromBytes(
                 vault2.keyShares[0].keyshare
               )
               r['vault2-keyshare-loadable'] = 'true'
