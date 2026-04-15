@@ -104,8 +104,19 @@ export default function InfoCard({
         ]}
       >
         <View style={styles.titleRow}>
-          <View style={styles.lightningIconContainer}>
+          <View style={{ position: 'relative' }}>
             <LightningIcon />
+            <View
+              style={{
+                position: 'absolute',
+                bottom: -12,
+                left: 3,
+                width: 20,
+                height: 10,
+                borderRadius: 50,
+                boxShadow: '0 -6px 16px 0 #FFAA1C',
+              }}
+            />
           </View>
           <Text fontType="brockmann-medium" style={styles.title}>
             A new type of wallet
@@ -172,13 +183,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-  },
-  lightningIconContainer: {
-    shadowColor: '#FFAA1C',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 10,
-    elevation: 8,
   },
   title: {
     fontSize: 15,
