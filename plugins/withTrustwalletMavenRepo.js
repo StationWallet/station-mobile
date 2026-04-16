@@ -1,7 +1,7 @@
 const {
   withProjectBuildGradle,
   createRunOncePlugin,
-} = require('@expo/config-plugins');
+} = require('@expo/config-plugins')
 
 /**
  * Injects the Trust Wallet GitHub Packages Maven repository into
@@ -29,7 +29,8 @@ const {
  * The Groovy `System.getenv(...)` call is emitted literally so the PAT
  * never touches git.
  */
-const MARKER = '// trustwallet-maven-repo (managed by withTrustwalletMavenRepo)';
+const MARKER =
+  '// trustwallet-maven-repo (managed by withTrustwalletMavenRepo)'
 
 const REPO_BLOCK_LINES = [
   `    ${MARKER}`,
@@ -41,9 +42,9 @@ const REPO_BLOCK_LINES = [
   '      }',
   '      content { includeGroup("com.trustwallet") }',
   '    }',
-];
+]
 
-const REPO_BLOCK = REPO_BLOCK_LINES.join('\n');
+const REPO_BLOCK = REPO_BLOCK_LINES.join('\n')
 
 /**
  * Find the matching `}` for the `{` at `openIndex`, handling nested braces
@@ -51,75 +52,78 @@ const REPO_BLOCK = REPO_BLOCK_LINES.join('\n');
  * inside a URL or credential value.
  */
 function findMatchingClose(source, openIndex) {
-  let depth = 0;
-  let i = openIndex;
-  const len = source.length;
+  let depth = 0
+  let i = openIndex
+  const len = source.length
   while (i < len) {
-    const ch = source[i];
+    const ch = source[i]
     if (ch === '"' || ch === "'") {
-      const quote = ch;
-      i++;
+      const quote = ch
+      i++
       while (i < len && source[i] !== quote) {
-        if (source[i] === '\\') i++;
-        i++;
+        if (source[i] === '\\') i++
+        i++
       }
-      i++;
-      continue;
+      i++
+      continue
     }
-    if (ch === '{') depth++;
+    if (ch === '{') depth++
     else if (ch === '}') {
-      depth--;
-      if (depth === 0) return i;
+      depth--
+      if (depth === 0) return i
     }
-    i++;
+    i++
   }
-  return -1;
+  return -1
 }
 
-const withTrustwalletMavenRepo = config =>
-  withProjectBuildGradle(config, modConfig => {
+const withTrustwalletMavenRepo = (config) =>
+  withProjectBuildGradle(config, (modConfig) => {
     if (modConfig.modResults.contents.includes(MARKER)) {
-      return modConfig;
+      return modConfig
     }
 
-    const contents = modConfig.modResults.contents;
-    const allprojectsIdx = contents.indexOf('allprojects');
+    const contents = modConfig.modResults.contents
+    const allprojectsIdx = contents.indexOf('allprojects')
     if (allprojectsIdx === -1) {
       throw new Error(
-        '[withTrustwalletMavenRepo] no allprojects block in android/build.gradle',
-      );
+        '[withTrustwalletMavenRepo] no allprojects block in android/build.gradle'
+      )
     }
 
-    const repositoriesIdx = contents.indexOf('repositories', allprojectsIdx);
+    const repositoriesIdx = contents.indexOf(
+      'repositories',
+      allprojectsIdx
+    )
     if (repositoriesIdx === -1) {
       throw new Error(
-        '[withTrustwalletMavenRepo] no repositories block inside allprojects',
-      );
+        '[withTrustwalletMavenRepo] no repositories block inside allprojects'
+      )
     }
 
-    const openBraceIdx = contents.indexOf('{', repositoriesIdx);
+    const openBraceIdx = contents.indexOf('{', repositoriesIdx)
     if (openBraceIdx === -1) {
       throw new Error(
-        '[withTrustwalletMavenRepo] malformed repositories block',
-      );
+        '[withTrustwalletMavenRepo] malformed repositories block'
+      )
     }
 
-    const closeBraceIdx = findMatchingClose(contents, openBraceIdx);
+    const closeBraceIdx = findMatchingClose(contents, openBraceIdx)
     if (closeBraceIdx === -1) {
       throw new Error(
-        '[withTrustwalletMavenRepo] unterminated repositories block',
-      );
+        '[withTrustwalletMavenRepo] unterminated repositories block'
+      )
     }
 
-    const before = contents.slice(0, closeBraceIdx);
-    const after = contents.slice(closeBraceIdx);
-    modConfig.modResults.contents = `${before}${REPO_BLOCK}\n  ${after}`;
+    const before = contents.slice(0, closeBraceIdx)
+    const after = contents.slice(closeBraceIdx)
+    modConfig.modResults.contents = `${before}${REPO_BLOCK}\n  ${after}`
 
-    return modConfig;
-  });
+    return modConfig
+  })
 
 module.exports = createRunOncePlugin(
   withTrustwalletMavenRepo,
   'withTrustwalletMavenRepo',
-  '1.0.0',
-);
+  '1.0.0'
+)

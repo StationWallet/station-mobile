@@ -11,7 +11,10 @@ const Stack = createStackNavigator()
 const NewWalletStack = (): ReactElement => (
   <Stack.Navigator
     initialRouteName="NewWalletStep1"
-    screenOptions={{ headerShown: false, cardStyle: { backgroundColor: '#02122B' } }}
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: '#02122B' },
+    }}
   >
     <Stack.Screen
       name="NewWalletStep1"

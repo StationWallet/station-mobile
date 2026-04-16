@@ -22,7 +22,10 @@ import WalletRecovered from '../screens/auth/RecoverWallet/WalletRecovered'
 const RecoverWalletStackScreen = (): ReactElement => (
   <RecoverWalletStack.Navigator
     initialRouteName="Step1"
-    screenOptions={{ headerShown: false, cardStyle: { backgroundColor: '#02122B' } }}
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: '#02122B' },
+    }}
   >
     <RecoverWalletStack.Screen
       name="Step1"
