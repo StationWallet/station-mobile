@@ -113,52 +113,6 @@ async function fetchOtpFromAgentmail(
 }
 
 /**
- * Walk one wallet through: email → password → keygen → verify email.
- * Assumes the VaultEmail screen is already visible.
- */
-async function migrateOneWallet(walletLabel, knownMessageIds) {
-  console.log(`\n--- Migrating ${walletLabel} ---`)
-
-  await waitFor(element(by.text('Enter your email')))
-    .toBeVisible()
-    .withTimeout(10000)
-  await element(by.id('vault-email-input')).tap()
-  await element(by.id('vault-email-input')).clearText()
-  await element(by.id('vault-email-input')).typeText(AGENTMAIL_EMAIL)
-  await element(by.id('vault-email-next')).tap()
-
-  await waitFor(element(by.text('Choose a password')))
-    .toBeVisible()
-    .withTimeout(10000)
-
-  const preKeygenIds = await getExistingMessageIds(AGENTMAIL_EMAIL)
-  for (const id of preKeygenIds) knownMessageIds.add(id)
-
-  await element(by.id('vault-password-input')).typeText(
-    VAULT_PASSWORD
-  )
-  await element(by.id('vault-password-confirm')).typeText(
-    VAULT_PASSWORD
-  )
-  await element(by.id('vault-password-continue')).tap()
-
-  // Wait for VerifyEmail screen — match on the input testID (text changed in UI redesign)
-  await waitFor(element(by.id('verify-code-input')))
-    .toExist()
-    .withTimeout(150000)
-
-  const otp = await fetchOtpFromAgentmail(
-    AGENTMAIL_EMAIL,
-    knownMessageIds
-  )
-  // The hidden TextInput (1x1, near-zero opacity) isn't tappable, so skip .tap()
-  await element(by.id('verify-code-input')).replaceText(otp)
-
-  await new Promise((r) => setTimeout(r, 5000))
-  console.log(`--- ${walletLabel} complete ---\n`)
-}
-
-/**
  * Walk one wallet through the per-wallet migration flow.
  * Assumes the wallet list screen is visible with the wallet card.
  *
@@ -242,6 +196,5 @@ module.exports = {
   VAULT_PASSWORD,
   getExistingMessageIds,
   fetchOtpFromAgentmail,
-  migrateOneWallet,
   migrateOneWalletFromCard,
 }
