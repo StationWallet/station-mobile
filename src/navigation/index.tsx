@@ -62,7 +62,9 @@ export default function AppNavigator(): React.ReactElement | null {
       ) {
         setRootRoute('Migration')
       } else if (loaded.length === 0) {
-        setRootRoute('Migration')
+        // In dev mode, show Auth first so E2E dev seed buttons are accessible.
+        // In production, brand new users go straight to the migration/creation flow.
+        setRootRoute(__DEV__ ? 'Auth' : 'Migration')
       } else {
         setRootRoute('Main')
       }
