@@ -101,10 +101,10 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
       await element(by.id('vault-password-confirm')).typeText('testpass123');
       await element(by.id('vault-password-continue')).tap();
 
-      // Should reach KeygenProgress and fail quickly (corrupt key)
-      await waitFor(element(by.text('Fast Vault Setup')))
-        .toBeVisible()
-        .withTimeout(10000);
+      // Should reach KeygenProgress and fail quickly (corrupt key → error UI)
+      await waitFor(element(by.id('keygen-error-text')))
+        .toExist()
+        .withTimeout(30000);
     });
   });
 

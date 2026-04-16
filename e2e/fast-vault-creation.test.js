@@ -149,30 +149,29 @@ describe('Fast Vault Creation — New User', () => {
       // Tap while keyboard is still up (button is pushed above keyboard)
       await element(by.id('vault-password-continue')).tap();
 
-      // Wait for KeygenProgress or VerifyEmail (keygen can complete very fast)
-      const startTime = Date.now();
-      while (Date.now() - startTime < 15000) {
-        try { await expect(element(by.text('Fast Vault Setup'))).toExist(); return; } catch {}
-        try { await expect(element(by.text('Verify your email'))).toExist(); return; } catch {}
-        await new Promise(r => setTimeout(r, 2000));
-      }
-      throw new Error('Did not leave password screen within 15 seconds');
+      // Wait for KeygenProgress (Rive animation, no text) or VerifyEmail
+      // — keygen can complete very fast, so check for the verify input testID
+      await waitFor(element(by.id('verify-code-input')))
+        .toExist()
+        .withTimeout(15000);
     }, 240000);
   });
 
   // ─── Keygen + OTP verification ──────────────────────────────────
   describe('Keygen and verification', () => {
     it('should complete keygen and reach VerifyEmail', async () => {
+      // Wait for verify-code-input (keygen complete → VerifyEmail)
+      // If keygen fails, retry up to 3 minutes
       const startTime = Date.now();
       const timeoutMs = 180000;
       while (Date.now() - startTime < timeoutMs) {
         try {
-          await expect(element(by.text('Verify your email'))).toExist();
+          await expect(element(by.id('verify-code-input'))).toExist();
           return;
         } catch {}
 
         try {
-          await expect(element(by.text('Failed'))).toExist();
+          await expect(element(by.id('keygen-error-text'))).toExist();
           try {
             const attrs = await element(by.id('keygen-error-text')).getAttributes();
             console.log('[Keygen] Error:', attrs.text || attrs.label);
@@ -187,8 +186,7 @@ describe('Fast Vault Creation — New User', () => {
 
     it('should verify email with OTP', async () => {
       const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, knownMessageIds);
-      await waitFor(element(by.id('verify-code-input'))).toExist().withTimeout(5000);
-      await element(by.id('verify-code-input')).tap();
+      // The hidden TextInput (1x1, near-zero opacity) isn't tappable, so skip .tap()
       await element(by.id('verify-code-input')).replaceText(otp);
 
       await waitFor(element(by.text('You are aboard, Station OG!')))

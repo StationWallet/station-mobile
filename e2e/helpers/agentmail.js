@@ -119,7 +119,6 @@ async function migrateOneWallet(walletLabel, knownMessageIds) {
 
   const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, knownMessageIds);
   // The hidden TextInput (1x1, near-zero opacity) isn't tappable, so skip .tap()
-  // and use replaceText directly — it sets the native value without requiring visibility.
   await element(by.id('verify-code-input')).replaceText(otp);
 
   await new Promise(r => setTimeout(r, 5000));
@@ -172,7 +171,6 @@ async function migrateOneWalletFromCard(walletIndex, walletLabel, knownMessageId
 
   const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, knownMessageIds);
   // The hidden TextInput (1x1, near-zero opacity) isn't tappable, so skip .tap()
-  // and use replaceText directly — it sets the native value without requiring visibility.
   await element(by.id('verify-code-input')).replaceText(otp);
 
   // Wait for verification + navigation to MigrationSuccess
