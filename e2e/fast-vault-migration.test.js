@@ -1,9 +1,10 @@
 /**
- * Fast Vault Migration E2E Tests — Per-Wallet Flow
+ * Fast Vault Migration E2E Tests
  *
- * Full end-to-end: seed legacy data → RiveIntro → MigrationHome →
- * wallet list → migrate each wallet individually (email → password →
- * keygen → verify) → MigrationSuccess → vault integrity → persistence.
+ * 1. Clean-install guard: verifies dev mode routes to Auth (not Migration)
+ * 2. Per-wallet migration: seed legacy data → RiveIntro → MigrationHome →
+ *    wallet list → migrate each wallet individually (email → password →
+ *    keygen → verify) → MigrationSuccess → vault integrity → persistence.
  *
  * Test data: 2 standard wallets (TestWallet1, TestWallet2) + 1 Ledger wallet.
  * Ledger wallets don't need DKLS migration and should appear as already
@@ -17,6 +18,31 @@ const {
   migrateOneWalletFromCard,
 } = require('./helpers/agentmail')
 const { eraseSimulator } = require('./helpers/simulator')
+
+// --- Clean install guard ---
+// Verifies that dev mode routes clean installs to Auth (not Migration),
+// so dev-only seed buttons are accessible for subsequent tests.
+
+describe('Fast Vault Migration — Clean Install Guard', () => {
+  beforeAll(async () => {
+    eraseSimulator(device.id)
+
+    await device.launchApp({ delete: true, newInstance: true })
+    await device.disableSynchronization()
+  })
+
+  afterAll(async () => {
+    await device.enableSynchronization()
+  })
+
+  it('shows auth screen on clean install in dev mode', async () => {
+    await waitFor(element(by.text('Create New Wallet')))
+      .toBeVisible()
+      .withTimeout(90000)
+  })
+})
+
+// --- Per-wallet migration flow ---
 
 describe('Fast Vault Migration — Per-Wallet', () => {
   let knownMessageIds = new Set()
