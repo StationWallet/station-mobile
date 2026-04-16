@@ -36,7 +36,10 @@ const AuthMenu = ({
         testID="auth-scroll"
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + 120 },
+          {
+            paddingTop: insets.top + 120,
+            paddingBottom: Math.max(40, insets.bottom + 16),
+          },
         ]}
         keyboardShouldPersistTaps="handled"
       >

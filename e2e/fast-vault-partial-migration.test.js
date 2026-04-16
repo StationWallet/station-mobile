@@ -34,9 +34,12 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
         .toBeVisible()
         .withTimeout(90000);
 
-      // Scroll to bottom — Seed Corrupt Data is the last dev button, often clipped
-      await element(by.id('auth-scroll')).scrollTo('bottom');
-      await element(by.text('Seed Corrupt Data (dev)')).tap();
+      // Use testID to tap — the text element can fail the 75% visibility threshold
+      // at the bottom edge of the scroll view, but the parent TouchableOpacity is tappable
+      await waitFor(element(by.id('dev-seed-corrupt')))
+        .toExist()
+        .withTimeout(10000);
+      await element(by.id('dev-seed-corrupt')).tap();
 
       await waitFor(element(by.id('seed-corrupt-done')))
         .toExist()
