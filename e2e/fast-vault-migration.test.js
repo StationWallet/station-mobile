@@ -88,7 +88,6 @@ describe('Fast Vault Migration — Per-Wallet', () => {
   })
 
   it('should navigate to wallet list', async () => {
-    await new Promise((r) => setTimeout(r, 3000))
     await element(by.text('Start Migration')).tap()
     await waitFor(element(by.text('Your wallets')))
       .toBeVisible()
@@ -168,7 +167,9 @@ describe('Fast Vault Migration — Per-Wallet', () => {
 
   it('should dismiss migration and show main app', async () => {
     await element(by.id('success-back')).tap()
-    await new Promise((r) => setTimeout(r, 2000))
+    await waitFor(element(by.text('Your wallets')))
+      .toBeVisible()
+      .withTimeout(10000)
   })
 
   // --- Export DKLS vault ---
@@ -227,7 +228,9 @@ describe('Fast Vault Migration — Per-Wallet', () => {
   it('should not show migration flow on relaunch', async () => {
     await device.launchApp({ newInstance: true })
     await device.disableSynchronization()
-    await new Promise((r) => setTimeout(r, 3000))
+    await waitFor(element(by.text('Your wallets')))
+      .toBeVisible()
+      .withTimeout(30000)
 
     let migrationShown = false
     try {

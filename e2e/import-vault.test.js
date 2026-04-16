@@ -93,9 +93,6 @@ async function navigateToMigrationHome() {
   await waitFor(element(by.id('import-vault-button')))
     .toBeVisible()
     .withTimeout(90000)
-
-  // Let MigrationHome settle (wallet discovery, layout)
-  await new Promise((r) => setTimeout(r, 2000))
 }
 
 async function navigateToImportScreen() {
@@ -220,13 +217,13 @@ describe('Import Vault', () => {
     })
 
     it('should complete import and reach main app', async () => {
-      // Wait for password sheet modal dismiss animation to complete
-      await new Promise((r) => setTimeout(r, 1000))
       await waitFor(element(by.id('success-back')))
         .toBeVisible()
         .withTimeout(5000)
       await element(by.id('success-back')).tap()
-      await new Promise((r) => setTimeout(r, 2000))
+      await waitFor(element(by.text('Test Import Vault')))
+        .toBeVisible()
+        .withTimeout(10000)
     })
   })
 
@@ -238,7 +235,9 @@ describe('Import Vault', () => {
         launchArgs: { detoxURLBlacklistRegex: '.*' },
       })
       await device.disableSynchronization()
-      await new Promise((r) => setTimeout(r, 3000))
+      await waitFor(element(by.text('Test Import Vault')))
+        .toBeVisible()
+        .withTimeout(30000)
     })
 
     afterAll(safeEnableSync)
@@ -262,9 +261,7 @@ describe('Import Vault', () => {
     })
 
     it('should show imported vault in wallet list', async () => {
-      await waitFor(element(by.text('Test Import Vault')))
-        .toBeVisible()
-        .withTimeout(10000)
+      await expect(element(by.text('Test Import Vault'))).toBeVisible()
     })
   })
 

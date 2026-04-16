@@ -56,7 +56,6 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
       await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
         .withTimeout(90000)
-      await new Promise((r) => setTimeout(r, 2000))
       await element(by.id('migration-cta')).tap()
 
       await waitFor(element(by.text('Your wallets')))
@@ -153,8 +152,9 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
 
     it('can dismiss migration and continue to app', async () => {
       await element(by.id('success-back')).tap()
-      // Should navigate away from migration
-      await new Promise((r) => setTimeout(r, 2000))
+      await waitFor(element(by.text('Create New Wallet')))
+        .toBeVisible()
+        .withTimeout(10000)
     })
   })
 })

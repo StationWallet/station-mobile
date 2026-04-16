@@ -56,8 +56,6 @@ describe('Fast Vault Creation — New User', () => {
       await waitFor(element(by.text('Create a Fast Vault')))
         .toBeVisible()
         .withTimeout(90000)
-
-      await new Promise((r) => setTimeout(r, 3000))
     })
 
     it('should navigate to VaultName', async () => {
@@ -198,7 +196,7 @@ describe('Fast Vault Creation — New User', () => {
           await element(by.id('keygen-retry')).tap()
         } catch {}
 
-        await new Promise((r) => setTimeout(r, 10000))
+        await new Promise((r) => setTimeout(r, 5000))
       }
       throw new Error('Keygen did not complete within 3 minutes')
     }, 240000)
@@ -246,7 +244,9 @@ describe('Fast Vault Creation — New User', () => {
         .toExist()
         .withTimeout(5000)
       await element(by.id('success-back')).tap()
-      await new Promise((r) => setTimeout(r, 3000))
+      await waitFor(element(by.text('Your wallets')))
+        .toBeVisible()
+        .withTimeout(10000)
     })
   })
 
@@ -258,7 +258,9 @@ describe('Fast Vault Creation — New User', () => {
         launchArgs: { detoxURLBlacklistRegex: '.*' },
       })
       await device.disableSynchronization()
-      await new Promise((r) => setTimeout(r, 3000))
+      await waitFor(element(by.text('My Fast Vault')))
+        .toBeVisible()
+        .withTimeout(30000)
     })
 
     it('should not show migration flow on relaunch', async () => {
@@ -278,9 +280,7 @@ describe('Fast Vault Creation — New User', () => {
     })
 
     it('should show created vault in wallet list', async () => {
-      await waitFor(element(by.text('My Fast Vault')))
-        .toBeVisible()
-        .withTimeout(10000)
+      await expect(element(by.text('My Fast Vault'))).toBeVisible()
     })
   })
 })
