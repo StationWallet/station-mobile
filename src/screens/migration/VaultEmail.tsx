@@ -6,10 +6,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { RouteProp } from '@react-navigation/native'
+import Animated, {
+  FadeInRight,
+  FadeOutLeft,
+} from 'react-native-reanimated'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -34,24 +38,31 @@ export default function VaultEmail(): React.ReactElement {
   } = route.params
 
   const [email, setEmail] = useState(prefillEmail ?? '')
-  const [touched, setTouched] = useState(false)
 
   const valid = isValidEmail(email)
-  const showError = touched && !valid
+  const showError = email.length > 0 && !valid
 
   const stepBarCurrentStep = mode === 'create' ? 2 : 1
 
+  const insets = useSafeAreaInsets()
+
   return (
-    <SafeAreaView style={formStyles.container}>
+    <View style={formStyles.container}>
       <KeyboardAvoidingView
         style={formStyles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <MigrationToolbar onBack={() => navigation.goBack()} />
+        <View style={{ paddingTop: insets.top }}>
+          <MigrationToolbar onBack={() => navigation.goBack()} />
+        </View>
 
         <StepProgressBar currentStep={stepBarCurrentStep} />
 
-        <View style={formStyles.content}>
+        <Animated.View
+          entering={FadeInRight.duration(250)}
+          exiting={FadeOutLeft.duration(250)}
+          style={formStyles.content}
+        >
           <Text style={formStyles.title} fontType="brockmann-medium">
             Enter your email
           </Text>
@@ -66,7 +77,6 @@ export default function VaultEmail(): React.ReactElement {
             style={[styles.input, showError && styles.inputError]}
             value={email}
             onChangeText={setEmail}
-            onBlur={() => setTouched(true)}
             placeholder="you@example.com"
             placeholderTextColor={MIGRATION.textTertiary}
             keyboardType="email-address"
@@ -77,12 +87,17 @@ export default function VaultEmail(): React.ReactElement {
 
           {showError && (
             <Text style={styles.errorText} fontType="brockmann">
-              Please enter a valid email address.
+              Incorrect e-mail, please check
             </Text>
           )}
-        </View>
+        </Animated.View>
 
-        <View style={formStyles.buttonContainer}>
+        <View
+          style={[
+            formStyles.buttonContainer,
+            { paddingBottom: Math.max(insets.bottom, 16) },
+          ]}
+        >
           <Button
             testID="vault-email-next"
             title="Next"
@@ -101,7 +116,7 @@ export default function VaultEmail(): React.ReactElement {
           />
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   )
 }
 

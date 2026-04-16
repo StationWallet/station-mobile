@@ -18,7 +18,7 @@ export const MIGRATION = {
   textPrimary: '#f0f4fc',
   textTertiary: '#8295ae',
   textLink: '#4879fd',
-  textInputPlaceholder: '#c9d6e8',
+  textInputPlaceholder: '#8295ae',
 
   // Status
   errorRed: '#ff5c5c',

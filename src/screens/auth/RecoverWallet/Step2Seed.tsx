@@ -7,17 +7,22 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useNavigation } from '@react-navigation/native'
 import { useSetRecoilState } from 'recoil'
 import RecoverWalletStore from 'stores/RecoverWalletStore'
 import { formatSeedStringToArray } from 'utils/wallet'
+import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { COLORS } from 'consts/theme'
-import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
+import authStyles from '../authStyles'
 
 const Step2Seed = ({
   navigation,
 }: {
   navigation: { navigate: (screen: string) => void }
 }): React.ReactElement => {
+  const insets = useSafeAreaInsets()
+  const nav = useNavigation()
   const [seedText, setSeedText] = useState('')
   const setSeed = useSetRecoilState(RecoverWalletStore.seed)
 
@@ -34,6 +39,9 @@ const Step2Seed = ({
 
   return (
     <View style={authStyles.container}>
+      <View style={{ paddingTop: insets.top }}>
+        <MigrationToolbar onBack={() => nav.goBack()} />
+      </View>
       <ScrollView
         contentContainerStyle={authStyles.content}
         keyboardShouldPersistTaps="handled"
@@ -90,9 +98,7 @@ const Step2Seed = ({
 }
 
 Step2Seed.navigationOptions = {
-  title: 'Seed Phrase',
-  headerStyle: authStyles.headerStyle,
-  headerTintColor: HEADER_TINT_COLOR,
+  headerShown: false,
 }
 
 const styles = StyleSheet.create({

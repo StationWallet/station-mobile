@@ -1,5 +1,0 @@
-framework  module "godkls" {
-    header "godkls.h"
-    
-    export *
-}

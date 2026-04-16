@@ -7,11 +7,14 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useNavigation } from '@react-navigation/native'
 import { useSetRecoilState, useRecoilValue } from 'recoil'
 import NewWalletStore from 'stores/NewWalletStore'
 import TerraWallet from 'nativeModules/terraWallet'
+import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { COLORS } from 'consts/theme'
-import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
+import authStyles from '../authStyles'
 
 const Step3 = ({
   navigation,
@@ -23,6 +26,8 @@ const Step3 = ({
     ) => void
   }
 }): React.ReactElement => {
+  const insets = useSafeAreaInsets()
+  const nav = useNavigation()
   const [mnemonic, setMnemonic] = useState('')
   const [loading, setLoading] = useState(true)
   const setSeed = useSetRecoilState(NewWalletStore.seed)
@@ -58,6 +63,9 @@ const Step3 = ({
 
   return (
     <View style={authStyles.container}>
+      <View style={{ paddingTop: insets.top }}>
+        <MigrationToolbar onBack={() => nav.goBack()} />
+      </View>
       <ScrollView
         contentContainerStyle={authStyles.content}
         keyboardShouldPersistTaps="handled"
@@ -97,9 +105,7 @@ const Step3 = ({
 }
 
 Step3.navigationOptions = {
-  title: 'Seed Phrase',
-  headerStyle: authStyles.headerStyle,
-  headerTintColor: HEADER_TINT_COLOR,
+  headerShown: false,
 }
 
 const styles = StyleSheet.create({

@@ -6,15 +6,24 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
-import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useNavigation } from '@react-navigation/native'
+import MigrationToolbar from 'components/migration/MigrationToolbar'
+import authStyles from '../authStyles'
 
 const Step1 = ({
   navigation,
 }: {
   navigation: { navigate: (screen: string) => void }
 }): React.ReactElement => {
+  const insets = useSafeAreaInsets()
+  const nav = useNavigation()
+
   return (
     <View style={authStyles.container}>
+      <View style={{ paddingTop: insets.top }}>
+        <MigrationToolbar onBack={() => nav.goBack()} />
+      </View>
       <ScrollView
         contentContainerStyle={authStyles.content}
         keyboardShouldPersistTaps="handled"
@@ -40,9 +49,7 @@ const Step1 = ({
 }
 
 Step1.navigationOptions = {
-  title: 'Recover Wallet',
-  headerStyle: authStyles.headerStyle,
-  headerTintColor: HEADER_TINT_COLOR,
+  headerShown: false,
 }
 
 const styles = StyleSheet.create({

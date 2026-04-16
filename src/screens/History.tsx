@@ -13,7 +13,7 @@ import {
   StyleSheet,
 } from 'react-native'
 import { RouteProp, useRoute } from '@react-navigation/native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useConfig } from 'lib/contexts/ConfigContext'
 import { UTIL } from 'consts'
@@ -48,6 +48,7 @@ export default function History(): React.ReactElement {
   const { params } = useRoute<RouteProp<RouteParams, 'History'>>()
   const { address } = params
   const { chain } = useConfig()
+  const insets = useSafeAreaInsets()
   const lcdUrl = chain.current.lcd
 
   const [txs, setTxs] = useState<TxResponse[]>([])
@@ -277,7 +278,15 @@ export default function History(): React.ReactElement {
   const hasMore = hasMoreSent || hasMoreReceived
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: insets.top,
+          paddingBottom: Math.max(insets.bottom, 16),
+        },
+      ]}
+    >
       <Text style={styles.title}>History</Text>
       {loading ? (
         <Loading />
@@ -307,7 +316,7 @@ export default function History(): React.ReactElement {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   )
 }
 

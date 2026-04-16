@@ -42,11 +42,15 @@ const authStyles = StyleSheet.create({
   inputError: { borderColor: COLORS.error },
   errorText: { color: COLORS.error, fontSize: 12, marginTop: 6 },
   button: {
-    backgroundColor: COLORS.accent,
+    backgroundColor: '#0B4EFF',
     borderRadius: 99,
-    paddingVertical: 16,
+    height: 46,
+    justifyContent: 'center' as const,
     alignItems: 'center' as const,
     marginTop: 'auto' as const,
+    overflow: 'hidden' as const,
+    boxShadow:
+      '0 -1px 0.5px 0 #0F1C3E inset, 0 1px 1px 0 rgba(255, 255, 255, 0.10) inset',
   },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },

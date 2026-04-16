@@ -43,10 +43,10 @@ export type ButtonProps = {
 const Button = (props: ButtonProps): ReactElement => {
   const { theme, disabled, size } = props
   const titleStyle: StyleProp<TextStyle> = {
-    fontSize: size === 'sm' ? 14 : 16,
+    fontSize: 14,
   }
   const containerStyle: StyleProp<ViewStyle> = {
-    height: size === 'sm' ? 40 : 60,
+    height: size === 'sm' ? 40 : 46,
   }
 
   switch (theme) {
@@ -84,6 +84,7 @@ const Button = (props: ButtonProps): ReactElement => {
       titleStyle.color = '#f0f4fc'
       containerStyle.backgroundColor = '#11284a'
       containerStyle.borderColor = 'rgba(255,255,255,0.03)'
+      containerStyle.borderWidth = 1
       break
     case 'white':
     default:
@@ -94,8 +95,9 @@ const Button = (props: ButtonProps): ReactElement => {
   }
 
   if (disabled) {
-    containerStyle.backgroundColor = '#0b1a3a'
-    containerStyle.borderColor = '#0b1a3a'
+    containerStyle.opacity = 0.35
+    containerStyle.backgroundColor = '#121C4A'
+    containerStyle.borderColor = '#121C4A'
     titleStyle.color = '#718096'
   }
 
@@ -109,7 +111,7 @@ const Button = (props: ButtonProps): ReactElement => {
       {typeof props.title === 'string' ? (
         <Text
           style={[titleStyle, props.titleStyle]}
-          fontType={props.titleFontType || 'medium'}
+          fontType={props.titleFontType || 'brockmann-medium'}
         >
           {props.title}
         </Text>
@@ -125,8 +127,11 @@ export default Button
 const styles = StyleSheet.create({
   container: {
     borderWidth: 0,
-    borderRadius: 30,
+    borderRadius: 99,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+    boxShadow:
+      '0 -1px 0.5px 0 #0F1C3E inset, 0 1px 1px 0 rgba(255, 255, 255, 0.10) inset',
   },
 })

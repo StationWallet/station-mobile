@@ -1,5 +1,10 @@
 import React from 'react'
-import { Image, NativeModules, StyleSheet, View } from 'react-native'
+import {
+  NativeModules,
+  PixelRatio,
+  StyleSheet,
+  View,
+} from 'react-native'
 import Svg, {
   Defs,
   RadialGradient,
@@ -18,15 +23,12 @@ const isDetox = NativeModules.DetoxManager != null
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamically loaded Rive component
 let Rive: any = null
-let walletAnimUrl: string | null = null
+let walletAnimSource: number | null = null
 
 if (!isDetox) {
   try {
     Rive = require('rive-react-native').default
-    walletAnimUrl =
-      Image.resolveAssetSource(
-        require('../../../assets/animations/station_wallet_animation.riv')
-      )?.uri ?? null
+    walletAnimSource = require('../../../assets/animations/station_wallet_animation.riv')
   } catch {
     // rive-react-native not available — static fallback
   }
@@ -103,12 +105,13 @@ export default function RocketWithGlow({
         />
       </Svg>
 
-      {Rive && walletAnimUrl ? (
+      {Rive && walletAnimSource ? (
         <View style={styles.riveWrapper}>
           <Rive
-            url={walletAnimUrl}
+            source={walletAnimSource}
             style={StyleSheet.absoluteFill}
             autoplay
+            layoutScaleFactor={PixelRatio.get()}
           />
         </View>
       ) : null}

@@ -105,7 +105,14 @@ const App = ({
         <AppProvider value={{ alertViewProps }}>
           <ConfigProvider value={config}>
             <AuthProvider value={auth}>
-              <SafeAreaProvider>
+              <SafeAreaProvider
+                style={{
+                  flex: 1,
+                  backgroundColor:
+                    themes?.[currentTheme]?.backgroundColor ||
+                    COLORS.bg,
+                }}
+              >
                 <StatusBar
                   barStyle="light-content"
                   backgroundColor={

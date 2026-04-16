@@ -18,6 +18,7 @@ import { DevFlags } from '../../config/env'
 import Button from 'components/Button'
 import InfoCard from 'components/migration/InfoCard'
 import RocketWithGlow from 'components/migration/RocketWithGlow'
+import PrimaryBackground from 'components/PrimaryBackground'
 import {
   discoverLegacyWallets,
   MigrationWallet,
@@ -29,14 +30,28 @@ function CalendarClockIcon(): React.ReactElement {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
       <Path
-        d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
+        d="M8 2v3M16 2v3M3 8h18M5 4h14a2 2 0 012 2v4H3V6a2 2 0 012-2z"
         stroke="#4879fd"
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <Path
-        d="M12 6v6l4 2"
+        d="M3 10v8a2 2 0 002 2h6"
+        stroke="#4879fd"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M18 22a4 4 0 100-8 4 4 0 000 8z"
+        stroke="#4879fd"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M18 16.5v1.5l1 1"
         stroke="#4879fd"
         strokeWidth={1.5}
         strokeLinecap="round"
@@ -82,7 +97,7 @@ export default function MigrationHome(): React.ReactElement {
     if (hasLegacyWallets) {
       navigation.navigate('WalletsFound')
     } else {
-      navigation.navigate('VaultName')
+      navigation.navigate('VaultSetup')
     }
   }
 
@@ -90,16 +105,22 @@ export default function MigrationHome(): React.ReactElement {
     <View
       style={[styles.container, { paddingBottom: insets.bottom }]}
     >
+      <PrimaryBackground />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.content, { paddingTop: insets.top }]}>
+        <View style={styles.content}>
+          {/* Rive animation: 200x200, top ~92px from screen top */}
           <Animated.View
             entering={FadeIn.delay(0).duration(300)}
-            style={styles.animationPlaceholder}
+            style={[
+              styles.animationPlaceholder,
+              { marginTop: Math.max(20, 140 - insets.top) },
+            ]}
           >
-            <RocketWithGlow size={140} />
+            <RocketWithGlow size={200} />
           </Animated.View>
 
           <Animated.View entering={FadeIn.delay(600).duration(300)}>
@@ -170,7 +191,10 @@ export default function MigrationHome(): React.ReactElement {
                 )
               }}
             >
-              <Text fontType="brockmann" style={styles.linkText}>
+              <Text
+                fontType="brockmann-medium"
+                style={styles.linkText}
+              >
                 Learn more about Vault security
               </Text>
             </TouchableOpacity>
@@ -219,15 +243,14 @@ const styles = StyleSheet.create({
   },
   animationPlaceholder: {
     width: 200,
-    height: DevFlags.SeedLegacyData ? 40 : 140,
+    height: DevFlags.SeedLegacyData ? 40 : 200,
     alignSelf: 'center',
-    marginTop: 48,
   },
   title: {
     fontSize: 22,
     color: MIGRATION.textPrimary,
     textAlign: 'center',
-    marginTop: 16,
+    marginTop: 28,
     marginBottom: 28,
     lineHeight: 24,
     letterSpacing: -0.36,
@@ -238,44 +261,47 @@ const styles = StyleSheet.create({
   buttonGroup: {
     marginTop: 'auto',
     paddingBottom: 24,
-    gap: 12,
+    gap: 16,
     alignItems: 'center',
   },
   checkBackCard: {
     backgroundColor: MIGRATION.surface1,
     borderBottomLeftRadius: MIGRATION.radiusCard,
     borderBottomRightRadius: MIGRATION.radiusCard,
-    paddingTop: 16,
+    marginTop: -20,
+    paddingTop: 32,
     paddingBottom: 14,
     paddingHorizontal: 32,
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
     gap: 8,
+    zIndex: 0,
   },
   checkBackText: {
-    fontSize: 13,
+    fontSize: 12,
     color: MIGRATION.textPrimary,
-    lineHeight: 18,
-    letterSpacing: 0.06,
+    lineHeight: 16,
   },
   ctaButton: {
-    borderRadius: 99,
-    height: 46,
+    borderRadius: MIGRATION.radiusPill,
+    height: MIGRATION.ctaHeight,
     width: '100%',
   },
   secondaryButton: {
-    borderRadius: 99,
-    height: 46,
+    borderRadius: MIGRATION.radiusPill,
+    height: MIGRATION.ctaHeight,
     width: '100%',
   },
   linkButton: {
     paddingVertical: 8,
+    alignItems: 'center',
   },
   linkText: {
     fontSize: 14,
     color: MIGRATION.textTertiary,
     textDecorationLine: 'underline',
+    textAlign: 'center',
   },
   devButtons: {
     marginTop: 12,

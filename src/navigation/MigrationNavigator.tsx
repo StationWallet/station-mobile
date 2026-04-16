@@ -1,16 +1,35 @@
-import React from 'react'
+import React, { Suspense } from 'react'
+import { View } from 'react-native'
 import { createStackNavigator } from '@react-navigation/stack'
 
 import RiveIntro from '../screens/migration/RiveIntro'
 import MigrationHome from '../screens/migration/MigrationHome'
 import WalletList from '../screens/WalletList'
+import VaultSetup from '../screens/migration/VaultSetup'
 import VaultName from '../screens/migration/VaultName'
 import VaultEmail from '../screens/migration/VaultEmail'
 import VaultPassword from '../screens/migration/VaultPassword'
-import KeygenProgress from '../screens/migration/KeygenProgress'
 import VerifyEmail from '../screens/migration/VerifyEmail'
 import ImportVault from '../screens/migration/ImportVault'
 import MigrationSuccess from '../screens/migration/MigrationSuccess'
+
+// Lazy-load KeygenProgress — it statically imports rive-react-native which
+// initialises its native runtime on import, keeping the iOS main run loop busy
+// and blocking Detox idle detection.
+const LazyKeygenProgress = React.lazy(
+  () => import('../screens/migration/KeygenProgress')
+)
+const KeygenProgress = (
+  props: Record<string, unknown>
+): React.ReactElement => (
+  <Suspense
+    fallback={
+      <View style={{ flex: 1, backgroundColor: '#02122b' }} />
+    }
+  >
+    <LazyKeygenProgress {...props} />
+  </Suspense>
+)
 
 import type {
   MigrationWallet,
@@ -32,6 +51,7 @@ const DevSeedCorruptData = DevFlags.SeedCorruptData
 export type MigrationStackParams = {
   RiveIntro: undefined
   MigrationHome: undefined
+  VaultSetup: undefined
   WalletsFound: undefined
   VaultName: undefined
   VaultEmail: {
@@ -96,6 +116,7 @@ export default function MigrationNavigator(): React.ReactElement {
         options={{ animationEnabled: false }}
       />
       <Stack.Screen name="WalletsFound" component={WalletList} />
+      <Stack.Screen name="VaultSetup" component={VaultSetup} />
       <Stack.Screen name="VaultName" component={VaultName} />
       <Stack.Screen name="VaultEmail" component={VaultEmail} />
       <Stack.Screen name="VaultPassword" component={VaultPassword} />

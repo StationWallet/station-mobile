@@ -6,11 +6,12 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { COLORS } from 'consts/theme'
 import { DevFlags } from '../../config/env'
 import authStyles from './authStyles'
 import { useWalletNav } from 'navigation/hooks'
+import PrimaryBackground from 'components/PrimaryBackground'
 
 const AuthMenu = ({
   navigation,
@@ -22,15 +23,20 @@ const AuthMenu = ({
   }
 }): React.ReactElement => {
   const { goToMigration } = useWalletNav()
+  const insets = useSafeAreaInsets()
   const navState = navigation.getState()
   const isAddMode = navState?.routes?.some(
     (r: { name: string }) => r.name === 'AddWalletMenu'
   )
 
   return (
-    <SafeAreaView style={authStyles.container}>
+    <View style={authStyles.container}>
+      <PrimaryBackground />
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + 120 },
+        ]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.logoArea}>
@@ -138,7 +144,7 @@ const AuthMenu = ({
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
       )}
-    </SafeAreaView>
+    </View>
   )
 }
 
@@ -151,7 +157,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingTop: 120,
+    paddingBottom: 40,
   },
   logoArea: {
     alignItems: 'center',
@@ -175,16 +182,20 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   secondaryButton: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: '#11284A',
     borderRadius: 99,
-    paddingVertical: 16,
+    height: 46,
+    justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: 'rgba(255,255,255,0.03)',
+    overflow: 'hidden',
+    boxShadow:
+      '0 -1px 0.5px 0 #0F1C3E inset, 0 1px 1px 0 rgba(255, 255, 255, 0.10) inset',
   },
   secondaryButtonText: {
-    color: COLORS.textPrimary,
-    fontSize: 16,
+    color: '#F0F4FC',
+    fontSize: 14,
     fontWeight: '600',
   },
   cancelButton: {

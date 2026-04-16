@@ -5,7 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useWalletCreated } from 'navigation/hooks'
 import { COLORS, MONO_FONT } from 'consts/theme'
 
@@ -29,6 +29,7 @@ const WalletSuccessScreen = ({
   navigation,
 }: Props): React.ReactElement => {
   const onWalletCreated = useWalletCreated()
+  const insets = useSafeAreaInsets()
   const parentState = navigation.getParent()?.getState()
   const isAddMode = parentState?.routes?.some(
     (r: { name: string }) =>
@@ -47,7 +48,16 @@ const WalletSuccessScreen = ({
   }
 
   return (
-    <SafeAreaView style={[styles.container, styles.centered]}>
+    <View
+      style={[
+        styles.container,
+        styles.centered,
+        {
+          paddingTop: insets.top,
+          paddingBottom: Math.max(insets.bottom, 16),
+        },
+      ]}
+    >
       <View style={styles.successCircle}>
         <Text style={styles.checkmark}>&#10003;</Text>
       </View>
@@ -62,7 +72,7 @@ const WalletSuccessScreen = ({
       <TouchableOpacity style={styles.button} onPress={handleDone}>
         <Text style={styles.buttonText}>Done</Text>
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   )
 }
 

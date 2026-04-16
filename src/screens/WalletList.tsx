@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet } from 'react-native'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { NavigationProp } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useWalletNav } from 'navigation/hooks'
 import { settings } from 'utils/storage'
@@ -40,9 +40,14 @@ export default function WalletList(): React.ReactElement {
   const [fastVaultMap, setFastVaultMap] = useState<
     Record<string, boolean>
   >({})
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (wallets.length === 0) return
+    if (wallets.length === 0) {
+      setLoading(false)
+      return
+    }
+    setLoading(true)
     let cancelled = false
     Promise.allSettled(
       wallets.map((w) =>
@@ -68,6 +73,7 @@ export default function WalletList(): React.ReactElement {
           return prev
         return map
       })
+      setLoading(false)
     })
     return (): void => {
       cancelled = true
@@ -123,21 +129,35 @@ export default function WalletList(): React.ReactElement {
     await onWalletDisconnected()
   }
 
+  const insets = useSafeAreaInsets()
+
   return (
-    <SafeAreaView style={styles.container}>
-      <MigrationToolbar
-        onBack={() => {
-          if (inMigrationNav) {
-            migrationNav.goBack()
-          } else {
-            mainNav.navigate('Migration', {
-              screen: 'MigrationHome',
-              params: {},
-            })
-          }
-        }}
-        testID="wallets-back"
-      />
+    <View style={styles.container}>
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <Text
+            fontType="brockmann-medium"
+            style={styles.loadingText}
+          >
+            Loading wallets...
+          </Text>
+        </View>
+      )}
+      <View style={{ paddingTop: insets.top }}>
+        <MigrationToolbar
+          onBack={() => {
+            if (inMigrationNav) {
+              migrationNav.goBack()
+            } else {
+              mainNav.navigate('Migration', {
+                screen: 'MigrationHome',
+                params: {},
+              })
+            }
+          }}
+          testID="wallets-back"
+        />
+      </View>
 
       <Text fontType="brockmann-medium" style={styles.title}>
         Your wallets
@@ -167,16 +187,30 @@ export default function WalletList(): React.ReactElement {
         ))}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View
+        style={[
+          styles.footer,
+          { paddingBottom: Math.max(insets.bottom, 16) },
+        ]}
+      >
         <Button
           title="Add Wallet"
           theme="ctaBlue"
           titleFontType="brockmann-medium"
-          onPress={() => mainNav.navigate('AddWalletMenu')}
+          onPress={() => {
+            if (inMigrationNav) {
+              migrationNav.navigate('VaultSetup')
+            } else {
+              mainNav.navigate('Migration', {
+                screen: 'VaultSetup',
+                params: undefined,
+              } as { screen: 'VaultSetup'; params: undefined })
+            }
+          }}
           containerStyle={styles.addButton}
         />
       </View>
-    </SafeAreaView>
+    </View>
   )
 }
 
@@ -184,6 +218,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: MIGRATION.bg,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: MIGRATION.bg,
+    zIndex: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: MIGRATION.textTertiary,
+    fontSize: 15,
   },
   title: {
     color: MIGRATION.textPrimary,

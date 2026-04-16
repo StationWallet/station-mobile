@@ -1,19 +1,26 @@
 import React, { useEffect } from 'react'
 import {
   View,
-  Image,
   NativeModules,
+  PixelRatio,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import {
   RouteProp,
   useNavigation,
   useRoute,
 } from '@react-navigation/native'
-import Svg, { Path, Rect, Circle } from 'react-native-svg'
+import Svg, {
+  Path,
+  Circle,
+  Defs,
+  RadialGradient,
+  Stop,
+  Ellipse,
+} from 'react-native-svg'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -32,55 +39,15 @@ const isDetox = NativeModules.DetoxManager != null
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamically loaded Rive component with no TS definitions
 let Rive: any = null
-let orbAnimUrl: string | null = null
+let orbAnimSource: number | null = null
 
 if (!isDetox) {
   try {
     Rive = require('rive-react-native').default
-    orbAnimUrl =
-      Image.resolveAssetSource(
-        require('assets/rive/vulti_orb_loading.riv')
-      )?.uri ?? null
+    orbAnimSource = require('assets/rive/vulti_orb_loading.riv')
   } catch {
     // rive-react-native not available — will render static fallback
   }
-}
-
-function CopyIcon(): React.ReactElement {
-  return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Rect
-        x={9}
-        y={9}
-        width={13}
-        height={13}
-        rx={2}
-        stroke={MIGRATION.textPrimary}
-        strokeWidth={1.5}
-      />
-      <Path
-        d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
-        stroke={MIGRATION.textPrimary}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  )
-}
-
-function ChevronRight(): React.ReactElement {
-  return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M9 18l6-6-6-6"
-        stroke={MIGRATION.textPrimary}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  )
 }
 
 function CheckmarkIcon(): React.ReactElement {
@@ -137,15 +104,19 @@ export default function MigrationSuccess(): React.ReactElement {
     preferences.setBool(PreferencesEnum.vaultsUpgraded, true)
   }, [])
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <MigrationToolbar onBack={handleBack} testID="success-back" />
+  const insets = useSafeAreaInsets()
 
-      <Text fontType="brockmann-medium" style={styles.title}>
+  return (
+    <View style={styles.container}>
+      <View style={{ paddingTop: insets.top }}>
+        <MigrationToolbar onBack={handleBack} testID="success-back" />
+      </View>
+
+      <Text fontType="brockmann-bold" style={styles.title}>
         You are aboard, Station OG!
       </Text>
 
-      <Text fontType="brockmann" style={styles.subtitle}>
+      <Text fontType="brockmann-medium" style={styles.subtitle}>
         {
           'Your vault is secured. No single key.\nNo single point of failure.'
         }
@@ -159,11 +130,41 @@ export default function MigrationSuccess(): React.ReactElement {
       </View>
 
       <View style={styles.orbitContainer}>
-        {Rive && orbAnimUrl ? (
+        {/* Blue radial glow behind the orb animation */}
+        <Svg width={360} height={360} style={styles.glowSvg}>
+          <Defs>
+            <RadialGradient id="orbGlow" cx="50%" cy="50%" r="50%">
+              <Stop
+                offset="0%"
+                stopColor="#0B4EFF"
+                stopOpacity={0.3}
+              />
+              <Stop
+                offset="35%"
+                stopColor="#0B4EFF"
+                stopOpacity={0.12}
+              />
+              <Stop
+                offset="100%"
+                stopColor="#02122b"
+                stopOpacity={0}
+              />
+            </RadialGradient>
+          </Defs>
+          <Ellipse
+            cx={180}
+            cy={180}
+            rx={180}
+            ry={180}
+            fill="url(#orbGlow)"
+          />
+        </Svg>
+        {Rive && orbAnimSource ? (
           <Rive
-            url={orbAnimUrl}
+            source={orbAnimSource}
             style={styles.orbAnimation}
             autoplay
+            layoutScaleFactor={PixelRatio.get()}
           />
         ) : (
           <View style={styles.orbAnimation} />
@@ -174,24 +175,19 @@ export default function MigrationSuccess(): React.ReactElement {
         {'[ Entering orbit soon... ]'}
       </Text>
 
-      <View style={styles.bottomActions}>
+      <View
+        style={[
+          styles.bottomActions,
+          { paddingBottom: Math.max(insets.bottom, 16) },
+        ]}
+      >
         <Button
-          title={
-            <View style={styles.shareRow}>
-              <CopyIcon />
-              <Text
-                fontType="brockmann-medium"
-                style={styles.shareText}
-              >
-                Share your OG status
-              </Text>
-              <ChevronRight />
-            </View>
-          }
+          title="Share your OG status"
           theme="ctaBlue"
           onPress={() => {}}
           containerStyle={styles.shareButton}
-          titleFontType="brockmann-medium"
+          titleFontType="brockmann-bold"
+          titleStyle={styles.shareButtonText}
           testID="share-og-status"
         />
 
@@ -229,7 +225,7 @@ export default function MigrationSuccess(): React.ReactElement {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   )
 }
 
@@ -239,11 +235,11 @@ const styles = StyleSheet.create({
     backgroundColor: MIGRATION.bg,
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     color: MIGRATION.textPrimary,
     textAlign: 'center',
     letterSpacing: -0.36,
-    lineHeight: 24,
+    lineHeight: 28,
     marginTop: 12,
     paddingHorizontal: MIGRATION.screenPadding,
   },
@@ -252,7 +248,7 @@ const styles = StyleSheet.create({
     color: MIGRATION.textTertiary,
     textAlign: 'center',
     lineHeight: 20,
-    marginTop: 8,
+    marginTop: 10,
     paddingHorizontal: MIGRATION.screenPadding,
   },
   badge: {
@@ -279,15 +275,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 4,
   },
+  glowSvg: {
+    position: 'absolute',
+  },
   orbAnimation: {
-    width: 300,
-    height: 300,
+    width: 360,
+    height: 360,
   },
   orbitText: {
     fontSize: 14,
     color: MIGRATION.textLink,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 32,
   },
   bottomActions: {
     paddingHorizontal: MIGRATION.screenPadding,
@@ -297,20 +296,14 @@ const styles = StyleSheet.create({
   },
   shareButton: {
     width: '100%',
+    height: MIGRATION.ctaHeight,
     borderRadius: MIGRATION.radiusPill,
   },
-  shareRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  shareText: {
+  shareButtonText: {
     fontSize: 14,
-    color: MIGRATION.textPrimary,
-    lineHeight: 18,
   },
   migrateAnother: {
-    fontSize: 14,
+    fontSize: 13,
     color: MIGRATION.textTertiary,
     textDecorationLine: 'underline',
     lineHeight: 18,

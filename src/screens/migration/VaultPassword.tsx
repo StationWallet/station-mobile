@@ -6,10 +6,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { RouteProp } from '@react-navigation/native'
+import Animated, {
+  FadeInRight,
+  FadeOutLeft,
+} from 'react-native-reanimated'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -29,32 +33,35 @@ export default function VaultPassword(): React.ReactElement {
 
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
-  const [passwordTouched, setPasswordTouched] = useState(false)
-  const [confirmTouched, setConfirmTouched] = useState(false)
 
-  const passwordTooShort = password.length > 0 && password.length < 6
-  const passwordsDontMatch =
-    confirm.length > 0 && confirm !== password
+  const isPasswordValid = password.length >= 6
+  const showPasswordError = password.length > 0 && !isPasswordValid
+  const showConfirmError = confirm.length > 0 && confirm !== password
 
-  const showPasswordError = passwordTouched && passwordTooShort
-  const showConfirmError = confirmTouched && passwordsDontMatch
-
-  const isValid = password.length >= 6 && confirm === password
+  const isValid = isPasswordValid && confirm === password
 
   const stepBarCurrentStep = mode === 'create' ? 3 : 2
   const buttonText = mode === 'create' ? 'Create vault' : 'Continue'
 
+  const insets = useSafeAreaInsets()
+
   return (
-    <SafeAreaView style={formStyles.container}>
+    <View style={formStyles.container}>
       <KeyboardAvoidingView
         style={formStyles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <MigrationToolbar onBack={() => navigation.goBack()} />
+        <View style={{ paddingTop: insets.top }}>
+          <MigrationToolbar onBack={() => navigation.goBack()} />
+        </View>
 
         <StepProgressBar currentStep={stepBarCurrentStep} />
 
-        <View style={formStyles.content}>
+        <Animated.View
+          entering={FadeInRight.duration(250)}
+          exiting={FadeOutLeft.duration(250)}
+          style={formStyles.content}
+        >
           <Text style={formStyles.title} fontType="brockmann-medium">
             Choose a password
           </Text>
@@ -72,7 +79,6 @@ export default function VaultPassword(): React.ReactElement {
             ]}
             value={password}
             onChangeText={setPassword}
-            onBlur={() => setPasswordTouched(true)}
             placeholder="At least 6 characters"
             placeholderTextColor={MIGRATION.textTertiary}
             secureTextEntry
@@ -95,7 +101,6 @@ export default function VaultPassword(): React.ReactElement {
             ]}
             value={confirm}
             onChangeText={setConfirm}
-            onBlur={() => setConfirmTouched(true)}
             placeholder="Confirm password"
             placeholderTextColor={MIGRATION.textTertiary}
             secureTextEntry
@@ -108,9 +113,14 @@ export default function VaultPassword(): React.ReactElement {
               Passwords do not match.
             </Text>
           )}
-        </View>
+        </Animated.View>
 
-        <View style={formStyles.buttonContainer}>
+        <View
+          style={[
+            formStyles.buttonContainer,
+            { paddingBottom: Math.max(insets.bottom, 16) },
+          ]}
+        >
           <Button
             testID="vault-password-continue"
             title={buttonText}
@@ -137,7 +147,7 @@ export default function VaultPassword(): React.ReactElement {
           />
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   )
 }
 

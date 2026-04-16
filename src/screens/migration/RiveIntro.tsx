@@ -1,14 +1,13 @@
 import React, { useCallback, useRef, useState } from 'react'
 import {
   Animated,
-  Image,
   NativeModules,
   PanResponder,
+  PixelRatio,
   Pressable,
   StatusBar,
   View,
   StyleSheet,
-  useWindowDimensions,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
@@ -23,43 +22,34 @@ const isDetox = NativeModules.DetoxManager != null
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamically loaded Rive component with no TS definitions
 let Rive: any = null
-let walletAnimUrl: string | null = null
-let backgroundAnimUrl: string | null = null
+let walletAnimSource: number | null = null
+let backgroundAnimSource: number | null = null
 
 if (!isDetox) {
   try {
     Rive = require('rive-react-native').default
-    walletAnimUrl =
-      Image.resolveAssetSource(
-        require('../../../assets/animations/station_wallet_animation.riv')
-      )?.uri ?? null
-    backgroundAnimUrl =
-      Image.resolveAssetSource(
-        require('../../../assets/animations/agent_background_transition.riv')
-      )?.uri ?? null
+    walletAnimSource = require('../../../assets/animations/station_wallet_animation.riv')
+    backgroundAnimSource = require('../../../assets/animations/agent_background_transition.riv')
   } catch {
     // rive-react-native not available — will render static fallback
   }
 }
 
 const SWIPE_THRESHOLD = 50
-const ANIM_INITIAL_TOP = 179
-const ANIM_INITIAL_SIZE = 300
-const ANIM_FINAL_SIZE = 200
-const ANIM_FINAL_TOP = 90
+const WALLET_ANIM_SIZE = 300
+const WALLET_EXIT_SCALE = 200 / 300 // 0.667
 
 type Nav = StackNavigationProp<MigrationStackParams, 'RiveIntro'>
 
 export default function RiveIntro(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const navigated = useRef(false)
-  const { width: screenWidth } = useWindowDimensions()
 
-  // Animated values for the exit transition
+  // Animated values for the exit transition — all native-driver compatible
   const textOpacity = useRef(new Animated.Value(1)).current
   const textTranslateY = useRef(new Animated.Value(0)).current
-  const animScale = useRef(new Animated.Value(1)).current
-  const animTop = useRef(new Animated.Value(ANIM_INITIAL_TOP)).current
+  const walletScale = useRef(new Animated.Value(1)).current
+  const walletTranslateY = useRef(new Animated.Value(0)).current
   const bgOpacity = useRef(new Animated.Value(0)).current
 
   // Show the background Rive only after gesture starts
@@ -85,19 +75,19 @@ export default function RiveIntro(): React.ReactElement {
         duration: 300,
         useNativeDriver: true,
       }),
-      // Wallet animation scales down: 300→200 (scale 0.667), 380ms, 40ms delay
+      // Wallet animation scales down and moves up, 380ms, 40ms delay
       Animated.sequence([
         Animated.delay(40),
         Animated.parallel([
-          Animated.timing(animScale, {
-            toValue: ANIM_FINAL_SIZE / ANIM_INITIAL_SIZE,
+          Animated.timing(walletScale, {
+            toValue: WALLET_EXIT_SCALE,
             duration: 380,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }),
-          Animated.timing(animTop, {
-            toValue: ANIM_FINAL_TOP,
+          Animated.timing(walletTranslateY, {
+            toValue: -60,
             duration: 380,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }),
         ]),
       ]),
@@ -114,8 +104,8 @@ export default function RiveIntro(): React.ReactElement {
     navigation,
     textOpacity,
     textTranslateY,
-    animScale,
-    animTop,
+    walletScale,
+    walletTranslateY,
     bgOpacity,
   ])
 
@@ -132,40 +122,39 @@ export default function RiveIntro(): React.ReactElement {
     })
   ).current
 
-  const animWidth = animScale.interpolate({
-    inputRange: [ANIM_FINAL_SIZE / ANIM_INITIAL_SIZE, 1],
-    outputRange: [ANIM_FINAL_SIZE, ANIM_INITIAL_SIZE],
-  })
-  const animHeight = animWidth
-
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
       <StatusBar barStyle="dark-content" />
-      {/* Wallet Rive animation */}
-      {Rive && walletAnimUrl ? (
+
+      {/* Top spacer pushes wallet to roughly center-upper area */}
+      <View style={styles.topSpacer} />
+
+      {/* Wallet Rive animation — in normal flow, centered */}
+      {Rive && walletAnimSource ? (
         <Animated.View
           style={[
             styles.walletAnimation,
             {
-              top: animTop,
-              width: animWidth,
-              height: animHeight,
-              left: Animated.subtract(
-                screenWidth / 2,
-                Animated.divide(animWidth, 2)
-              ),
+              transform: [
+                { scale: walletScale },
+                { translateY: walletTranslateY },
+              ],
             },
           ]}
         >
           <Rive
-            url={walletAnimUrl}
+            source={walletAnimSource}
             style={StyleSheet.absoluteFill}
             autoplay
+            layoutScaleFactor={PixelRatio.get()}
           />
         </Animated.View>
       ) : (
-        <View style={styles.animationPlaceholder} />
+        <View style={styles.walletAnimation} />
       )}
+
+      {/* Flexible space between wallet and text */}
+      <View style={styles.flex1} />
 
       {/* Text area — dissolves upward on transition */}
       <Animated.View
@@ -210,11 +199,12 @@ export default function RiveIntro(): React.ReactElement {
           style={[StyleSheet.absoluteFill, { opacity: bgOpacity }]}
           pointerEvents="none"
         >
-          {Rive && backgroundAnimUrl ? (
+          {Rive && backgroundAnimSource ? (
             <Rive
-              url={backgroundAnimUrl}
+              source={backgroundAnimSource}
               style={StyleSheet.absoluteFill}
               autoplay
+              layoutScaleFactor={PixelRatio.get()}
             />
           ) : (
             <View
@@ -234,19 +224,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
+    alignItems: 'center',
   },
-  animationPlaceholder: {
-    flex: 1,
+  topSpacer: {
+    flex: 1.2,
   },
   walletAnimation: {
-    position: 'absolute',
+    width: WALLET_ANIM_SIZE,
+    height: WALLET_ANIM_SIZE,
+    alignSelf: 'center',
+  },
+  flex1: {
+    flex: 1,
   },
   textArea: {
-    position: 'absolute',
-    bottom: 140,
-    left: MIGRATION.screenPadding,
-    right: MIGRATION.screenPadding,
+    paddingHorizontal: 40,
     alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: 24,
@@ -263,11 +257,10 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   ctaWrap: {
-    position: 'absolute',
-    bottom: 80,
     alignSelf: 'center',
     paddingVertical: 12,
     paddingHorizontal: 24,
+    marginBottom: 60,
   },
   ctaText: {
     fontSize: 14,

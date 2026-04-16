@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#02122B"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -23,6 +23,7 @@
       "fallbackToCacheTimeout": 0
     },
     "ios": {
+      "backgroundColor": "#02122B",
       "supportsTablet": true,
       "bundleIdentifier": "money.terra.station",
       "appleTeamId": "4268K8DFX6",
@@ -40,11 +41,13 @@
       ]
     },
     "android": {
+      "backgroundColor": "#02122B",
       "adaptiveIcon": {
         "backgroundColor": "#1f42b4"
       },
       "package": "money.terra.station",
       "versionCode": 1,
+
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
@@ -60,6 +63,8 @@
       "expo-sharing",
       "expo-updates",
       "expo-document-picker",
+      "@vultisig/mpc-native",
+      "./plugins/withTrustwalletMavenRepo",
       [
         "expo-build-properties",
         {
