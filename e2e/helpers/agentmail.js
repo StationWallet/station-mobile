@@ -112,17 +112,14 @@ async function migrateOneWallet(walletLabel, knownMessageIds) {
   await element(by.id('vault-password-confirm')).typeText(VAULT_PASSWORD);
   await element(by.id('vault-password-continue')).tap();
 
-  await waitFor(element(by.text('Fast Vault Setup')))
-    .toBeVisible()
-    .withTimeout(10000);
-
-  await waitFor(element(by.text('Verify your email')))
+  // Wait for VerifyEmail screen — match on the input testID (text changed in UI redesign)
+  await waitFor(element(by.id('verify-code-input')))
     .toExist()
     .withTimeout(150000);
 
   const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, knownMessageIds);
-  await waitFor(element(by.id('verify-code-input'))).toExist().withTimeout(5000);
-  await element(by.id('verify-code-input')).tap();
+  // The hidden TextInput (1x1, near-zero opacity) isn't tappable, so skip .tap()
+  // and use replaceText directly — it sets the native value without requiring visibility.
   await element(by.id('verify-code-input')).replaceText(otp);
 
   await new Promise(r => setTimeout(r, 5000));
@@ -168,14 +165,14 @@ async function migrateOneWalletFromCard(walletIndex, walletLabel, knownMessageId
   await element(by.id('vault-password-confirm')).typeText(VAULT_PASSWORD);
   await element(by.id('vault-password-continue')).tap();
 
-  // KeygenProgress → VerifyEmail
-  await waitFor(element(by.text('Verify your email')))
+  // KeygenProgress → VerifyEmail — match on the input testID (text changed in UI redesign)
+  await waitFor(element(by.id('verify-code-input')))
     .toExist()
     .withTimeout(150000);
 
   const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, knownMessageIds);
-  await waitFor(element(by.id('verify-code-input'))).toExist().withTimeout(5000);
-  await element(by.id('verify-code-input')).tap();
+  // The hidden TextInput (1x1, near-zero opacity) isn't tappable, so skip .tap()
+  // and use replaceText directly — it sets the native value without requiring visibility.
   await element(by.id('verify-code-input')).replaceText(otp);
 
   // Wait for verification + navigation to MigrationSuccess
