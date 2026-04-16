@@ -17,208 +17,238 @@ const {
   VAULT_PASSWORD,
   getExistingMessageIds,
   fetchOtpFromAgentmail,
-} = require('./helpers/agentmail');
-const { eraseSimulator } = require('./helpers/simulator');
+} = require('./helpers/agentmail')
+const { eraseSimulator } = require('./helpers/simulator')
 
 describe('Fast Vault Creation — New User', () => {
-  let knownMessageIds = new Set();
+  let knownMessageIds = new Set()
 
   describe('Setup — clean install', () => {
     beforeAll(async () => {
-      eraseSimulator(device.id);
+      eraseSimulator(device.id)
 
       await device.launchApp({
         delete: true,
         newInstance: true,
-      });
-      await device.disableSynchronization();
+      })
+      await device.disableSynchronization()
 
-      knownMessageIds = await getExistingMessageIds(AGENTMAIL_EMAIL);
-    });
+      knownMessageIds = await getExistingMessageIds(AGENTMAIL_EMAIL)
+    })
 
     afterAll(async () => {
-      try { await device.enableSynchronization(); } catch {}
-    });
+      try {
+        await device.enableSynchronization()
+      } catch {}
+    })
 
     it('should reach MigrationHome via dev button', async () => {
       await waitFor(element(by.id('dev-create-fast-vault')))
         .toBeVisible()
-        .withTimeout(90000);
-      await element(by.id('dev-create-fast-vault')).tap();
+        .withTimeout(90000)
+      await element(by.id('dev-create-fast-vault')).tap()
 
       await waitFor(element(by.id('enter-vultiverse-cta')))
         .toBeVisible()
-        .withTimeout(90000);
-      await element(by.id('enter-vultiverse-cta')).tap();
+        .withTimeout(90000)
+      await element(by.id('enter-vultiverse-cta')).tap()
 
       await waitFor(element(by.text('Create a Fast Vault')))
         .toBeVisible()
-        .withTimeout(90000);
+        .withTimeout(90000)
 
-      await new Promise(r => setTimeout(r, 3000));
-    });
+      await new Promise((r) => setTimeout(r, 3000))
+    })
 
     it('should navigate to VaultName', async () => {
-      await element(by.text('Create a Fast Vault')).tap();
+      await element(by.text('Create a Fast Vault')).tap()
       await waitFor(element(by.text('Name your vault')))
         .toBeVisible()
-        .withTimeout(15000);
-    });
-  });
+        .withTimeout(15000)
+    })
+  })
 
   // ─── VaultName → VaultEmail ─────────────────────────────────────
   describe('VaultName and VaultEmail', () => {
     it('should advance to VaultEmail after entering a name', async () => {
-      await element(by.id('vault-name-input')).typeText('My Fast Vault');
-      await element(by.id('vault-name-next')).tap();
+      await element(by.id('vault-name-input')).typeText(
+        'My Fast Vault'
+      )
+      await element(by.id('vault-name-next')).tap()
 
       await waitFor(element(by.text('Enter your email')))
         .toBeVisible()
-        .withTimeout(10000);
-    });
+        .withTimeout(10000)
+    })
 
     it('should show error for invalid email after blur', async () => {
-      await element(by.id('vault-email-input')).tap();
-      await element(by.id('vault-email-input')).typeText('not-an-email');
+      await element(by.id('vault-email-input')).tap()
+      await element(by.id('vault-email-input')).typeText(
+        'not-an-email'
+      )
       // tapReturnKey blurs single-line input (blurOnSubmit=true default)
-      await element(by.id('vault-email-input')).tapReturnKey();
+      await element(by.id('vault-email-input')).tapReturnKey()
 
-      await waitFor(element(by.text('Please enter a valid email address.')))
+      await waitFor(
+        element(by.text('Please enter a valid email address.'))
+      )
         .toBeVisible()
-        .withTimeout(5000);
-    });
+        .withTimeout(5000)
+    })
 
     it('should advance to VaultPassword with valid email', async () => {
-      await element(by.id('vault-email-input')).tap();
-      await element(by.id('vault-email-input')).clearText();
-      await element(by.id('vault-email-input')).typeText(AGENTMAIL_EMAIL);
-      await element(by.id('vault-email-next')).tap();
+      await element(by.id('vault-email-input')).tap()
+      await element(by.id('vault-email-input')).clearText()
+      await element(by.id('vault-email-input')).typeText(
+        AGENTMAIL_EMAIL
+      )
+      await element(by.id('vault-email-next')).tap()
 
       await waitFor(element(by.text('Choose a password')))
         .toBeVisible()
-        .withTimeout(10000);
-    });
-  });
+        .withTimeout(10000)
+    })
+  })
 
   // ─── VaultPassword validation ───────────────────────────────────
   describe('VaultPassword validation', () => {
     it('should show error for short password on blur', async () => {
-      await element(by.id('vault-password-input')).typeText('ab');
+      await element(by.id('vault-password-input')).typeText('ab')
       // Tap confirm field to blur password and trigger validation
-      await element(by.id('vault-password-confirm')).tap();
+      await element(by.id('vault-password-confirm')).tap()
 
-      await waitFor(element(by.text('Password must be at least 6 characters.')))
+      await waitFor(
+        element(by.text('Password must be at least 6 characters.'))
+      )
         .toBeVisible()
-        .withTimeout(5000);
-    });
+        .withTimeout(5000)
+    })
 
     it('should show error for mismatched passwords', async () => {
       // Start fresh: clear and re-enter valid password
-      await element(by.id('vault-password-input')).tap();
-      await element(by.id('vault-password-input')).clearText();
-      await element(by.id('vault-password-input')).typeText(VAULT_PASSWORD);
+      await element(by.id('vault-password-input')).tap()
+      await element(by.id('vault-password-input')).clearText()
+      await element(by.id('vault-password-input')).typeText(
+        VAULT_PASSWORD
+      )
 
       // Enter mismatching confirmation
-      await element(by.id('vault-password-confirm')).tap();
-      await element(by.id('vault-password-confirm')).clearText();
-      await element(by.id('vault-password-confirm')).typeText('different123');
+      await element(by.id('vault-password-confirm')).tap()
+      await element(by.id('vault-password-confirm')).clearText()
+      await element(by.id('vault-password-confirm')).typeText(
+        'different123'
+      )
       // tapReturnKey to blur confirm field
-      await element(by.id('vault-password-confirm')).tapReturnKey();
+      await element(by.id('vault-password-confirm')).tapReturnKey()
 
       await waitFor(element(by.text('Passwords do not match.')))
         .toBeVisible()
-        .withTimeout(5000);
-    });
+        .withTimeout(5000)
+    })
 
     it('should advance with valid matching passwords', async () => {
       // Fix the confirmation password — keep keyboard UP so the
       // KeyboardAvoidingView pushes the button into the tappable area.
-      await element(by.id('vault-password-confirm')).tap();
-      await element(by.id('vault-password-confirm')).clearText();
-      await element(by.id('vault-password-confirm')).typeText(VAULT_PASSWORD);
+      await element(by.id('vault-password-confirm')).tap()
+      await element(by.id('vault-password-confirm')).clearText()
+      await element(by.id('vault-password-confirm')).typeText(
+        VAULT_PASSWORD
+      )
 
       // Snapshot agentmail before keygen sends the verification email
-      const preKeygenIds = await getExistingMessageIds(AGENTMAIL_EMAIL);
-      for (const id of preKeygenIds) knownMessageIds.add(id);
+      const preKeygenIds = await getExistingMessageIds(
+        AGENTMAIL_EMAIL
+      )
+      for (const id of preKeygenIds) knownMessageIds.add(id)
 
       // Tap while keyboard is still up (button is pushed above keyboard)
-      await element(by.id('vault-password-continue')).tap();
+      await element(by.id('vault-password-continue')).tap()
 
       // Wait for KeygenProgress (Rive animation, no text) or VerifyEmail
       // — keygen can complete very fast, so check for the verify input testID
       await waitFor(element(by.id('verify-code-input')))
         .toExist()
-        .withTimeout(15000);
-    }, 240000);
-  });
+        .withTimeout(15000)
+    }, 240000)
+  })
 
   // ─── Keygen + OTP verification ──────────────────────────────────
   describe('Keygen and verification', () => {
     it('should complete keygen and reach VerifyEmail', async () => {
       // Wait for verify-code-input (keygen complete → VerifyEmail)
       // If keygen fails, retry up to 3 minutes
-      const startTime = Date.now();
-      const timeoutMs = 180000;
+      const startTime = Date.now()
+      const timeoutMs = 180000
       while (Date.now() - startTime < timeoutMs) {
         try {
-          await expect(element(by.id('verify-code-input'))).toExist();
-          return;
+          await expect(element(by.id('verify-code-input'))).toExist()
+          return
         } catch {}
 
         try {
-          await expect(element(by.id('keygen-error-text'))).toExist();
+          await expect(element(by.id('keygen-error-text'))).toExist()
           try {
-            const attrs = await element(by.id('keygen-error-text')).getAttributes();
-            console.log('[Keygen] Error:', attrs.text || attrs.label);
-          } catch { console.log('[Keygen] Error detected'); }
-          await element(by.id('keygen-retry')).tap();
+            const attrs = await element(
+              by.id('keygen-error-text')
+            ).getAttributes()
+            console.log('[Keygen] Error:', attrs.text || attrs.label)
+          } catch {
+            console.log('[Keygen] Error detected')
+          }
+          await element(by.id('keygen-retry')).tap()
         } catch {}
 
-        await new Promise(r => setTimeout(r, 10000));
+        await new Promise((r) => setTimeout(r, 10000))
       }
-      throw new Error('Keygen did not complete within 3 minutes');
-    }, 240000);
+      throw new Error('Keygen did not complete within 3 minutes')
+    }, 240000)
 
     it('should verify email with OTP', async () => {
-      const otp = await fetchOtpFromAgentmail(AGENTMAIL_EMAIL, knownMessageIds);
+      const otp = await fetchOtpFromAgentmail(
+        AGENTMAIL_EMAIL,
+        knownMessageIds
+      )
       // The hidden TextInput (1x1, near-zero opacity) isn't tappable, so skip .tap()
-      await element(by.id('verify-code-input')).replaceText(otp);
+      await element(by.id('verify-code-input')).replaceText(otp)
 
       await waitFor(element(by.text('You are aboard, Station OG!')))
         .toBeVisible()
-        .withTimeout(60000);
-    });
+        .withTimeout(60000)
+    })
 
     it('should show success with vault verification', async () => {
       await waitFor(element(by.id('verify-all-passed')))
         .toExist()
-        .withTimeout(15000);
-      await expect(element(by.id('verify-all-passed')))
-        .toHaveText('all-passed: true');
-    });
+        .withTimeout(15000)
+      await expect(element(by.id('verify-all-passed'))).toHaveText(
+        'all-passed: true'
+      )
+    })
 
     it('should not show "Migrate another wallet"', async () => {
-      let migrateAnotherVisible = false;
+      let migrateAnotherVisible = false
       try {
         await waitFor(element(by.id('migrate-another-wallet')))
           .toBeVisible()
-          .withTimeout(2000);
-        migrateAnotherVisible = true;
+          .withTimeout(2000)
+        migrateAnotherVisible = true
       } catch {}
 
       if (migrateAnotherVisible) {
-        throw new Error('"Migrate another wallet" should not appear for new user');
+        throw new Error(
+          '"Migrate another wallet" should not appear for new user'
+        )
       }
-    });
+    })
 
     it('should complete and reach main app', async () => {
       await waitFor(element(by.id('success-back')))
         .toExist()
-        .withTimeout(5000);
-      await element(by.id('success-back')).tap();
-      await new Promise(r => setTimeout(r, 3000));
-    });
-  });
+        .withTimeout(5000)
+      await element(by.id('success-back')).tap()
+      await new Promise((r) => setTimeout(r, 3000))
+    })
+  })
 
   // ─── Persistence ────────────────────────────────────────────────
   describe('Persistence', () => {
@@ -226,29 +256,31 @@ describe('Fast Vault Creation — New User', () => {
       await device.launchApp({
         newInstance: true,
         launchArgs: { detoxURLBlacklistRegex: '.*' },
-      });
-      await device.disableSynchronization();
-      await new Promise(r => setTimeout(r, 3000));
-    });
+      })
+      await device.disableSynchronization()
+      await new Promise((r) => setTimeout(r, 3000))
+    })
 
     it('should not show migration flow on relaunch', async () => {
-      let migrationShown = false;
+      let migrationShown = false
       try {
         await waitFor(element(by.id('migration-cta')))
           .toBeVisible()
-          .withTimeout(5000);
-        migrationShown = true;
+          .withTimeout(5000)
+        migrationShown = true
       } catch {}
 
       if (migrationShown) {
-        throw new Error('Migration flow should not appear after vault creation');
+        throw new Error(
+          'Migration flow should not appear after vault creation'
+        )
       }
-    });
+    })
 
     it('should show created vault in wallet list', async () => {
       await waitFor(element(by.text('My Fast Vault')))
         .toBeVisible()
-        .withTimeout(10000);
-    });
-  });
-});
+        .withTimeout(10000)
+    })
+  })
+})

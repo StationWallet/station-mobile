@@ -14,4 +14,4 @@ module.exports = {
     '<rootDir>/.worktrees/',
     '<rootDir>/.claude/',
   ],
-};
+}

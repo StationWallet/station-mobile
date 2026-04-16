@@ -1,4 +1,4 @@
-const { execSync } = require('child_process');
+const { execSync } = require('child_process')
 
 /**
  * Erase and reboot the iOS simulator to get a clean keychain state.
@@ -9,8 +9,8 @@ function eraseSimulator(deviceId) {
   execSync(
     `xcrun simctl shutdown ${deviceId} 2>/dev/null; xcrun simctl erase ${deviceId}`,
     { timeout: 120000 }
-  );
-  execSync(`xcrun simctl boot ${deviceId}`, { timeout: 120000 });
+  )
+  execSync(`xcrun simctl boot ${deviceId}`, { timeout: 120000 })
 }
 
-module.exports = { eraseSimulator };
+module.exports = { eraseSimulator }

@@ -5,7 +5,9 @@ const config = getDefaultConfig(__dirname)
 
 // Add .riv files as asset extensions so Metro can bundle them via require()
 // Must also remove from sourceExts (Expo default config filters assetExts against sourceExts)
-config.resolver.sourceExts = (config.resolver.sourceExts || []).filter(ext => ext !== 'riv')
+config.resolver.sourceExts = (
+  config.resolver.sourceExts || []
+).filter((ext) => ext !== 'riv')
 config.resolver.assetExts.push('riv')
 
 // Package exports resolution for @noble/* and @scure/* libraries.
@@ -26,14 +28,25 @@ config.resolver.extraNodeModules = {
 }
 
 // Polyfill packages that crash in Hermes or need native modules not available on simulator
-const ledgerMock = path.resolve(__dirname, 'polyfills/ledger-transport-ble.js')
-const ledgerTerraMock = path.resolve(__dirname, 'polyfills/ledger-terra-js.js')
+const ledgerMock = path.resolve(
+  __dirname,
+  'polyfills/ledger-transport-ble.js'
+)
+const ledgerTerraMock = path.resolve(
+  __dirname,
+  'polyfills/ledger-terra-js.js'
+)
 const terraJsMock = path.resolve(__dirname, 'polyfills/terra.js')
 
 // Workaround: watchman on ExFAT (case-insensitive) fails to crawl src/App/
 // because "App" clashes with Expo Router's "app" directory detection.
 // Resolve it explicitly so Metro can find the entry point.
-const appIndexPath = path.resolve(__dirname, 'src', 'App', 'index.tsx')
+const appIndexPath = path.resolve(
+  __dirname,
+  'src',
+  'App',
+  'index.tsx'
+)
 
 // Disable watchman — it can't crawl src/App/ on ExFAT (case-insensitive) drives.
 // The directory name "App" collides with Expo Router's "app" convention on
