@@ -18,18 +18,27 @@
  *
  * Does NOT require vultiserver or network access.
  */
+const { eraseSimulator } = require('./helpers/simulator');
+
 describe('Partial Fast Vault Migration — Skip/Retry', () => {
   describe('Setup — seed corrupt wallet data', () => {
     beforeAll(async () => {
-      // delete: true removes app data (sufficient for isolation without
-      // a full simctl erase, which causes >90s post-boot instability)
+      // Full erase needed — iOS keychain items survive app deletion
+      eraseSimulator(device.id);
+
       await device.launchApp({ delete: true, newInstance: true });
       await device.disableSynchronization();
 
-      // First launch after erase may need 90s+ for Metro JS bundle download
-      await waitFor(element(by.text('Seed Corrupt Data (dev)')))
+      // Wait for Auth screen (first launch after erase may need 90s for Metro bundle)
+      await waitFor(element(by.text('Create New Wallet')))
         .toBeVisible()
         .withTimeout(90000);
+
+      // Scroll to the dev-only Seed Corrupt Data button (last in the list, often below fold)
+      await waitFor(element(by.text('Seed Corrupt Data (dev)')))
+        .toBeVisible()
+        .whileElement(by.id('auth-scroll'))
+        .scroll(200, 'down');
       await element(by.text('Seed Corrupt Data (dev)')).tap();
 
       await waitFor(element(by.id('seed-corrupt-done')))

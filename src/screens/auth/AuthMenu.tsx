@@ -33,6 +33,7 @@ const AuthMenu = ({
     <View style={authStyles.container}>
       <PrimaryBackground />
       <ScrollView
+        testID="auth-scroll"
         contentContainerStyle={[
           styles.content,
           { paddingTop: insets.top + 120 },
