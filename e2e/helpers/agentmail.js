@@ -2,16 +2,20 @@ const fs = require('fs');
 const path = require('path');
 
 function readDotEnv() {
-  try {
-    const envPath = path.resolve(__dirname, '..', '..', '.env');
-    const content = fs.readFileSync(envPath, 'utf8');
-    const vars = {};
-    for (const line of content.split('\n')) {
-      const match = line.match(/^([^#=]+)=(.*)$/);
-      if (match) vars[match[1].trim()] = match[2].trim();
-    }
-    return vars;
-  } catch { return {}; }
+  const root = path.resolve(__dirname, '..', '..');
+  // Prefer .env.test (has AGENTMAIL creds + test-specific vars), fall back to .env
+  for (const name of ['.env.test', '.env']) {
+    try {
+      const content = fs.readFileSync(path.join(root, name), 'utf8');
+      const vars = {};
+      for (const line of content.split('\n')) {
+        const match = line.match(/^([^#=]+)=(.*)$/);
+        if (match) vars[match[1].trim()] = match[2].trim();
+      }
+      return vars;
+    } catch { /* try next */ }
+  }
+  return {};
 }
 
 const ENV = readDotEnv();

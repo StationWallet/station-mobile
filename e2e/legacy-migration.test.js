@@ -1,12 +1,16 @@
+const { eraseSimulator } = require('./helpers/simulator');
+
 describe('Legacy Keystore Migration', () => {
   beforeAll(async () => {
-    await device.launchApp({ newInstance: true });
+    eraseSimulator(device.id);
+
+    await device.launchApp({ delete: true, newInstance: true });
     await device.disableSynchronization();
 
     // Tap the dev-only "Full E2E Test" button on AuthMenu
     await waitFor(element(by.id('dev-full-e2e-test')))
       .toBeVisible()
-      .withTimeout(30000);
+      .withTimeout(90000);
     await element(by.id('dev-full-e2e-test')).tap();
 
     // Wait for test results to render

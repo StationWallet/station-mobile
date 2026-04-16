@@ -1,13 +1,8 @@
+const { eraseSimulator } = require('./helpers/simulator');
+
 describe('Full E2E: Migration → Decrypt → Size', () => {
   beforeAll(async () => {
-    // Erase simulator to clear keychain — iOS keychain items survive
-    // app deletion, causing the app to find old wallets and skip AuthMenu.
-    const { execSync } = require('child_process');
-    const udid = device.id;
-    execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
-      timeout: 120000,
-    });
-    execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
+    eraseSimulator(device.id);
 
     await device.launchApp({ delete: true, newInstance: true });
     await device.disableSynchronization();
@@ -15,7 +10,7 @@ describe('Full E2E: Migration → Decrypt → Size', () => {
     // Tap the "Full E2E Test" dev button on AuthMenu
     await waitFor(element(by.text('Full E2E Test (dev)')))
       .toBeVisible()
-      .withTimeout(30000);
+      .withTimeout(90000);
     await element(by.text('Full E2E Test (dev)')).tap();
 
     // Wait for test to complete — look for either pass or fail

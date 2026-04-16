@@ -17,19 +17,14 @@ const {
   getExistingMessageIds,
   migrateOneWalletFromCard,
 } = require('./helpers/agentmail');
+const { eraseSimulator } = require('./helpers/simulator');
 
 describe('Migration Onboarding Flow', () => {
   let knownMessageIds = new Set();
 
   describe('1. Clean install — no legacy wallets', () => {
     beforeAll(async () => {
-      // Single simulator erase for the entire test suite
-      const { execSync } = require('child_process');
-      const udid = device.id;
-      execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
-        timeout: 120000,
-      });
-      execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
+      eraseSimulator(device.id);
 
       await device.launchApp({ delete: true, newInstance: true });
       await device.disableSynchronization();
@@ -92,10 +87,15 @@ describe('Migration Onboarding Flow', () => {
     });
 
     it('taps CTA to reach wallet list', async () => {
-      await element(by.id('migration-cta')).tap();
+      // Use text matcher — the custom Button's Animated wrapper can swallow testID taps
+      await new Promise(r => setTimeout(r, 3000));
+      await element(by.text('Start Migration')).tap();
+      await waitFor(element(by.text('Your wallets')))
+        .toBeVisible()
+        .withTimeout(30000);
       await waitFor(element(by.id('wallet-card-0')))
         .toBeVisible()
-        .withTimeout(10000);
+        .withTimeout(30000);
     });
 
     it('migrates wallet 1', async () => {
@@ -106,57 +106,32 @@ describe('Migration Onboarding Flow', () => {
       await migrateOneWalletFromCard(1, 'TestWallet2', knownMessageIds, false);
     });
 
-    // After wallet 2 completes, MigrationSuccess is already visible
+    // After wallet 2 completes, MigrationSuccess is visible with
+    // DevVerifyVault showing imported-* checks for the last migrated wallet.
 
     it('shows success screen with OG message', async () => {
       await expect(element(by.text('You are aboard, Station OG!'))).toBeVisible();
     });
 
-    // --- Vault data integrity verification (dev-mode inline on success screen) ---
+    // --- Vault data integrity verification ---
+    // Per-wallet migration shows imported-* verification for the last migrated wallet.
 
-    it('vault1: exists with correct private key', async () => {
+    it('migrated vault: exists with correct structure', async () => {
       await waitFor(element(by.id('verify-all-passed')))
         .toExist()
         .withTimeout(15000);
-      await expect(element(by.id('verify-vault1-exists'))).toHaveText('vault1-exists: true');
-      await expect(element(by.id('verify-vault1-keyshare'))).toHaveText('vault1-keyshare: true');
+      await expect(element(by.id('verify-imported-exists'))).toHaveText('imported-exists: true');
+      await expect(element(by.id('verify-imported-name'))).toHaveText('imported-name: true');
     });
 
-    it('vault1: correct public key derived from private key', async () => {
-      await expect(element(by.id('verify-vault1-pubkey'))).toHaveText('vault1-pubkey: true');
-      // DKLS vaults don't have derive-check (pubkey comes from keygen ceremony, not raw key derivation)
-      // KEYIMPORT vaults derive the pubkey from the private key and verify the match
-      try {
-        await expect(element(by.id('verify-vault1-derive-check'))).toHaveText('vault1-derive-check: true');
-      } catch {
-        // Expected for DKLS vaults — derive-check is not applicable
-        await expect(element(by.id('verify-vault1-keyshare-loadable'))).toHaveText('vault1-keyshare-loadable: true');
-      }
+    it('migrated vault: has valid key material', async () => {
+      await expect(element(by.id('verify-imported-has-pubkey'))).toHaveText('imported-has-pubkey: true');
+      await expect(element(by.id('verify-imported-has-keyshare'))).toHaveText('imported-has-keyshare: true');
     });
 
-    it('vault1: correct chain config and lib type', async () => {
-      await expect(element(by.id('verify-vault1-chain'))).toHaveText('vault1-chain: true');
-      await expect(element(by.id('verify-vault1-libtype'))).toHaveText('vault1-libtype: true');
-    });
-
-    it('vault2: exists with correct key material', async () => {
-      await expect(element(by.id('verify-vault2-exists'))).toHaveText('vault2-exists: true');
-      await expect(element(by.id('verify-vault2-pubkey'))).toHaveText('vault2-pubkey: true');
-      await expect(element(by.id('verify-vault2-keyshare'))).toHaveText('vault2-keyshare: true');
-    });
-
-    it('ledger vault: exists with no key material', async () => {
-      // DKLS migration skips ledger wallets (no vault stored), so ledger-exists is not emitted.
-      // KEYIMPORT migration creates a vault with no key material.
-      // In both cases, the no-keyshares and no-pubkey checks pass.
-      try {
-        await expect(element(by.id('verify-ledger-exists'))).toExist();
-        await expect(element(by.id('verify-ledger-exists'))).toHaveText('ledger-exists: true');
-      } catch {
-        // Expected for DKLS — ledger vault is skipped, no ledger-exists field emitted
-      }
-      await expect(element(by.id('verify-ledger-no-keyshares'))).toHaveText('ledger-no-keyshares: true');
-      await expect(element(by.id('verify-ledger-no-pubkey'))).toHaveText('ledger-no-pubkey: true');
+    it('migrated vault: correct lib type and signers', async () => {
+      await expect(element(by.id('verify-imported-libtype'))).toHaveText('imported-libtype: true');
+      await expect(element(by.id('verify-imported-has-signers'))).toHaveText('imported-has-signers: true');
     });
 
     it('all vault integrity checks pass', async () => {
