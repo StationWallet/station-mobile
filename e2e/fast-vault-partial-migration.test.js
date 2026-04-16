@@ -18,16 +18,12 @@
  *
  * Does NOT require vultiserver or network access.
  */
-const { execSync } = require('child_process');
+const { eraseSimulator } = require('./helpers/simulator');
 
 describe('Partial Fast Vault Migration — Skip/Retry', () => {
   describe('Setup — seed corrupt wallet data', () => {
     beforeAll(async () => {
-      const udid = device.id;
-      execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
-        timeout: 120000,
-      });
-      execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
+      eraseSimulator(device.id);
 
       // Launch fresh — tap dev button to seed corrupt data
       await device.launchApp({ delete: true, newInstance: true });
@@ -46,30 +42,28 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
       // Relaunch to trigger migration flow
       await device.launchApp({ newInstance: true });
       await device.disableSynchronization();
+
+      // Navigate through RiveIntro → MigrationHome → WalletsFound.
+      // After a simulator erase the first relaunch can take >90s to stabilize,
+      // so we use the full testTimeout (300s) here in beforeAll.
+      await waitFor(element(by.id('enter-vultiverse-cta')))
+        .toBeVisible()
+        .withTimeout(180000);
+      await element(by.id('enter-vultiverse-cta')).tap();
+
+      await waitFor(element(by.id('migration-cta')))
+        .toBeVisible()
+        .withTimeout(90000);
+      await new Promise(r => setTimeout(r, 2000));
+      await element(by.id('migration-cta')).tap();
+
+      await waitFor(element(by.text('Your wallets')))
+        .toBeVisible()
+        .withTimeout(30000);
     });
 
     afterAll(async () => {
       await device.enableSynchronization();
-    });
-
-    it('shows MigrationHome with migration CTA', async () => {
-      // Tap through RiveIntro → MigrationHome renders with the CTA button
-      await waitFor(element(by.id('enter-vultiverse-cta')))
-        .toBeVisible()
-        .withTimeout(90000);
-      await element(by.id('enter-vultiverse-cta')).tap();
-
-      await waitFor(element(by.text('Start Migration')))
-        .toBeVisible()
-        .withTimeout(90000);
-    });
-
-    it('navigates to wallet list', async () => {
-      await new Promise(r => setTimeout(r, 3000));
-      await element(by.text('Start Migration')).tap();
-      await waitFor(element(by.text('Your wallets')))
-        .toBeVisible()
-        .withTimeout(10000);
     });
 
     it('shows corrupt wallet card with migrate button', async () => {
@@ -144,32 +138,9 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
 
   describe('MigrationSuccess shows result', () => {
     it('shows migration result screen', async () => {
-      // The success screen always shows OG text even when wallets failed/skipped
-      let titleFound = false;
-      try {
-        await waitFor(element(by.text('You are aboard, Station OG!')))
-          .toBeVisible()
-          .withTimeout(5000);
-        titleFound = true;
-      } catch {
-        // Fallback: might show other success variants
-        try {
-          await waitFor(element(by.text('Wallets Upgraded!')))
-            .toBeVisible()
-            .withTimeout(5000);
-          titleFound = true;
-        } catch {
-          try {
-            await waitFor(element(by.text('Migration Complete')))
-              .toBeVisible()
-              .withTimeout(5000);
-            titleFound = true;
-          } catch {
-            // success-back is already confirmed visible — that's enough
-            titleFound = true;
-          }
-        }
-      }
+      await waitFor(element(by.text('You are aboard, Station OG!')))
+        .toBeVisible()
+        .withTimeout(15000);
     });
 
     it('can dismiss migration and continue to app', async () => {
