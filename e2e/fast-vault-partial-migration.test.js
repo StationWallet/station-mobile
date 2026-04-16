@@ -34,11 +34,8 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
         .toBeVisible()
         .withTimeout(90000);
 
-      // Scroll to the dev-only Seed Corrupt Data button (last in the list, often below fold)
-      await waitFor(element(by.text('Seed Corrupt Data (dev)')))
-        .toBeVisible()
-        .whileElement(by.id('auth-scroll'))
-        .scroll(200, 'down');
+      // Scroll to bottom — Seed Corrupt Data is the last dev button, often clipped
+      await element(by.id('auth-scroll')).scrollTo('bottom');
       await element(by.text('Seed Corrupt Data (dev)')).tap();
 
       await waitFor(element(by.id('seed-corrupt-done')))
