@@ -18,15 +18,11 @@ const {
   getExistingMessageIds,
   fetchOtpFromAgentmail,
 } = require('./helpers/agentmail')
-const { eraseSimulator } = require('./helpers/simulator')
-
 describe('Fast Vault Creation — New User', () => {
   let knownMessageIds = new Set()
 
   describe('Setup — clean install', () => {
     beforeAll(async () => {
-      eraseSimulator(device.id)
-
       await device.launchApp({
         delete: true,
         newInstance: true,

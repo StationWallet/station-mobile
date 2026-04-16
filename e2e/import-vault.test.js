@@ -20,8 +20,6 @@
 const { execSync } = require('child_process')
 const fs = require('fs')
 const path = require('path')
-const { eraseSimulator } = require('./helpers/simulator')
-
 const FIXTURE_PASSWORD = 'testpassword123'
 const WRONG_PASSWORD = 'wrongpassword999'
 const BUNDLE_ID = 'money.terra.station'
@@ -51,10 +49,9 @@ function stageFixture(udid, srcPath, destName) {
   console.log(`[Import] Staged ${destName} at ${documentsDir}`)
 }
 
-/** Erase simulator, boot, install app, terminate, stage fixture, relaunch. */
+/** Install app, terminate, stage fixture, relaunch. */
 async function setupWithFixture(fixturePath, fixtureName) {
   const udid = device.id
-  eraseSimulator(udid)
 
   await device.launchApp({
     delete: true,
@@ -127,8 +124,6 @@ describe('Import Vault', () => {
   // ─── Navigation ───────────────────────────────────────────────────
   describe('Navigation to ImportVault', () => {
     beforeAll(async () => {
-      eraseSimulator(device.id)
-
       await device.launchApp({
         delete: true,
         newInstance: true,

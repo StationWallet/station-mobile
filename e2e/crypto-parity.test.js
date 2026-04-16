@@ -1,9 +1,5 @@
-const { eraseSimulator } = require('./helpers/simulator')
-
 describe('Crypto Parity', () => {
   beforeAll(async () => {
-    eraseSimulator(device.id)
-
     await device.launchApp({ delete: true, newInstance: true })
     await device.disableSynchronization()
 
