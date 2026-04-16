@@ -6,16 +6,21 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useNavigation } from '@react-navigation/native'
 import { useSetRecoilState } from 'recoil'
 import NewWalletStore from 'stores/NewWalletStore'
+import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { COLORS } from 'consts/theme'
-import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
+import authStyles from '../authStyles'
 
 const Step2 = ({
   navigation,
 }: {
   navigation: { navigate: (screen: string) => void }
 }): React.ReactElement => {
+  const insets = useSafeAreaInsets()
+  const nav = useNavigation()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const setStorePassword = useSetRecoilState(NewWalletStore.password)
@@ -31,6 +36,9 @@ const Step2 = ({
 
   return (
     <View style={authStyles.container}>
+      <View style={{ paddingTop: insets.top }}>
+        <MigrationToolbar onBack={() => nav.goBack()} />
+      </View>
       <ScrollView
         contentContainerStyle={authStyles.content}
         keyboardShouldPersistTaps="handled"
@@ -101,9 +109,7 @@ const Step2 = ({
 }
 
 Step2.navigationOptions = {
-  title: 'Set Password',
-  headerStyle: authStyles.headerStyle,
-  headerTintColor: HEADER_TINT_COLOR,
+  headerShown: false,
 }
 
 export default Step2

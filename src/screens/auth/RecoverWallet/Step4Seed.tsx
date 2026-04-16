@@ -8,11 +8,14 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useNavigation } from '@react-navigation/native'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
 import RecoverWalletStore from 'stores/RecoverWalletStore'
 import { createWallet } from 'utils/wallet'
+import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { COLORS } from 'consts/theme'
-import authStyles, { HEADER_TINT_COLOR } from '../authStyles'
+import authStyles from '../authStyles'
 
 const Step4Seed = ({
   navigation,
@@ -24,6 +27,8 @@ const Step4Seed = ({
     ) => void
   }
 }): React.ReactElement => {
+  const insets = useSafeAreaInsets()
+  const nav = useNavigation()
   const seed = useRecoilValue(RecoverWalletStore.seed)
   const setStoreName = useSetRecoilState(RecoverWalletStore.name)
   const setStorePassword = useSetRecoilState(
@@ -74,6 +79,9 @@ const Step4Seed = ({
 
   return (
     <View style={authStyles.container}>
+      <View style={{ paddingTop: insets.top }}>
+        <MigrationToolbar onBack={() => nav.goBack()} />
+      </View>
       <ScrollView
         contentContainerStyle={authStyles.content}
         keyboardShouldPersistTaps="handled"
@@ -165,9 +173,7 @@ const Step4Seed = ({
 }
 
 Step4Seed.navigationOptions = {
-  title: 'Wallet Details',
-  headerStyle: authStyles.headerStyle,
-  headerTintColor: HEADER_TINT_COLOR,
+  headerShown: false,
 }
 
 const styles = StyleSheet.create({
