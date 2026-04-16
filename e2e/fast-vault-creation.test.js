@@ -12,29 +12,24 @@
  *
  * Requires: vultiserver at api.vultisig.com, agentmail credentials in .env
  */
-const { execSync } = require('child_process');
 const {
   AGENTMAIL_EMAIL,
   VAULT_PASSWORD,
   getExistingMessageIds,
   fetchOtpFromAgentmail,
 } = require('./helpers/agentmail');
+const { eraseSimulator } = require('./helpers/simulator');
 
 describe('Fast Vault Creation — New User', () => {
   let knownMessageIds = new Set();
 
   describe('Setup — clean install', () => {
     beforeAll(async () => {
-      const udid = device.id;
-      execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
-        timeout: 120000,
-      });
-      execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
+      eraseSimulator(device.id);
 
       await device.launchApp({
         delete: true,
         newInstance: true,
-        launchArgs: { detoxURLBlacklistRegex: '.*' },
       });
       await device.disableSynchronization();
 
