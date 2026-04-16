@@ -56,15 +56,15 @@ describe('Fast Vault Creation — New User', () => {
         .withTimeout(90000);
       await element(by.id('enter-vultiverse-cta')).tap();
 
-      await waitFor(element(by.id('migration-cta')))
+      await waitFor(element(by.text('Create a Fast Vault')))
         .toBeVisible()
         .withTimeout(90000);
 
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise(r => setTimeout(r, 3000));
     });
 
     it('should navigate to VaultName', async () => {
-      await element(by.id('migration-cta')).tap();
+      await element(by.text('Create a Fast Vault')).tap();
       await waitFor(element(by.text('Name your vault')))
         .toBeVisible()
         .withTimeout(15000);

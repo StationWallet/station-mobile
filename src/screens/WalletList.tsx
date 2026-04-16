@@ -28,7 +28,14 @@ export default function WalletList(): React.ReactElement {
   const route = useRoute()
   const inMigrationNav = route.name === 'WalletsFound'
 
-  const { wallets, onWalletDisconnected } = useWalletNav()
+  const { wallets, onWalletDisconnected, refreshWallets } =
+    useWalletNav()
+
+  // Refresh wallets on mount — the context may have stale data if
+  // migration completed after the initial wallet load.
+  useEffect(() => {
+    refreshWallets()
+  }, [refreshWallets])
 
   const [fastVaultMap, setFastVaultMap] = useState<
     Record<string, boolean>
