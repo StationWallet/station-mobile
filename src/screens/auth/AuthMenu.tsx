@@ -37,8 +37,7 @@ const AuthMenu = ({
         contentContainerStyle={[
           styles.content,
           {
-            paddingTop: insets.top + 60,
-            paddingBottom: Math.max(40, insets.bottom + 16),
+            paddingTop: insets.top + 120,
           },
         ]}
         keyboardShouldPersistTaps="handled"

@@ -35,6 +35,8 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
         .toBeVisible()
         .withTimeout(180000)
 
+      // Dev button is below the fold — scroll to bottom first
+      await element(by.id('auth-scroll')).scrollTo('bottom')
       await element(by.id('dev-seed-corrupt')).tap()
 
       await waitFor(element(by.id('seed-corrupt-done')))

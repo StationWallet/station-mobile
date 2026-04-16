@@ -8,9 +8,11 @@ describe('Full E2E: Migration → Decrypt → Size', () => {
     await device.disableSynchronization()
 
     // Tap the "Full E2E Test" dev button on AuthMenu
-    await waitFor(element(by.text('Full E2E Test (dev)')))
+    await waitFor(element(by.text('Create New Wallet')))
       .toBeVisible()
       .withTimeout(90000)
+    // Dev button may be below the fold — scroll to bottom first
+    await element(by.id('auth-scroll')).scrollTo('bottom')
     await element(by.text('Full E2E Test (dev)')).tap()
 
     // Wait for test to complete — look for either pass or fail

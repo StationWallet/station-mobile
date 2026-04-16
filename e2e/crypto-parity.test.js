@@ -8,9 +8,11 @@ describe('Crypto Parity', () => {
     await device.disableSynchronization()
 
     // Tap the dev-only "Crypto Tests" button on AuthMenu
-    await waitFor(element(by.id('dev-crypto-test')))
+    await waitFor(element(by.text('Create New Wallet')))
       .toBeVisible()
       .withTimeout(90000)
+    // Dev button may be below the fold — scroll to bottom first
+    await element(by.id('auth-scroll')).scrollTo('bottom')
     await element(by.id('dev-crypto-test')).tap()
 
     // Wait for crypto test results to render

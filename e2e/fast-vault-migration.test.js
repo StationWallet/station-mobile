@@ -54,9 +54,11 @@ describe('Fast Vault Migration — Per-Wallet', () => {
     await device.launchApp({ delete: true, newInstance: true })
     await device.disableSynchronization()
 
-    await waitFor(element(by.text('Seed Legacy Data (dev)')))
+    await waitFor(element(by.text('Create New Wallet')))
       .toBeVisible()
       .withTimeout(90000)
+    // Dev button may be below the fold — scroll to bottom first
+    await element(by.id('auth-scroll')).scrollTo('bottom')
     await element(by.text('Seed Legacy Data (dev)')).tap()
     await waitFor(element(by.id('seed-done')))
       .toExist()
