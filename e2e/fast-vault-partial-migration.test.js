@@ -18,14 +18,11 @@
  *
  * Does NOT require vultiserver or network access.
  */
-const { eraseSimulator } = require('./helpers/simulator');
-
 describe('Partial Fast Vault Migration — Skip/Retry', () => {
   describe('Setup — seed corrupt wallet data', () => {
     beforeAll(async () => {
-      eraseSimulator(device.id);
-
-      // Launch fresh — tap dev button to seed corrupt data
+      // delete: true removes app data (sufficient for isolation without
+      // a full simctl erase, which causes >90s post-boot instability)
       await device.launchApp({ delete: true, newInstance: true });
       await device.disableSynchronization();
 
