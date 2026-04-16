@@ -13,18 +13,18 @@ const {
  * repositories, not the declaring submodule's — so the repo MUST live at
  * the app level even though the dependency originates from a subproject.
  *
- * The PAT is read from `GITHUB_TOKEN` at Gradle-run time (not baked
+ * The PAT is read from `GITHUB_PACKAGES_TOKEN` at Gradle-run time (not baked
  * into the file on disk). GitHub Packages' Basic Auth requires a
  * non-empty `username`, but the value is not actually validated against
  * the token — any literal string works — so we hardcode `"token"` and
  * only require the PAT itself from the environment. This keeps local
  * setup to a single exported env var.
  *
- *   - GITHUB_TOKEN = classic PAT with `read:packages` scope.
+ *   - GITHUB_PACKAGES_TOKEN = classic PAT with `read:packages` scope.
  *     Generate one at https://github.com/settings/tokens/new (classic
  *     tokens only — fine-grained tokens are not supported by the
  *     GitHub Packages Maven registry yet). Export it in your shell rc:
- *       export GITHUB_TOKEN=ghp_xxx...
+ *       export GITHUB_PACKAGES_TOKEN=ghp_xxx...
  *
  * The Groovy `System.getenv(...)` call is emitted literally so the PAT
  * never touches git.
@@ -37,7 +37,7 @@ const REPO_BLOCK_LINES = [
   '      url = uri("https://maven.pkg.github.com/trustwallet/wallet-core")',
   '      credentials {',
   '        username = "token"',
-  '        password = System.getenv("GITHUB_TOKEN") ?: ""',
+  '        password = System.getenv("GITHUB_PACKAGES_TOKEN") ?: ""',
   '      }',
   '      content { includeGroup("com.trustwallet") }',
   '    }',

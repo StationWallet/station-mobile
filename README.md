@@ -61,7 +61,7 @@ const params = {
 - Android Studio 4.1.1 or later
 - A GitHub Personal Access Token (classic) with `read:packages` scope — required to resolve the `com.trustwallet:wallet-core` Maven dependency. Generate one at https://github.com/settings/tokens/new and export it:
   ```bash
-  export GITHUB_TOKEN=ghp_your_token_here
+  export GITHUB_PACKAGES_TOKEN=ghp_your_token_here
   ```
 
 ### iOS
