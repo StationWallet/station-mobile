@@ -20,6 +20,7 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { eraseSimulator } = require('./helpers/simulator');
 
 const FIXTURE_PASSWORD = 'testpassword123';
 const WRONG_PASSWORD = 'wrongpassword999';
@@ -45,20 +46,17 @@ function stageFixture(udid, srcPath, destName) {
 /** Erase simulator, boot, install app, terminate, stage fixture, relaunch. */
 async function setupWithFixture(fixturePath, fixtureName) {
   const udid = device.id;
-  execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
-    timeout: 120000,
-  });
-  execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
+  eraseSimulator(udid);
 
   await device.launchApp({
     delete: true,
     newInstance: true,
-    launchArgs: { detoxURLBlacklistRegex: '.*' },
   });
   await device.terminateApp();
 
   stageFixture(udid, fixturePath, fixtureName);
 
+  // Relaunch — detoxURLBlacklistRegex only safe on relaunches
   await device.launchApp({
     newInstance: true,
     launchArgs: { detoxURLBlacklistRegex: '.*' },
@@ -122,16 +120,11 @@ describe('Import Vault', () => {
   // ─── Navigation ───────────────────────────────────────────────────
   describe('Navigation to ImportVault', () => {
     beforeAll(async () => {
-      const udid = device.id;
-      execSync(`xcrun simctl shutdown ${udid} 2>/dev/null; xcrun simctl erase ${udid}`, {
-        timeout: 120000,
-      });
-      execSync(`xcrun simctl boot ${udid}`, { timeout: 120000 });
+      eraseSimulator(device.id);
 
       await device.launchApp({
         delete: true,
         newInstance: true,
-        launchArgs: { detoxURLBlacklistRegex: '.*' },
       });
       await device.disableSynchronization();
     });
