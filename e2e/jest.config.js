@@ -3,7 +3,7 @@ module.exports = {
   rootDir: '..',
   testMatch: ['<rootDir>/e2e/**/*.test.js'],
   testTimeout: 300000,
-  bail: 0,
+  bail: 1,
   maxWorkers: 1,
   globalSetup: 'detox/runners/jest/globalSetup',
   globalTeardown: 'detox/runners/jest/globalTeardown',
