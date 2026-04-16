@@ -18,11 +18,17 @@ const {
   getExistingMessageIds,
   fetchOtpFromAgentmail,
 } = require('./helpers/agentmail')
+const { eraseSimulator } = require('./helpers/simulator')
+
 describe('Fast Vault Creation — New User', () => {
   let knownMessageIds = new Set()
 
   describe('Setup — clean install', () => {
     beforeAll(async () => {
+      // Erase needed: previous suites may leave keychain data that
+      // causes the app to enter migration flow instead of auth screen.
+      eraseSimulator(device.id)
+
       await device.launchApp({
         delete: true,
         newInstance: true,
