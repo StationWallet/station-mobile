@@ -19,7 +19,9 @@ import MigrationSuccess from '../screens/migration/MigrationSuccess'
 const LazyKeygenProgress = React.lazy(
   () => import('../screens/migration/KeygenProgress')
 )
-const KeygenProgress = (props: Record<string, unknown>): React.ReactElement => (
+const KeygenProgress = (
+  props: Record<string, unknown>
+): React.ReactElement => (
   <Suspense
     fallback={
       <View style={{ flex: 1, backgroundColor: '#02122b' }} />
