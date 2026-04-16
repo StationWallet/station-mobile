@@ -29,10 +29,11 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
       await device.launchApp({ delete: true, newInstance: true });
       await device.disableSynchronization();
 
-      // Wait for Auth screen (first launch after erase may need 90s for Metro bundle)
+      // Wait for Auth screen — after erase the post-boot app launch can be slow
+      // (InteractionManager handles + native module init), allow up to 3 minutes
       await waitFor(element(by.text('Create New Wallet')))
         .toBeVisible()
-        .withTimeout(90000);
+        .withTimeout(180000);
 
       await element(by.id('dev-seed-corrupt')).tap();
 
