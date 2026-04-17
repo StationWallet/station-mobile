@@ -7,8 +7,9 @@
   "scripts": {
     "postinstall": "patch-package",
     "start": "npx expo start",
-    "ios": "npx expo run:ios",
-    "android": "npx expo run:android",
+    "prebuild": "npx expo prebuild",
+    "ios": "npx expo prebuild --platform ios && npx expo run:ios",
+    "android": "npx expo prebuild --platform android && npx expo run:android",
     "test": "jest",
     "test:ci": "jest --ci --coverage",
     "lint": "eslint --fix src --ext .ts,.tsx",
