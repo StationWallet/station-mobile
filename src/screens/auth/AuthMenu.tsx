@@ -119,6 +119,18 @@ const AuthMenu = ({
               </TouchableOpacity>
             </>
           )}
+
+          {DevFlags.StateReset && (
+            <TouchableOpacity
+              testID="dev-reset-state"
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('StateReset')}
+            >
+              <Text style={styles.secondaryButtonText}>
+                Reset State (dev)
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
       {isAddMode && (

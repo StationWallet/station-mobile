@@ -14,6 +14,7 @@ export const DevFlags = {
   SeedLegacyData: showDevFeatures,
   SeedCorruptData: showDevFeatures,
   VerifyVault: showDevFeatures,
+  StateReset: showDevFeatures,
 } as const
 
 // Gated on __DEV__ so production builds can never read a truthy value

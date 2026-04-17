@@ -34,7 +34,7 @@ export default function DevStateReset(): React.ReactElement {
         for (const name of Object.keys(authData)) {
           await SecureStore.deleteItemAsync(
             vaultStoreKey(name),
-            VAULT_STORE_OPTS,
+            VAULT_STORE_OPTS
           )
         }
       }
@@ -60,7 +60,9 @@ export default function DevStateReset(): React.ReactElement {
       setStatus('done')
       setDone(true)
     } catch (e) {
-      setStatus(`error: ${e instanceof Error ? e.message : String(e)}`)
+      setStatus(
+        `error: ${e instanceof Error ? e.message : String(e)}`
+      )
       setDone(true)
     }
   }

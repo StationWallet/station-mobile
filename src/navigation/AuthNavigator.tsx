@@ -17,6 +17,10 @@ const DevVerifyVault = DevFlags.VerifyVault
   ? require('../components/DevVerifyVault').default
   : null
 
+const DevStateReset = DevFlags.StateReset
+  ? require('../components/DevStateReset').default
+  : null
+
 const Stack = createStackNavigator()
 
 export default function AuthNavigator(): React.ReactElement {
@@ -47,6 +51,9 @@ export default function AuthNavigator(): React.ReactElement {
       )}
       {DevVerifyVault && (
         <Stack.Screen name="VerifyVault" component={DevVerifyVault} />
+      )}
+      {DevStateReset && (
+        <Stack.Screen name="StateReset" component={DevStateReset} />
       )}
     </Stack.Navigator>
   )

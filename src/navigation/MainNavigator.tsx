@@ -25,6 +25,10 @@ const DevVerifyVault = DevFlags.VerifyVault
   ? require('../components/DevVerifyVault').default
   : null
 
+const DevStateReset = DevFlags.StateReset
+  ? require('../components/DevStateReset').default
+  : null
+
 export type MainStackParams = {
   WalletList: undefined
   AddWalletMenu: undefined
@@ -34,6 +38,7 @@ export type MainStackParams = {
   SeedLegacyData: undefined
   SeedCorruptData: undefined
   VerifyVault: undefined
+  StateReset: undefined
   Migration: {
     screen:
       | 'MigrationHome'
@@ -88,6 +93,9 @@ export default function MainNavigator(): React.ReactElement {
       )}
       {DevVerifyVault && (
         <Stack.Screen name="VerifyVault" component={DevVerifyVault} />
+      )}
+      {DevStateReset && (
+        <Stack.Screen name="StateReset" component={DevStateReset} />
       )}
       <Stack.Screen name="Migration" component={MigrationNavigator} />
     </Stack.Navigator>
