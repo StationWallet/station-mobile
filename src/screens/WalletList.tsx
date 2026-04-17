@@ -1,6 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
-import { useNavigation, useRoute } from '@react-navigation/native'
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native'
 import type { NavigationProp } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -32,11 +36,16 @@ export default function WalletList(): React.ReactElement {
   const { wallets, onWalletDisconnected, refreshWallets } =
     useWalletNav()
 
-  // Refresh wallets on mount — the context may have stale data if
-  // migration completed after the initial wallet load.
-  useEffect(() => {
-    refreshWallets()
-  }, [refreshWallets])
+  // Refresh wallets every time the screen gains focus. Returning here
+  // from the migration flow (e.g. "Migrate another wallet" on
+  // MigrationSuccess) does not remount the component, so a mount-only
+  // refresh would leave fastVaultMap stale and the just-migrated
+  // wallet would keep rendering the "Migrate to a vault" CTA.
+  useFocusEffect(
+    useCallback(() => {
+      refreshWallets()
+    }, [refreshWallets])
+  )
 
   const [fastVaultMap, setFastVaultMap] = useState<
     Record<string, boolean>

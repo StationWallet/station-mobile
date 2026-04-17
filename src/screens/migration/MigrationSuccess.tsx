@@ -98,11 +98,17 @@ export default function MigrationSuccess(): React.ReactElement {
 
   // Write the flag eagerly when this screen mounts (not just on tap)
   // so it persists even if the app is killed before the user taps Continue.
-  // vaultsUpgraded means "user has been through the migration flow",
-  // not "all wallets are upgraded" — set it regardless of partial failure.
+  // Only set if the user actually succeeded at something — migrated a wallet,
+  // created a new vault, or imported a backup. If every attempt was skipped
+  // the user should re-enter the migration flow on the next launch.
   useEffect(() => {
-    preferences.setBool(PreferencesEnum.vaultsUpgraded, true)
-  }, [])
+    const anyMigrated =
+      params.results?.some((r) => r.success) ?? false
+    const importedVault = !!params.importedVaultName
+    if (anyMigrated || importedVault) {
+      preferences.setBool(PreferencesEnum.vaultsUpgraded, true)
+    }
+  }, [params.results, params.importedVaultName])
 
   const insets = useSafeAreaInsets()
 
