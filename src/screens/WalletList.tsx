@@ -226,7 +226,7 @@ export default function WalletList(): React.ReactElement {
             theme="secondaryDark"
             titleFontType="brockmann-medium"
             onPress={() => {
-              mainNav.navigate('StateReset' as never)
+              mainNav.navigate('StateReset')
             }}
             containerStyle={styles.addButton}
           />

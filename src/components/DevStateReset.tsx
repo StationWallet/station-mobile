@@ -13,11 +13,7 @@ import {
 } from 'services/migrateToVault'
 import { getAuthData } from 'utils/authData'
 
-/**
- * DEV ONLY: reset all wallet/migration state without erasing the
- * simulator. Lets Detox UI tests share a single simulator boot
- * across suites instead of eating ~2 min per suite on `simctl erase`.
- */
+/** DEV ONLY: clear all wallet + migration state without a simulator erase. */
 export default function DevStateReset(): React.ReactElement {
   const [status, setStatus] = useState('resetting...')
   const [done, setDone] = useState(false)
@@ -28,31 +24,29 @@ export default function DevStateReset(): React.ReactElement {
 
   const reset = async (): Promise<void> => {
     try {
-      // Clear per-wallet vault blobs written by migrateToVault.
       const authData = await getAuthData()
       if (authData) {
-        for (const name of Object.keys(authData)) {
-          await SecureStore.deleteItemAsync(
-            vaultStoreKey(name),
-            VAULT_STORE_OPTS
+        await Promise.all(
+          Object.keys(authData).map((name) =>
+            SecureStore.deleteItemAsync(
+              vaultStoreKey(name),
+              VAULT_STORE_OPTS
+            )
           )
-        }
+        )
       }
 
-      // Clear the auth data (wallet list) itself.
       await keystore.remove(KeystoreEnum.AuthData)
 
-      // Reset migration-flow boolean flags.
-      for (const key of [
-        PreferencesEnum.legacyKeystoreMigrated,
-        PreferencesEnum.legacyDataFound,
-        PreferencesEnum.vaultsUpgraded,
-        PreferencesEnum.firstRun,
-      ]) {
-        await preferences.setBool(key, false)
-      }
+      await Promise.all(
+        [
+          PreferencesEnum.legacyKeystoreMigrated,
+          PreferencesEnum.legacyDataFound,
+          PreferencesEnum.vaultsUpgraded,
+          PreferencesEnum.firstRun,
+        ].map((key) => preferences.setBool(key, false))
+      )
 
-      // Clear the old native keystore too.
       if (LegacyKeystore) {
         await LegacyKeystore.clearAllLegacyData()
       }

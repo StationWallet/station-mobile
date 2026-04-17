@@ -90,5 +90,9 @@ docs/designs/
 # Superpowers scratch planning (specs + plans)
 docs/superpowers/
 
+# Test run output
+artifacts/
+coverage/
+
 # Git worktrees
 .worktrees/

@@ -54,8 +54,8 @@ beforeEach(() => {
 describe('migrateLegacyKeystore', () => {
   it('seeds, migrates, and reads back identical bytes', async () => {
     const authData = buildAuthData()
-    await LegacyKeystore.seedLegacyTestData('AD', authData)
-    expect(await LegacyKeystore.readLegacy('AD')).toBe(authData)
+    await LegacyKeystore.seedLegacyTestData(KeystoreEnum.AuthData, authData)
+    expect(await LegacyKeystore.readLegacy(KeystoreEnum.AuthData)).toBe(authData)
 
     await migrateLegacyKeystore()
 
@@ -63,22 +63,22 @@ describe('migrateLegacyKeystore', () => {
   })
 
   it('cleans up legacy data after successful migration', async () => {
-    await LegacyKeystore.seedLegacyTestData('AD', buildAuthData())
+    await LegacyKeystore.seedLegacyTestData(KeystoreEnum.AuthData, buildAuthData())
     await migrateLegacyKeystore()
-    const legacyAfter = await LegacyKeystore.readLegacy('AD')
+    const legacyAfter = await LegacyKeystore.readLegacy(KeystoreEnum.AuthData)
     expect(legacyAfter === null || legacyAfter === '').toBe(true)
   })
 
   it('is idempotent on second run', async () => {
     const authData = buildAuthData()
-    await LegacyKeystore.seedLegacyTestData('AD', authData)
+    await LegacyKeystore.seedLegacyTestData(KeystoreEnum.AuthData, authData)
     await migrateLegacyKeystore()
     await migrateLegacyKeystore()
     expect(await keystore.read(KeystoreEnum.AuthData)).toBe(authData)
   })
 
   it('sets the legacyKeystoreMigrated preference flag', async () => {
-    await LegacyKeystore.seedLegacyTestData('AD', buildAuthData())
+    await LegacyKeystore.seedLegacyTestData(KeystoreEnum.AuthData, buildAuthData())
     await migrateLegacyKeystore()
     expect(
       await preferences.getBool(
@@ -88,7 +88,7 @@ describe('migrateLegacyKeystore', () => {
   })
 
   it('decrypts migrated wallet keys with their passwords', async () => {
-    await LegacyKeystore.seedLegacyTestData('AD', buildAuthData())
+    await LegacyKeystore.seedLegacyTestData(KeystoreEnum.AuthData, buildAuthData())
     await migrateLegacyKeystore()
     const parsed = JSON.parse(
       await keystore.read(KeystoreEnum.AuthData)
@@ -102,7 +102,7 @@ describe('migrateLegacyKeystore', () => {
   })
 
   it('preserves Ledger wallet structure through migration', async () => {
-    await LegacyKeystore.seedLegacyTestData('AD', buildAuthData())
+    await LegacyKeystore.seedLegacyTestData(KeystoreEnum.AuthData, buildAuthData())
     await migrateLegacyKeystore()
     const parsed = JSON.parse(
       await keystore.read(KeystoreEnum.AuthData)
@@ -115,7 +115,7 @@ describe('migrateLegacyKeystore', () => {
   })
 
   it('derives expected secp256k1 public key from decrypted wallet 1', async () => {
-    await LegacyKeystore.seedLegacyTestData('AD', buildAuthData())
+    await LegacyKeystore.seedLegacyTestData(KeystoreEnum.AuthData, buildAuthData())
     await migrateLegacyKeystore()
     const parsed = JSON.parse(
       await keystore.read(KeystoreEnum.AuthData)

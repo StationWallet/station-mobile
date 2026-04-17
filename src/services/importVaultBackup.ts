@@ -1,6 +1,4 @@
 import { fromBinary, toBinary } from '@bufbuild/protobuf'
-import { gcm } from '@noble/ciphers/aes.js'
-import { sha256 } from '@noble/hashes/sha2.js'
 import { base64 } from '@scure/base'
 import * as SecureStore from 'expo-secure-store'
 
@@ -8,6 +6,7 @@ import { upsertAuthData } from 'utils/authData'
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container_pb'
 import { VAULT_STORE_OPTS, vaultStoreKey } from './migrateToVault'
+import { decryptVaultBytes } from './vaultCrypto'
 
 type ImportVaultBackupInput = {
   content: string
@@ -24,17 +23,6 @@ export type ImportVaultBackupResult =
       /** Pre-decoded vault bytes ready for persist — avoids re-decrypting. */
       vaultBytes: Uint8Array
     }
-
-function decryptVaultBytes(
-  encrypted: Uint8Array,
-  password: string
-): Uint8Array {
-  const nonce = encrypted.slice(0, 12)
-  const ciphertextWithTag = encrypted.slice(12)
-  const key = sha256(new TextEncoder().encode(password))
-
-  return gcm(key, nonce).decrypt(ciphertextWithTag)
-}
 
 function getKeyshareForPublicKey(
   keyshares: Array<{ publicKey: string; keyshare: string }>,

@@ -1,13 +1,8 @@
-import { secp256k1 } from '@noble/curves/secp256k1.js'
-import { hex } from '@scure/base'
 import type {
   KeyImportResult,
   KeyImportProgress,
 } from './dklsKeyImport'
-
-async function sleep(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms))
-}
+import { derivePublicKeyHex } from './vaultProto'
 
 export async function importKeyToFastVault(options: {
   name: string
@@ -37,19 +32,14 @@ export async function importKeyToFastVault(options: {
   for (const s of steps) {
     if (signal?.aborted) throw new Error('Aborted')
     onProgress?.(s)
-    await sleep(50)
+    // Yield to the microtask queue so consumers observe each step in order.
+    await Promise.resolve()
   }
 
-  // Deterministic synthetic result so downstream code treats it like a
-  // real DKLS vault share. keyshare is opaque base64 — any non-empty string
-  // passes downstream validation.
-  const pubBytes = secp256k1.getPublicKey(
-    hex.decode(privateKeyHex),
-    true
-  )
   return {
-    publicKey: hex.encode(pubBytes),
-    keyshare: 'c3R1YmJlZC1rZXlzaGFyZS1ieXRlcw==', // "stubbed-keyshare-bytes"
+    publicKey: derivePublicKeyHex(privateKeyHex),
+    // Opaque base64 — any non-empty string passes downstream validation.
+    keyshare: 'c3R1YmJlZC1rZXlzaGFyZS1ieXRlcw==',
     chainCode: '0'.repeat(64),
     localPartyId: 'sdk-stub0',
     serverPartyId: 'Server-stub',

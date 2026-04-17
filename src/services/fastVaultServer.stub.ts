@@ -14,7 +14,7 @@ export async function setupBatchImport(
     chains?: string[]
   }
 ): Promise<void> {
-  // No-op: stubbed so Detox UI tests don't hit the real server.
+  // Activated by STUB_VULTISERVER — keeps UI flows offline.
 }
 
 export async function verifyVaultEmail(

@@ -1,10 +1,6 @@
-// Ported from e2e/crypto-parity.test.js — every Detox `expect(...).toHaveText(golden)`
-// is re-expressed as a Jest `expect(fn(input)).toBe(golden)` against the same
-// production crypto entry points used by src/components/CryptoTestScreen.tsx.
-//
-// On-device, Metro intercepts `@terra-money/terra.js` → polyfills/terra.js and
-// `crypto` → polyfills/crypto.js (see metro.config.js). Importing from the
-// polyfills here exercises the exact code that ships to users.
+// Metro intercepts `@terra-money/terra.js` → polyfills/terra.js and `crypto`
+// → polyfills/crypto.js (see metro.config.js). Importing from the polyfills
+// here tests the exact code that ships to users.
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const {
@@ -17,7 +13,6 @@ const {
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const crypto = require('../../polyfills/crypto')
 
-// Fixtures — copied verbatim from src/components/CryptoTestScreen.tsx
 const MNEMONIC_1 =
   'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 const MNEMONIC_2 = 'zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong'
@@ -73,56 +68,47 @@ describe('Crypto parity goldens (ported from e2e/crypto-parity.test.js)', () => 
   })
 
   describe('MnemonicKey — mnemonic 2', () => {
+    const mk2_330 = new MnemonicKey({
+      mnemonic: MNEMONIC_2,
+      coinType: 330,
+    })
+    const mk2_118 = new MnemonicKey({
+      mnemonic: MNEMONIC_2,
+      coinType: 118,
+    })
+    const mk2_custom = new MnemonicKey({
+      mnemonic: MNEMONIC_2,
+      coinType: 330,
+      account: 1,
+      index: 2,
+    })
+
     it('mk2-330-address matches golden value', () => {
-      const mk = new MnemonicKey({
-        mnemonic: MNEMONIC_2,
-        coinType: 330,
-      })
-      expect(mk.accAddress).toBe(
+      expect(mk2_330.accAddress).toBe(
         'terra1whertfa9u8a8676cryt0prqdnhwkcj5tu9qsq8'
       )
     })
 
     it('mk2-330-privkey matches golden value', () => {
-      const mk = new MnemonicKey({
-        mnemonic: MNEMONIC_2,
-        coinType: 330,
-      })
-      expect(mk.privateKey.toString('hex')).toBe(
+      expect(mk2_330.privateKey.toString('hex')).toBe(
         '87dcd8210f184ade53a1a57c5cd06fc65cdaca53bfed239cd7b5dea4c126dfec'
       )
     })
 
     it('mk2-118-address matches golden value', () => {
-      const mk = new MnemonicKey({
-        mnemonic: MNEMONIC_2,
-        coinType: 118,
-      })
-      expect(mk.accAddress).toBe(
+      expect(mk2_118.accAddress).toBe(
         'terra1am058pdux3hyulcmfgj4m3hhrlfn8nzmprx8dq'
       )
     })
 
     it('mk2-custom-address matches golden value', () => {
-      const mk = new MnemonicKey({
-        mnemonic: MNEMONIC_2,
-        coinType: 330,
-        account: 1,
-        index: 2,
-      })
-      expect(mk.accAddress).toBe(
+      expect(mk2_custom.accAddress).toBe(
         'terra169d7v4jaxppvpvtdl4e992m9pcshkhcjmr9tqp'
       )
     })
 
     it('mk2-custom-privkey matches golden value', () => {
-      const mk = new MnemonicKey({
-        mnemonic: MNEMONIC_2,
-        coinType: 330,
-        account: 1,
-        index: 2,
-      })
-      expect(mk.privateKey.toString('hex')).toBe(
+      expect(mk2_custom.privateKey.toString('hex')).toBe(
         '07f1252907bc12a95f76ec90cbd94707c466adac141338e389c7e4533ced108f'
       )
     })
