@@ -35,6 +35,7 @@ import type {
   MigrationWallet,
   MigrationResult,
 } from 'services/migrateToVault'
+import type { KeyImportResult } from 'services/dklsKeyImport'
 
 export type MigrationMode = 'migrate' | 'create'
 
@@ -82,7 +83,7 @@ export type MigrationStackParams = {
     results?: MigrationResult[]
     mode: MigrationMode
     email: string
-    publicKey: string
+    keyImportResult: KeyImportResult
   }
   ImportVault: undefined
   MigrationSuccess: {
