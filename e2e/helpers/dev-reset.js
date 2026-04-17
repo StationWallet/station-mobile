@@ -38,6 +38,9 @@ async function devReset() {
     { timeout: 180000 },
   )
   execSync(`xcrun simctl boot ${device.id}`, { timeout: 120000 })
+  // simctl erase wipes installed apps — put ours back before the test
+  // calls launchApp().
+  await device.installApp()
 }
 
 module.exports = { devReset }
