@@ -150,6 +150,7 @@ export const addWallet = async ({
           address: wallet.address,
           password: password || '',
           encryptedKey: key || '',
+          terraOnly: true,
         },
       },
     })
