@@ -27,7 +27,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "money.terra.station",
       "appleTeamId": "4268K8DFX6",
-      "buildNumber": "1",
+      "buildNumber": "3",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
