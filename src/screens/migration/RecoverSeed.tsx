@@ -15,14 +15,14 @@ import { formatSeedStringToArray } from 'utils/wallet'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { COLORS } from 'consts/theme'
 import { useWalletNav } from 'navigation/hooks'
-import authStyles from '../authStyles'
+import authStyles from '../auth/authStyles'
 
-const Step2Seed = (): React.ReactElement => {
+const RecoverSeed = (): React.ReactElement => {
   const insets = useSafeAreaInsets()
   const nav = useNavigation()
   const [seedText, setSeedText] = useState('')
   const setSeed = useSetRecoilState(RecoverWalletStore.seed)
-  const { startSeedRecovery } = useWalletNav()
+  const { startSeedRecovery, goHome } = useWalletNav()
 
   const words = seedText.trim()
     ? formatSeedStringToArray(seedText)
@@ -35,10 +35,18 @@ const Step2Seed = (): React.ReactElement => {
     startSeedRecovery()
   }
 
+  const handleBack = (): void => {
+    if (nav.canGoBack()) {
+      nav.goBack()
+    } else {
+      goHome()
+    }
+  }
+
   return (
     <View style={authStyles.container}>
       <View style={{ paddingTop: insets.top }}>
-        <MigrationToolbar onBack={() => nav.goBack()} />
+        <MigrationToolbar onBack={handleBack} />
       </View>
       <ScrollView
         contentContainerStyle={authStyles.content}
@@ -95,7 +103,7 @@ const Step2Seed = (): React.ReactElement => {
   )
 }
 
-Step2Seed.navigationOptions = {
+RecoverSeed.navigationOptions = {
   headerShown: false,
 }
 
@@ -122,4 +130,4 @@ const styles = StyleSheet.create({
   wordCountInvalid: { color: COLORS.error },
 })
 
-export default Step2Seed
+export default RecoverSeed

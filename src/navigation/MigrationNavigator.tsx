@@ -12,6 +12,7 @@ import VaultPassword from '../screens/migration/VaultPassword'
 import VerifyEmail from '../screens/migration/VerifyEmail'
 import ImportVault from '../screens/migration/ImportVault'
 import MigrationSuccess from '../screens/migration/MigrationSuccess'
+import RecoverSeed from '../screens/migration/RecoverSeed'
 
 // Lazy-load KeygenProgress — it statically imports rive-react-native which
 // initialises its native runtime on import, keeping the iOS main run loop busy
@@ -92,6 +93,7 @@ export type MigrationStackParams = {
     migratedWalletName?: string
     importedVaultName?: string
   }
+  RecoverSeed: undefined
   // Dev-only screens for E2E test data seeding
   SeedLegacyData: undefined
   SeedCorruptData: undefined
@@ -103,6 +105,7 @@ type MigrationEntry =
   | 'default'
   | 'create-vault'
   | 'recover-seed'
+  | 'recover-seed-input'
   | 'import-vault'
 
 export default function MigrationNavigator({
@@ -116,6 +119,8 @@ export default function MigrationNavigator({
     ? 'VaultName'
     : initialEntry === 'import-vault'
     ? 'ImportVault'
+    : initialEntry === 'recover-seed-input'
+    ? 'RecoverSeed'
     : 'RiveIntro'
   const vaultNameInitialParams = isVaultNameEntry
     ? {
@@ -161,6 +166,7 @@ export default function MigrationNavigator({
         name="MigrationSuccess"
         component={MigrationSuccess}
       />
+      <Stack.Screen name="RecoverSeed" component={RecoverSeed} />
       {DevSeedLegacyData && (
         <Stack.Screen
           name="SeedLegacyData"

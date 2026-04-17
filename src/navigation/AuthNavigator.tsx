@@ -1,7 +1,6 @@
 import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 import AuthMenu from '../screens/auth/AuthMenu'
-import RecoverWalletStack from './RecoverWalletStack'
 import { DevFlags } from '../config/env'
 
 const DevSeedLegacyData = DevFlags.SeedLegacyData
@@ -31,10 +30,6 @@ export default function AuthNavigator(): React.ReactElement {
       }}
     >
       <Stack.Screen name="AuthMenu" component={AuthMenu} />
-      <Stack.Screen
-        name="RecoverWallet"
-        component={RecoverWalletStack}
-      />
       {DevSeedLegacyData && (
         <Stack.Screen
           name="SeedLegacyData"

@@ -18,8 +18,12 @@ const AuthMenu = ({
 }: {
   navigation: { navigate: (screen: string) => void }
 }): React.ReactElement => {
-  const { goToMigration, startCreateVault, startImportVault } =
-    useWalletNav()
+  const {
+    goToMigration,
+    startCreateVault,
+    startImportVault,
+    startSeedRecoveryInput,
+  } = useWalletNav()
   const insets = useSafeAreaInsets()
 
   return (
@@ -64,7 +68,7 @@ const AuthMenu = ({
 
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() => navigation.navigate('RecoverWallet')}
+            onPress={startSeedRecoveryInput}
           >
             <Text style={styles.secondaryButtonText}>
               Recover Wallet
