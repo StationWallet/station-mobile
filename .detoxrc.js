@@ -36,5 +36,15 @@ module.exports = {
       device: 'simulator',
       app: 'ios.release',
     },
+    'ios.sim.smoke': {
+      device: 'simulator',
+      app: 'ios.debug',
+      testRunner: {
+        args: {
+          $0: 'jest',
+          config: 'e2e/smoke/jest.config.js',
+        },
+      },
+    },
   },
 };
