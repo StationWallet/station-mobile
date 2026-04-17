@@ -44,7 +44,10 @@ import { useAlertViewState } from './AlertView'
 import { themes } from 'lib/contexts/useTheme'
 import { COLORS } from 'consts/theme'
 
-LogBox.ignoreLogs(['EventEmitter.removeListener'])
+LogBox.ignoreLogs([
+  'EventEmitter.removeListener',
+  'InteractionManager has been deprecated',
+])
 
 const queryClient = new QueryClient()
 
