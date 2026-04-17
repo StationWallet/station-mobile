@@ -18,7 +18,8 @@ function readDotEnv() {
   return {}
 }
 
-const ENV = readDotEnv()
+// Merge dotenv (local dev) with process.env (CI) — process.env wins.
+const ENV = { ...readDotEnv(), ...process.env }
 const AGENTMAIL_API_KEY = ENV.AGENTMAIL_API_KEY
 const AGENTMAIL_EMAIL = ENV.AGENTMAIL_EMAIL || 'vultiagent@agentmail.to'
 const VAULT_PASSWORD = 'testpass123'
