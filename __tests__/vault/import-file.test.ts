@@ -4,7 +4,7 @@ import * as path from 'path'
 import {
   importVaultBackup,
   type ImportVaultBackupResult,
-} from '../../src/services/importVaultBackup'
+} from 'services/importVaultBackup'
 
 type Decrypted = Extract<ImportVaultBackupResult, { needsPassword: false }>
 function assertDecrypted(r: ImportVaultBackupResult): Decrypted {

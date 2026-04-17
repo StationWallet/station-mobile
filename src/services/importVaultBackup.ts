@@ -1,10 +1,10 @@
-import { fromBinary } from '@bufbuild/protobuf'
+import { fromBinary, toBinary } from '@bufbuild/protobuf'
 import { gcm } from '@noble/ciphers/aes.js'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { base64 } from '@scure/base'
-import { toBinary } from '@bufbuild/protobuf'
 import * as SecureStore from 'expo-secure-store'
 
+import { upsertAuthData } from 'utils/authData'
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container_pb'
 import { VAULT_STORE_OPTS, vaultStoreKey } from './migrateToVault'
@@ -128,7 +128,6 @@ export async function persistImportedVault(
   )
 
   // Register in authData so getWallets() can discover the imported vault
-  const { upsertAuthData } = await import('../utils/authData')
   await upsertAuthData({
     authData: {
       [vaultName]: {

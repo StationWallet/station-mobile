@@ -1,40 +1,10 @@
 import { create, toBinary } from '@bufbuild/protobuf'
 
 import { __reset as resetSecure } from '../__mocks__/expo-secure-store'
-import { getStoredVault } from '../../src/services/migrateToVault'
+import { persistImportedVault } from 'services/importVaultBackup'
+import { getStoredVault } from 'services/migrateToVault'
 import { VaultSchema } from '../../src/proto/vultisig/vault/v1/vault_pb'
 import { LibType } from '../../src/proto/vultisig/keygen/v1/lib_type_message_pb'
-
-// Production `persistImportedVault` ends with `await import('../utils/authData')`
-// to avoid a module-init-time dependency on authData. Jest's CommonJS VM
-// rejects dynamic-import callbacks and babel-preset-expo doesn't rewrite them,
-// so we replace the module with a version that keeps the SecureStore write
-// path intact and drops the authData registration step (out of scope for D3).
-jest.mock('../../src/services/importVaultBackup', () => {
-  const SecureStore = require('expo-secure-store')
-  const { base64 } = require('@scure/base')
-  const {
-    VAULT_STORE_OPTS,
-    vaultStoreKey,
-  } = require('../../src/services/migrateToVault')
-
-  return {
-    async persistImportedVault(
-      vaultBytes: Uint8Array,
-      vaultName: string,
-    ): Promise<void> {
-      const encoded = base64.encode(vaultBytes)
-      await SecureStore.setItemAsync(
-        vaultStoreKey(vaultName),
-        encoded,
-        VAULT_STORE_OPTS,
-      )
-    },
-  }
-})
-
-// eslint-disable-next-line import/first -- mock must be declared before import
-import { persistImportedVault } from '../../src/services/importVaultBackup'
 
 beforeEach(() => {
   resetSecure()

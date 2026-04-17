@@ -6,10 +6,7 @@ import { base64 } from '@scure/base'
 import { VaultSchema } from '../../src/proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../../src/proto/vultisig/vault/v1/vault_container_pb'
 import { LibType } from '../../src/proto/vultisig/keygen/v1/lib_type_message_pb'
-import {
-  buildVaultProto,
-  derivePublicKeyHex,
-} from '../../src/services/vaultProto'
+import { buildVaultProto, derivePublicKeyHex } from 'services/vaultProto'
 
 const PK = '0000000000000000000000000000000000000000000000000000000000000001'
 const EXPECTED_PUB =
