@@ -2,7 +2,7 @@
   "expo": {
     "name": "Vultisig",
     "slug": "vultisig",
-    "version": "1.0.0",
+    "version": "5.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -27,7 +27,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "money.terra.station",
       "appleTeamId": "4268K8DFX6",
-      "buildNumber": "3",
+      "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
