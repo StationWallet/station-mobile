@@ -9,8 +9,6 @@ module.exports = {
     '^expo/virtual/env$': '<rootDir>/__mocks__/expo-virtual-env.js',
     '^expo-secure-store$':
       '<rootDir>/__tests__/__mocks__/expo-secure-store.ts',
-    '^nativeModules/preferences$':
-      '<rootDir>/__tests__/__mocks__/preferences.ts',
     '^.*/modules/legacy-keystore-migration/src$':
       '<rootDir>/__tests__/__mocks__/legacy-keystore.ts',
     '^expo-crypto$': '<rootDir>/__tests__/__mocks__/expo-crypto.ts',
