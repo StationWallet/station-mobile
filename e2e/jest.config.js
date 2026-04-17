@@ -5,7 +5,7 @@ module.exports = {
   testTimeout: 300000,
   bail: 1,
   maxWorkers: 1,
-  globalSetup: 'detox/runners/jest/globalSetup',
+  globalSetup: '<rootDir>/e2e/globalSetup.js',
   globalTeardown: 'detox/runners/jest/globalTeardown',
   reporters: ['detox/runners/jest/reporter'],
   testEnvironment: 'detox/runners/jest/testEnvironment',
@@ -13,5 +13,6 @@ module.exports = {
   modulePathIgnorePatterns: [
     '<rootDir>/.worktrees/',
     '<rootDir>/.claude/',
+    '<rootDir>/e2e/smoke/',
   ],
 }
