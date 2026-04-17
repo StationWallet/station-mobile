@@ -17,10 +17,6 @@ const CryptoTestScreen = DevFlags.CryptoTestScreen
   ? require('../components/CryptoTestScreen').default
   : null
 
-const DevFullE2ETest = DevFlags.FullE2ETest
-  ? require('../components/DevFullE2ETest').default
-  : null
-
 const DevSeedLegacyData = DevFlags.SeedLegacyData
   ? require('../components/DevSeedLegacyData').default
   : null
@@ -40,7 +36,6 @@ export type MainStackParams = {
   AddRecoverWallet: undefined
   ExportPrivateKey: { wallet: { name: string; address: string } }
   CryptoTest: undefined
-  FullE2ETest: undefined
   SeedLegacyData: undefined
   SeedCorruptData: undefined
   VerifyVault: undefined
@@ -89,9 +84,6 @@ export default function MainNavigator(): React.ReactElement {
           name="CryptoTest"
           component={CryptoTestScreen}
         />
-      )}
-      {DevFullE2ETest && (
-        <Stack.Screen name="FullE2ETest" component={DevFullE2ETest} />
       )}
       {DevSeedLegacyData && (
         <Stack.Screen

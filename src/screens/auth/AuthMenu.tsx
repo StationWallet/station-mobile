@@ -86,7 +86,7 @@ const AuthMenu = ({
             </Text>
           </TouchableOpacity>
 
-          {DevFlags.FullE2ETest && (
+          {DevFlags.SeedLegacyData && (
             <>
               {goToMigration && (
                 <TouchableOpacity
@@ -106,15 +106,6 @@ const AuthMenu = ({
               >
                 <Text style={styles.secondaryButtonText}>
                   Crypto Tests (dev)
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                testID="dev-full-e2e-test"
-                style={styles.secondaryButton}
-                onPress={() => navigation.navigate('FullE2ETest')}
-              >
-                <Text style={styles.secondaryButtonText}>
-                  Full E2E Test (dev)
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity

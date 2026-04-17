@@ -9,10 +9,6 @@ const CryptoTestScreen = DevFlags.CryptoTestScreen
   ? require('../components/CryptoTestScreen').default
   : null
 
-const DevFullE2ETest = DevFlags.FullE2ETest
-  ? require('../components/DevFullE2ETest').default
-  : null
-
 const DevSeedLegacyData = DevFlags.SeedLegacyData
   ? require('../components/DevSeedLegacyData').default
   : null
@@ -46,9 +42,6 @@ export default function AuthNavigator(): React.ReactElement {
           name="CryptoTest"
           component={CryptoTestScreen}
         />
-      )}
-      {DevFullE2ETest && (
-        <Stack.Screen name="FullE2ETest" component={DevFullE2ETest} />
       )}
       {DevSeedLegacyData && (
         <Stack.Screen

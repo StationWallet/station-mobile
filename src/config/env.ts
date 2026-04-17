@@ -12,7 +12,6 @@ const showDevFeatures =
 
 export const DevFlags = {
   CryptoTestScreen: showDevFeatures,
-  FullE2ETest: showDevFeatures,
   SeedLegacyData: showDevFeatures,
   SeedCorruptData: showDevFeatures,
   VerifyVault: showDevFeatures,
