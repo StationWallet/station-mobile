@@ -19,6 +19,7 @@ import Text from 'components/Text'
 import Button from 'components/Button'
 import WalletCard from 'components/WalletCard'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
+import AddWalletSheet from 'components/AddWalletSheet'
 
 import type { MainStackParams } from 'navigation/MainNavigator'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
@@ -33,8 +34,14 @@ export default function WalletList(): React.ReactElement {
   const route = useRoute()
   const inMigrationNav = route.name === 'WalletsFound'
 
-  const { wallets, onWalletDisconnected, refreshWallets } =
-    useWalletNav()
+  const {
+    wallets,
+    onWalletDisconnected,
+    refreshWallets,
+    startCreateVault,
+    startSeedRecoveryInput,
+    startImportVault,
+  } = useWalletNav()
 
   // Refresh wallets every time the screen gains focus. Returning here
   // from the migration flow (e.g. "Migrate another wallet" on
@@ -51,6 +58,7 @@ export default function WalletList(): React.ReactElement {
     Record<string, boolean>
   >({})
   const [loading, setLoading] = useState(true)
+  const [addSheetVisible, setAddSheetVisible] = useState(false)
 
   useEffect(() => {
     if (wallets.length === 0) {
@@ -207,16 +215,7 @@ export default function WalletList(): React.ReactElement {
           title="Add Wallet"
           theme="ctaBlue"
           titleFontType="brockmann-medium"
-          onPress={() => {
-            if (inMigrationNav) {
-              migrationNav.navigate('VaultSetup')
-            } else {
-              mainNav.navigate('Migration', {
-                screen: 'VaultSetup',
-                params: undefined,
-              } as { screen: 'VaultSetup'; params: undefined })
-            }
-          }}
+          onPress={() => setAddSheetVisible(true)}
           containerStyle={styles.addButton}
         />
         {DevFlags.StateReset && !inMigrationNav && (
@@ -232,6 +231,13 @@ export default function WalletList(): React.ReactElement {
           />
         )}
       </View>
+      <AddWalletSheet
+        visible={addSheetVisible}
+        onDismiss={() => setAddSheetVisible(false)}
+        onCreate={startCreateVault}
+        onRecover={startSeedRecoveryInput}
+        onImport={startImportVault}
+      />
     </View>
   )
 }
