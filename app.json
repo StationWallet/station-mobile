@@ -29,7 +29,8 @@
       "appleTeamId": "4268K8DFX6",
       "buildNumber": "1",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSBluetoothAlwaysUsageDescription": "Vultisig uses Bluetooth to connect to supported hardware wallets (such as Ledger) for secure transaction signing."
       },
       "entitlements": {
         "aps-environment": "production"
