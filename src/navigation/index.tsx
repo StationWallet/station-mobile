@@ -3,6 +3,7 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  useRef,
 } from 'react'
 import {
   NavigationContainer,
@@ -41,6 +42,17 @@ export default function AppNavigator(): React.ReactElement | null {
     useState<MigrationEntry>('default')
   const { theme } = useConfig()
   const currentTheme = theme.current
+
+  // Mirrors rootRoute so start* callbacks can read the current root without
+  // being re-memoized on every root change.
+  const rootRouteRef = useRef<RootRoute | null>(null)
+  useEffect(() => {
+    rootRouteRef.current = rootRoute
+  }, [rootRoute])
+
+  // Origin captured when a start* hook switches into Migration, so goHome
+  // can return to the exact root the user came from (Auth vs Main).
+  const preMigrationRootRef = useRef<RootRoute | null>(null)
 
   const loadWallets = useCallback(async () => {
     const loaded = await getWallets()
@@ -107,6 +119,7 @@ export default function AppNavigator(): React.ReactElement | null {
   }, [])
 
   const startCreateVault = useCallback(() => {
+    preMigrationRootRef.current = rootRouteRef.current
     setMigrationEntry('create-vault')
     setRootRoute('Migration')
   }, [])
@@ -116,6 +129,7 @@ export default function AppNavigator(): React.ReactElement | null {
    * in recover-seed mode (continues keygen).
    */
   const startSeedRecovery = useCallback(() => {
+    preMigrationRootRef.current = rootRouteRef.current
     setMigrationEntry('recover-seed')
     setRootRoute('Migration')
   }, [])
@@ -125,11 +139,13 @@ export default function AppNavigator(): React.ReactElement | null {
    * the seed into RecoverWalletStore then calls startSeedRecovery.
    */
   const startSeedRecoveryInput = useCallback(() => {
+    preMigrationRootRef.current = rootRouteRef.current
     setMigrationEntry('recover-seed-input')
     setRootRoute('Migration')
   }, [])
 
   const startImportVault = useCallback(() => {
+    preMigrationRootRef.current = rootRouteRef.current
     setMigrationEntry('import-vault')
     setRootRoute('Migration')
   }, [])
@@ -141,6 +157,14 @@ export default function AppNavigator(): React.ReactElement | null {
 
   const goHome = useCallback(() => {
     setMigrationEntry('default')
+    const origin = preMigrationRootRef.current
+    preMigrationRootRef.current = null
+    if (origin === 'Auth' || origin === 'Main') {
+      setRootRoute(origin)
+      return
+    }
+    // No tracked origin (deep link, cold start, etc.) — fall back to a
+    // wallet-count heuristic so the user still lands somewhere sensible.
     if ((wallets?.length ?? 0) > 0) {
       setRootRoute('Main')
     } else {
