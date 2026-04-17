@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
+  Dimensions,
   Modal,
   Pressable,
   StyleSheet,
@@ -8,12 +9,21 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Circle, Path } from 'react-native-svg'
+import Animated, {
+  interpolate,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated'
 
 import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 
 const ICON_BLUE = MIGRATION.textLink
 const ICON_YELLOW = '#FFB833'
+const ANIMATION_DURATION_MS = 220
+const SCREEN_HEIGHT = Dimensions.get('window').height
 
 function PlusCircleIcon(): React.ReactElement {
   return (
@@ -98,6 +108,43 @@ export default function AddWalletSheet({
   onImport,
 }: Props): React.ReactElement {
   const insets = useSafeAreaInsets()
+  const [mounted, setMounted] = useState(false)
+  const progress = useSharedValue(0)
+
+  useEffect(() => {
+    if (visible) {
+      setMounted(true)
+      progress.value = withTiming(1, {
+        duration: ANIMATION_DURATION_MS,
+      })
+    } else if (mounted) {
+      progress.value = withTiming(
+        0,
+        { duration: ANIMATION_DURATION_MS },
+        (finished) => {
+          if (finished) {
+            runOnJS(setMounted)(false)
+          }
+        }
+      )
+    }
+  }, [visible, mounted, progress])
+
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+  }))
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateY: interpolate(
+          progress.value,
+          [0, 1],
+          [SCREEN_HEIGHT, 0]
+        ),
+      },
+    ],
+  }))
 
   const dismissAnd = (action: () => void) => (): void => {
     onDismiss()
@@ -106,18 +153,29 @@ export default function AddWalletSheet({
 
   return (
     <Modal
-      animationType="slide"
+      animationType="none"
       transparent
-      visible={visible}
+      visible={mounted}
       onRequestClose={onDismiss}
     >
-      <Pressable style={styles.overlay} onPress={onDismiss}>
+      <Animated.View
+        pointerEvents={visible ? 'auto' : 'none'}
+        style={[styles.overlay, overlayStyle]}
+      >
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onDismiss}
+        />
+      </Animated.View>
+      <Animated.View
+        pointerEvents={visible ? 'box-none' : 'none'}
+        style={[styles.sheetContainer, sheetStyle]}
+      >
         <View
           style={[
             styles.sheet,
             { paddingBottom: Math.max(insets.bottom, 24) },
           ]}
-          onTouchEnd={(e) => e.stopPropagation()}
         >
           <View style={styles.grabber} />
 
@@ -178,16 +236,21 @@ export default function AddWalletSheet({
             </TouchableOpacity>
           </View>
         </View>
-      </Pressable>
+      </Animated.View>
     </Modal>
   )
 }
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+  },
+  sheetContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   sheet: {
     backgroundColor: MIGRATION.bg,
