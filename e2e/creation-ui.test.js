@@ -31,13 +31,17 @@ describe('Fast Vault Creation UI — New User', () => {
         .withTimeout(30000)
       await element(by.id('enter-vultiverse-cta')).tap()
 
-      await waitFor(element(by.text('Create a Fast Vault')))
+      await waitFor(element(by.id('migration-cta')))
         .toBeVisible()
         .withTimeout(30000)
     })
 
-    it('advances to VaultName', async () => {
-      await element(by.text('Create a Fast Vault')).tap()
+    it('advances through VaultSetup to VaultName', async () => {
+      await element(by.id('migration-cta')).tap()
+      await waitFor(element(by.id('vault-setup-get-started')))
+        .toBeVisible()
+        .withTimeout(15000)
+      await element(by.id('vault-setup-get-started')).tap()
       await waitFor(element(by.text('Name your vault')))
         .toBeVisible()
         .withTimeout(10000)

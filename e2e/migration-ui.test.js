@@ -33,13 +33,13 @@ describe('Fast Vault Migration UI — Per-Wallet', () => {
       .withTimeout(60000)
     await element(by.id('enter-vultiverse-cta')).tap()
 
-    await waitFor(element(by.text('Start Migration')))
+    await waitFor(element(by.id('migration-cta')))
       .toBeVisible()
       .withTimeout(30000)
   })
 
   it('navigates to wallet list', async () => {
-    await element(by.text('Start Migration')).tap()
+    await element(by.id('migration-cta')).tap()
     await waitFor(element(by.text('Your wallets')))
       .toBeVisible()
       .withTimeout(15000)
