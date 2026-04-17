@@ -6,11 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#02122B"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -72,6 +67,14 @@
           "android": {
             "pageSizeCompat": true
           }
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#1f42b4"
         }
       ]
     ],
