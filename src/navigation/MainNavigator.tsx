@@ -1,9 +1,6 @@
 import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 import WalletList from '../screens/WalletList'
-import AuthMenu from '../screens/auth/AuthMenu'
-import NewWalletStack from './NewWalletStack'
-import RecoverWalletStack from './RecoverWalletStack'
 import ExportPrivateKey from '../screens/ExportPrivateKey'
 import MigrationNavigator from './MigrationNavigator'
 import type {
@@ -31,9 +28,6 @@ const DevStateReset = DevFlags.StateReset
 
 export type MainStackParams = {
   WalletList: undefined
-  AddWalletMenu: undefined
-  AddNewWallet: undefined
-  AddRecoverWallet: undefined
   ExportPrivateKey: { wallet: { name: string; address: string } }
   SeedLegacyData: undefined
   SeedCorruptData: undefined
@@ -69,12 +63,6 @@ export default function MainNavigator(): React.ReactElement {
       }}
     >
       <Stack.Screen name="WalletList" component={WalletList} />
-      <Stack.Screen name="AddWalletMenu" component={AuthMenu} />
-      <Stack.Screen name="AddNewWallet" component={NewWalletStack} />
-      <Stack.Screen
-        name="AddRecoverWallet"
-        component={RecoverWalletStack}
-      />
       <Stack.Screen
         name="ExportPrivateKey"
         component={ExportPrivateKey}

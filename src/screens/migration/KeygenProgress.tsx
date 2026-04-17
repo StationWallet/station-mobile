@@ -26,6 +26,7 @@ import RiveComponent, {
   Fit as RiveFitEnum,
   AutoBind as AutoBindFn,
 } from 'rive-react-native'
+import { useRecoilValue } from 'recoil'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -38,6 +39,8 @@ import {
 import { getAuthDataValue, AuthDataValueType } from 'utils/authData'
 import { decrypt } from 'utils/crypto'
 import { randomHex } from 'utils/mpcCrypto'
+import { generateAddresses } from 'utils/wallet'
+import RecoverWalletStore from 'stores/RecoverWalletStore'
 import type { MigrationResult } from 'services/migrateToVault'
 import { advanceToNextWallet } from 'utils/migrationNav'
 import { getErrorMessage } from 'utils/getErrorMessage'
@@ -68,6 +71,7 @@ export default function KeygenProgress(): React.ReactElement {
   const [error, setError] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const mountedRef = useRef(true)
+  const recoverSeed = useRecoilValue(RecoverWalletStore.seed)
 
   // Rive data binding state
   const [autoBind, setAutoBind] = useState(false)
@@ -162,6 +166,20 @@ export default function KeygenProgress(): React.ReactElement {
           onProgress: updateProgress,
           signal: controller.signal,
         })
+      } else if (mode === 'recover-seed') {
+        if (recoverSeed.length === 0) {
+          throw new Error('No seed phrase available for recovery')
+        }
+        const { mk330 } = generateAddresses(recoverSeed.join(' '))
+        const privateKeyHex = mk330.privateKey.toString('hex')
+        result = await importKeyToFastVault({
+          name: walletName,
+          email,
+          password,
+          privateKeyHex,
+          onProgress: updateProgress,
+          signal: controller.signal,
+        })
       } else {
         const authEntry = await getAuthDataValue(walletName)
         if (!authEntry || authEntry.ledger) {
@@ -211,6 +229,7 @@ export default function KeygenProgress(): React.ReactElement {
     wallets,
     walletIndex,
     updateProgress,
+    recoverSeed,
   ])
 
   useEffect(() => {

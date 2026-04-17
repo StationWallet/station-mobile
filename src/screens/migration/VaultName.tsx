@@ -8,8 +8,9 @@ import {
   Platform,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
+import type { RouteProp } from '@react-navigation/native'
 import Animated, {
   FadeInRight,
   FadeOutLeft,
@@ -24,9 +25,12 @@ import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'VaultName'>
+type Route = RouteProp<MigrationStackParams, 'VaultName'>
 
 export default function VaultName(): React.ReactElement {
   const navigation = useNavigation<Nav>()
+  const route = useRoute<Route>()
+  const mode = route.params?.mode ?? 'create'
   const insets = useSafeAreaInsets()
   const [name, setName] = useState('')
 
@@ -92,7 +96,7 @@ export default function VaultName(): React.ReactElement {
             onPress={() => {
               navigation.navigate('VaultEmail', {
                 walletName: name.trim(),
-                mode: 'create',
+                mode,
               })
             }}
             containerStyle={formStyles.ctaButton}
