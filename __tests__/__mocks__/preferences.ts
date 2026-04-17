@@ -39,7 +39,7 @@ const preferences = {
     strings.delete(key)
     bools.delete(key)
   },
-  clearAll: async (): Promise<void> => {
+  clear: async (): Promise<void> => {
     strings.clear()
     bools.clear()
   },

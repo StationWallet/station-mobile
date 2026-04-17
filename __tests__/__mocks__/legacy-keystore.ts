@@ -12,11 +12,13 @@ const LegacyKeystore = {
   readLegacy: async (key: string): Promise<string | null> => {
     return store.get(key) ?? null
   },
-  removeLegacy: async (key: string): Promise<void> => {
+  removeLegacy: async (key: string): Promise<boolean> => {
     store.delete(key)
+    return true
   },
-  clearAllLegacyData: async (): Promise<void> => {
+  clearAllLegacyData: async (): Promise<boolean> => {
     store.clear()
+    return true
   },
 }
 
