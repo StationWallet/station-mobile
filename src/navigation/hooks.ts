@@ -1,23 +1,23 @@
 import { createContext, useContext } from 'react'
 
 export interface WalletNav {
-  onWalletCreated: () => void
   onWalletDisconnected: () => void
   goToMigration?: () => void
+  startCreateVault: () => void
+  startSeedRecovery: () => void
   wallets: LocalWallet[]
   refreshWallets: () => Promise<void>
 }
 
 export const WalletNavContext = createContext<WalletNav>({
-  onWalletCreated: (): void => {},
   onWalletDisconnected: (): void => {},
   goToMigration: undefined,
+  startCreateVault: (): void => {},
+  startSeedRecovery: (): void => {},
   wallets: [],
   refreshWallets: async (): Promise<void> => {},
 })
 
-export const useWalletCreated = (): (() => void) =>
-  useContext(WalletNavContext).onWalletCreated
 export const useWalletDisconnected = (): (() => void) =>
   useContext(WalletNavContext).onWalletDisconnected
 export const useWalletNav = (): WalletNav =>

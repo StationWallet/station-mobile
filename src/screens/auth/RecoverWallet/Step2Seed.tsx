@@ -14,17 +14,15 @@ import RecoverWalletStore from 'stores/RecoverWalletStore'
 import { formatSeedStringToArray } from 'utils/wallet'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { COLORS } from 'consts/theme'
+import { useWalletNav } from 'navigation/hooks'
 import authStyles from '../authStyles'
 
-const Step2Seed = ({
-  navigation,
-}: {
-  navigation: { navigate: (screen: string) => void }
-}): React.ReactElement => {
+const Step2Seed = (): React.ReactElement => {
   const insets = useSafeAreaInsets()
   const nav = useNavigation()
   const [seedText, setSeedText] = useState('')
   const setSeed = useSetRecoilState(RecoverWalletStore.seed)
+  const { startSeedRecovery } = useWalletNav()
 
   const words = seedText.trim()
     ? formatSeedStringToArray(seedText)
@@ -34,7 +32,7 @@ const Step2Seed = ({
 
   const handleNext = (): void => {
     setSeed(words)
-    navigation.navigate('Step4Seed')
+    startSeedRecovery()
   }
 
   return (

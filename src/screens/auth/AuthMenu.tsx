@@ -16,18 +16,10 @@ import PrimaryBackground from 'components/PrimaryBackground'
 const AuthMenu = ({
   navigation,
 }: {
-  navigation: {
-    navigate: (screen: string) => void
-    goBack: () => void
-    getState: () => { routes?: Array<{ name: string }> }
-  }
+  navigation: { navigate: (screen: string) => void }
 }): React.ReactElement => {
-  const { goToMigration } = useWalletNav()
+  const { goToMigration, startCreateVault } = useWalletNav()
   const insets = useSafeAreaInsets()
-  const navState = navigation.getState()
-  const isAddMode = navState?.routes?.some(
-    (r: { name: string }) => r.name === 'AddWalletMenu'
-  )
 
   return (
     <View style={authStyles.container}>
@@ -59,11 +51,7 @@ const AuthMenu = ({
         <View style={styles.buttons}>
           <TouchableOpacity
             style={authStyles.button}
-            onPress={() =>
-              navigation.navigate(
-                isAddMode ? 'AddNewWallet' : 'NewWallet'
-              )
-            }
+            onPress={startCreateVault}
           >
             <Text style={authStyles.buttonText}>
               Create New Wallet
@@ -72,11 +60,7 @@ const AuthMenu = ({
 
           <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() =>
-              navigation.navigate(
-                isAddMode ? 'AddRecoverWallet' : 'RecoverWallet'
-              )
-            }
+            onPress={() => navigation.navigate('RecoverWallet')}
           >
             <Text style={styles.secondaryButtonText}>
               Recover Wallet
@@ -136,14 +120,6 @@ const AuthMenu = ({
           )}
         </View>
       </ScrollView>
-      {isAddMode && (
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.cancelText}>Cancel</Text>
-        </TouchableOpacity>
-      )}
     </View>
   )
 }
@@ -197,16 +173,6 @@ const styles = StyleSheet.create({
     color: '#F0F4FC',
     fontSize: 14,
     fontWeight: '600',
-  },
-  cancelButton: {
-    position: 'absolute',
-    top: 60,
-    left: 20,
-    padding: 8,
-  },
-  cancelText: {
-    color: COLORS.textSecondary,
-    fontSize: 16,
   },
 })
 

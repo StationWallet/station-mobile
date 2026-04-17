@@ -5,11 +5,6 @@ export enum StoreKeyEnum {
   showLoading = 'showLoading',
   loadingTxHash = 'loadingTxHash',
   loadingTitle = 'loadingTitle',
-  newWalletName = 'newWalletName',
-  newWalletPassword = 'newWalletPassword',
-  newWalletSeed = 'newWalletSeed',
-  recoverWalletName = 'recoverWalletName',
-  recoverWalletPassword = 'recoverWalletPassword',
   recoverWalletSeed = 'recoverWalletSeed',
   recoverQRData = 'recoverQRData',
 }

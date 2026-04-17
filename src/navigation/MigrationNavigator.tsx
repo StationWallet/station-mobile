@@ -37,7 +37,7 @@ import type {
 } from 'services/migrateToVault'
 import type { KeyImportResult } from 'services/dklsKeyImport'
 
-export type MigrationMode = 'migrate' | 'create'
+export type MigrationMode = 'migrate' | 'create' | 'recover-seed'
 
 import { DevFlags } from '../config/env'
 
@@ -54,7 +54,7 @@ export type MigrationStackParams = {
   MigrationHome: undefined
   VaultSetup: undefined
   WalletsFound: undefined
-  VaultName: undefined
+  VaultName: { mode?: MigrationMode } | undefined
   VaultEmail: {
     walletName: string
     wallets?: MigrationWallet[]
@@ -99,10 +99,30 @@ export type MigrationStackParams = {
 
 const Stack = createStackNavigator<MigrationStackParams>()
 
-export default function MigrationNavigator(): React.ReactElement {
+type MigrationEntry = 'default' | 'create-vault' | 'recover-seed'
+
+export default function MigrationNavigator({
+  initialEntry = 'default',
+}: {
+  initialEntry?: MigrationEntry
+}): React.ReactElement {
+  const isVaultNameEntry =
+    initialEntry === 'create-vault' || initialEntry === 'recover-seed'
+  const initialRouteName = isVaultNameEntry
+    ? 'VaultName'
+    : 'RiveIntro'
+  const vaultNameInitialParams = isVaultNameEntry
+    ? {
+        mode:
+          initialEntry === 'recover-seed'
+            ? ('recover-seed' as const)
+            : ('create' as const),
+      }
+    : undefined
+
   return (
     <Stack.Navigator
-      initialRouteName="RiveIntro"
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerShown: false,
         animationEnabled: true,
@@ -118,7 +138,11 @@ export default function MigrationNavigator(): React.ReactElement {
       />
       <Stack.Screen name="WalletsFound" component={WalletList} />
       <Stack.Screen name="VaultSetup" component={VaultSetup} />
-      <Stack.Screen name="VaultName" component={VaultName} />
+      <Stack.Screen
+        name="VaultName"
+        component={VaultName}
+        initialParams={vaultNameInitialParams}
+      />
       <Stack.Screen name="VaultEmail" component={VaultEmail} />
       <Stack.Screen name="VaultPassword" component={VaultPassword} />
       <Stack.Screen

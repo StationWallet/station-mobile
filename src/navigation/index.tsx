@@ -23,17 +23,20 @@ import preferences, {
 } from 'nativeModules/preferences'
 import { MIGRATION_FLOW_ENABLED } from 'config/env'
 
-export {
-  useWalletCreated,
-  useWalletDisconnected,
-  useWalletNav,
-} from './hooks'
+export { useWalletDisconnected, useWalletNav } from './hooks'
 
 type RootRoute = 'Migration' | 'Auth' | 'Main'
+
+export type MigrationEntry =
+  | 'default'
+  | 'create-vault'
+  | 'recover-seed'
 
 export default function AppNavigator(): React.ReactElement | null {
   const [wallets, setWallets] = useState<LocalWallet[] | null>(null)
   const [rootRoute, setRootRoute] = useState<RootRoute | null>(null)
+  const [migrationEntry, setMigrationEntry] =
+    useState<MigrationEntry>('default')
   const { theme } = useConfig()
   const currentTheme = theme.current
 
@@ -81,14 +84,13 @@ export default function AppNavigator(): React.ReactElement | null {
     } catch {
       // Wallet loading failed — still transition to Main so the user isn't stuck
     }
+    setMigrationEntry('default')
     setRootRoute('Main')
   }, [loadWallets])
 
   const refreshWallets = useCallback(async () => {
     await loadWallets()
   }, [loadWallets])
-
-  const onWalletCreated = refreshWallets
 
   const onWalletDisconnected = useCallback(async () => {
     const loaded = await loadWallets()
@@ -98,6 +100,17 @@ export default function AppNavigator(): React.ReactElement | null {
   }, [loadWallets])
 
   const goToMigration = useCallback(() => {
+    setMigrationEntry('default')
+    setRootRoute('Migration')
+  }, [])
+
+  const startCreateVault = useCallback(() => {
+    setMigrationEntry('create-vault')
+    setRootRoute('Migration')
+  }, [])
+
+  const startSeedRecovery = useCallback(() => {
+    setMigrationEntry('recover-seed')
     setRootRoute('Migration')
   }, [])
 
@@ -115,16 +128,18 @@ export default function AppNavigator(): React.ReactElement | null {
 
   const walletNavValue = useMemo(
     () => ({
-      onWalletCreated,
       onWalletDisconnected,
       goToMigration,
+      startCreateVault,
+      startSeedRecovery,
       wallets,
       refreshWallets,
     }),
     [
-      onWalletCreated,
       onWalletDisconnected,
       goToMigration,
+      startCreateVault,
+      startSeedRecovery,
       wallets,
       refreshWallets,
     ]
@@ -142,7 +157,7 @@ export default function AppNavigator(): React.ReactElement | null {
       <MigrationContext.Provider value={migrationValue}>
         <NavigationContainer theme={navTheme}>
           {rootRoute === 'Migration' ? (
-            <MigrationNavigator />
+            <MigrationNavigator initialEntry={migrationEntry} />
           ) : rootRoute === 'Main' ? (
             <MainNavigator />
           ) : (

@@ -1,7 +1,6 @@
 import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 import AuthMenu from '../screens/auth/AuthMenu'
-import NewWalletStack from './NewWalletStack'
 import RecoverWalletStack from './RecoverWalletStack'
 import { DevFlags } from '../config/env'
 
@@ -36,7 +35,6 @@ export default function AuthNavigator(): React.ReactElement {
       }}
     >
       <Stack.Screen name="AuthMenu" component={AuthMenu} />
-      <Stack.Screen name="NewWallet" component={NewWalletStack} />
       <Stack.Screen
         name="RecoverWallet"
         component={RecoverWalletStack}
