@@ -31,7 +31,7 @@ type Route = RouteProp<MigrationStackParams, 'VaultName'>
 export default function VaultName(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
-  const { goToAuth } = useWalletNav()
+  const { goHome } = useWalletNav()
   const mode = route.params?.mode ?? 'create'
   const insets = useSafeAreaInsets()
   const [name, setName] = useState('')
@@ -40,7 +40,7 @@ export default function VaultName(): React.ReactElement {
     if (navigation.canGoBack()) {
       navigation.goBack()
     } else {
-      goToAuth()
+      goHome()
     }
   }
 

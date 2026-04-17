@@ -4,6 +4,7 @@ export interface WalletNav {
   onWalletDisconnected: () => void
   goToMigration?: () => void
   goToAuth: () => void
+  goHome: () => void
   startCreateVault: () => void
   /**
    * Seed already written to RecoverWalletStore. Routes straight to VaultName
@@ -24,6 +25,7 @@ export const WalletNavContext = createContext<WalletNav>({
   onWalletDisconnected: (): void => {},
   goToMigration: undefined,
   goToAuth: (): void => {},
+  goHome: (): void => {},
   startCreateVault: (): void => {},
   startSeedRecovery: (): void => {},
   startSeedRecoveryInput: (): void => {},

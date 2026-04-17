@@ -22,7 +22,7 @@ const RecoverSeed = (): React.ReactElement => {
   const nav = useNavigation()
   const [seedText, setSeedText] = useState('')
   const setSeed = useSetRecoilState(RecoverWalletStore.seed)
-  const { startSeedRecovery, goToAuth } = useWalletNav()
+  const { startSeedRecovery, goHome } = useWalletNav()
 
   const words = seedText.trim()
     ? formatSeedStringToArray(seedText)
@@ -39,7 +39,7 @@ const RecoverSeed = (): React.ReactElement => {
     if (nav.canGoBack()) {
       nav.goBack()
     } else {
-      goToAuth()
+      goHome()
     }
   }
 

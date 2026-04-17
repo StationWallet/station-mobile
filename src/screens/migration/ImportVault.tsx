@@ -85,14 +85,14 @@ function ImportTooltip({
 
 export default function ImportVault(): React.ReactElement {
   const navigation = useNavigation()
-  const { goToAuth } = useWalletNav()
+  const { goHome } = useWalletNav()
   const [showTooltip, setShowTooltip] = useState(false)
 
   const handleBack = (): void => {
     if (navigation.canGoBack()) {
       navigation.goBack()
     } else {
-      goToAuth()
+      goHome()
     }
   }
   const {

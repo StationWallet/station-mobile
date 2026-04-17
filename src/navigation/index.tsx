@@ -139,6 +139,15 @@ export default function AppNavigator(): React.ReactElement | null {
     setRootRoute('Auth')
   }, [])
 
+  const goHome = useCallback(() => {
+    setMigrationEntry('default')
+    if ((wallets?.length ?? 0) > 0) {
+      setRootRoute('Main')
+    } else {
+      setRootRoute(__DEV__ ? 'Auth' : 'Migration')
+    }
+  }, [wallets])
+
   const navTheme = useMemo(
     () => ({
       ...DefaultTheme,
@@ -156,6 +165,7 @@ export default function AppNavigator(): React.ReactElement | null {
       onWalletDisconnected,
       goToMigration,
       goToAuth,
+      goHome,
       startCreateVault,
       startSeedRecovery,
       startSeedRecoveryInput,
@@ -167,6 +177,7 @@ export default function AppNavigator(): React.ReactElement | null {
       onWalletDisconnected,
       goToMigration,
       goToAuth,
+      goHome,
       startCreateVault,
       startSeedRecovery,
       startSeedRecoveryInput,
