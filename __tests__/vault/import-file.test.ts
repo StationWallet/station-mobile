@@ -1,7 +1,16 @@
-import * as fs from 'node:fs'
-import * as path from 'node:path'
+import * as fs from 'fs'
+import * as path from 'path'
 
-import { importVaultBackup } from '../../src/services/importVaultBackup'
+import {
+  importVaultBackup,
+  type ImportVaultBackupResult,
+} from '../../src/services/importVaultBackup'
+
+type Decrypted = Extract<ImportVaultBackupResult, { needsPassword: false }>
+function assertDecrypted(r: ImportVaultBackupResult): Decrypted {
+  if (r.needsPassword) throw new Error('expected decrypted result')
+  return r as Decrypted
+}
 
 const FIXTURE_PASSWORD = 'testpassword123'
 const WRONG_PASSWORD = 'wrongpassword999'
@@ -39,13 +48,13 @@ describe('importVaultBackup — .vult', () => {
 
   it('decrypts and parses with the correct password', () => {
     const content = readFixture(vultPath)
-    const result = importVaultBackup({
-      content,
-      fileName: 'test-vault.vult',
-      password: FIXTURE_PASSWORD,
-    })
-    expect(result.needsPassword).toBe(false)
-    if (result.needsPassword) throw new Error('unreachable')
+    const result = assertDecrypted(
+      importVaultBackup({
+        content,
+        fileName: 'test-vault.vult',
+        password: FIXTURE_PASSWORD,
+      }),
+    )
     expect(result.vaultName).toBe('Test Import Vault')
     expect(result.publicKeyEcdsa).toBeTruthy()
     expect(result.vaultBytes.length).toBeGreaterThan(0)
@@ -66,13 +75,13 @@ describe('importVaultBackup — .vult', () => {
 describe('importVaultBackup — .bak', () => {
   it('decrypts and parses .bak files the same as .vult', () => {
     const content = readFixture(bakPath)
-    const result = importVaultBackup({
-      content,
-      fileName: 'test-vault.bak',
-      password: FIXTURE_PASSWORD,
-    })
-    expect(result.needsPassword).toBe(false)
-    if (result.needsPassword) throw new Error('unreachable')
+    const result = assertDecrypted(
+      importVaultBackup({
+        content,
+        fileName: 'test-vault.bak',
+        password: FIXTURE_PASSWORD,
+      }),
+    )
     expect(result.vaultName).toBeTruthy()
     expect(result.publicKeyEcdsa).toBeTruthy()
   })
