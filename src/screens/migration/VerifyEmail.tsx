@@ -23,6 +23,7 @@ import Svg, { Path } from 'react-native-svg'
 import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 import { verifyVaultEmail } from 'services/fastVaultServer'
+import { storeFastVault } from 'services/migrateToVault'
 import { advanceToNextWallet } from 'utils/migrationNav'
 import { getErrorMessage } from 'utils/getErrorMessage'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
@@ -63,7 +64,7 @@ export default function VerifyEmail(): React.ReactElement {
     wallets = [],
     results = [],
     email,
-    publicKey,
+    keyImportResult,
   } = route.params
 
   const [code, setCode] = useState('')
@@ -85,20 +86,8 @@ export default function VerifyEmail(): React.ReactElement {
 
       try {
         await verifyVaultEmail({
-          public_key: publicKey,
+          public_key: keyImportResult.publicKey,
           code: verifyCode,
-        })
-        advanceToNextWallet(navigation, {
-          wallets,
-          results,
-          newResult: {
-            wallet: wallets[walletIndex] ?? {
-              name: walletName,
-              address: '',
-              ledger: false,
-            },
-            success: true,
-          },
         })
       } catch (err) {
         const msg = getErrorMessage(err)
@@ -106,9 +95,51 @@ export default function VerifyEmail(): React.ReactElement {
         setCode('')
         setVerifying(false)
         setTimeout(() => inputRef.current?.focus(), 100)
+        return
       }
+
+      // Verification succeeded — now persist the vault locally and strip
+      // legacy auth data. Doing this after verify means a failure at any
+      // earlier point leaves the legacy wallet recoverable.
+      try {
+        await storeFastVault(walletName, keyImportResult)
+      } catch (err) {
+        // Vault activation succeeded on the server but local persistence
+        // failed. The legacy key is still on-device, so the user isn't
+        // locked out — surface the error and let them retry.
+        const msg = getErrorMessage(err)
+        Alert.alert(
+          'Could not save vault',
+          `${msg}\n\nYour legacy wallet is unchanged. Please try again.`
+        )
+        setCode('')
+        setVerifying(false)
+        setTimeout(() => inputRef.current?.focus(), 100)
+        return
+      }
+
+      advanceToNextWallet(navigation, {
+        wallets,
+        results,
+        newResult: {
+          wallet: wallets[walletIndex] ?? {
+            name: walletName,
+            address: '',
+            ledger: false,
+          },
+          success: true,
+        },
+      })
     },
-    [publicKey, verifying, wallets, walletIndex, navigation, results]
+    [
+      keyImportResult,
+      walletName,
+      verifying,
+      wallets,
+      walletIndex,
+      navigation,
+      results,
+    ]
   )
 
   const handleChangeText = useCallback(

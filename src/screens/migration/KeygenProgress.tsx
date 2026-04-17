@@ -35,7 +35,6 @@ import {
   KeyImportResult,
   KeyImportProgress,
 } from 'services/dklsKeyImport'
-import { storeFastVault } from 'services/migrateToVault'
 import { getAuthDataValue, AuthDataValueType } from 'utils/authData'
 import { decrypt } from 'utils/crypto'
 import { randomHex } from 'utils/mpcCrypto'
@@ -186,8 +185,10 @@ export default function KeygenProgress(): React.ReactElement {
         })
       }
 
-      await storeFastVault(walletName, result)
-
+      // Defer persisting the vault (and stripping legacy authData) until
+      // after the user verifies their email — the server only activates the
+      // co-signer on verify, so writing before then risks a funds-lock if
+      // verification fails or the app dies between keygen and verify.
       navigation.navigate('VerifyEmail', {
         walletName,
         walletIndex,
@@ -195,7 +196,7 @@ export default function KeygenProgress(): React.ReactElement {
         results,
         mode,
         email,
-        publicKey: result.publicKey,
+        keyImportResult: result,
       })
     } catch (err) {
       if (controller.signal.aborted) return
