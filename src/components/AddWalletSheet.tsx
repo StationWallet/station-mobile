@@ -101,7 +101,7 @@ export default function AddWalletSheet({
 
   const dismissAnd = (action: () => void) => (): void => {
     onDismiss()
-    action()
+    requestAnimationFrame(action)
   }
 
   return (
@@ -131,6 +131,8 @@ export default function AddWalletSheet({
           <View style={styles.buttons}>
             <TouchableOpacity
               testID="add-wallet-create"
+              accessibilityRole="button"
+              accessibilityLabel="Create New Wallet"
               style={styles.button}
               onPress={dismissAnd(onCreate)}
             >
@@ -142,6 +144,8 @@ export default function AddWalletSheet({
 
             <TouchableOpacity
               testID="add-wallet-recover"
+              accessibilityRole="button"
+              accessibilityLabel="Recover Wallet"
               style={styles.button}
               onPress={dismissAnd(onRecover)}
             >
@@ -153,6 +157,8 @@ export default function AddWalletSheet({
 
             <TouchableOpacity
               testID="add-wallet-import"
+              accessibilityRole="button"
+              accessibilityLabel="Import Fast Vault"
               style={styles.button}
               onPress={dismissAnd(onImport)}
             >
