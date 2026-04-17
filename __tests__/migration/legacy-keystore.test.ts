@@ -42,6 +42,10 @@ function buildAuthData(): string {
   })
 }
 
+// resetSecure() also wipes preferences state — the production
+// `nativeModules/preferences` writes into `expo-secure-store`, and
+// babel-plugin-module-resolver rewrites the `nativeModules/*` alias
+// before jest moduleNameMapper runs, so the preferences mock is unused.
 beforeEach(() => {
   resetLegacy()
   resetSecure()
