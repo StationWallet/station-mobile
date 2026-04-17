@@ -10,6 +10,7 @@ import { settings } from 'utils/storage'
 import { deleteWallet } from 'utils/wallet'
 import { isVaultFastVault } from 'services/migrateToVault'
 import { MIGRATION } from 'consts/migration'
+import { DevFlags } from 'config/env'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import WalletCard from 'components/WalletCard'
@@ -209,6 +210,18 @@ export default function WalletList(): React.ReactElement {
           }}
           containerStyle={styles.addButton}
         />
+        {DevFlags.StateReset && !inMigrationNav && (
+          <Button
+            testID="dev-reset-state"
+            title="Reset State (dev)"
+            theme="secondaryDark"
+            titleFontType="brockmann-medium"
+            onPress={() => {
+              mainNav.navigate('StateReset' as never)
+            }}
+            containerStyle={styles.addButton}
+          />
+        )}
       </View>
     </View>
   )
