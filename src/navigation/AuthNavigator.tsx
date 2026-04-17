@@ -5,14 +5,6 @@ import NewWalletStack from './NewWalletStack'
 import RecoverWalletStack from './RecoverWalletStack'
 import { DevFlags } from '../config/env'
 
-const CryptoTestScreen = DevFlags.CryptoTestScreen
-  ? require('../components/CryptoTestScreen').default
-  : null
-
-const DevFullE2ETest = DevFlags.FullE2ETest
-  ? require('../components/DevFullE2ETest').default
-  : null
-
 const DevSeedLegacyData = DevFlags.SeedLegacyData
   ? require('../components/DevSeedLegacyData').default
   : null
@@ -23,6 +15,10 @@ const DevSeedCorruptData = DevFlags.SeedCorruptData
 
 const DevVerifyVault = DevFlags.VerifyVault
   ? require('../components/DevVerifyVault').default
+  : null
+
+const DevStateReset = DevFlags.StateReset
+  ? require('../components/DevStateReset').default
   : null
 
 const Stack = createStackNavigator()
@@ -41,15 +37,6 @@ export default function AuthNavigator(): React.ReactElement {
         name="RecoverWallet"
         component={RecoverWalletStack}
       />
-      {CryptoTestScreen && (
-        <Stack.Screen
-          name="CryptoTest"
-          component={CryptoTestScreen}
-        />
-      )}
-      {DevFullE2ETest && (
-        <Stack.Screen name="FullE2ETest" component={DevFullE2ETest} />
-      )}
       {DevSeedLegacyData && (
         <Stack.Screen
           name="SeedLegacyData"
@@ -64,6 +51,9 @@ export default function AuthNavigator(): React.ReactElement {
       )}
       {DevVerifyVault && (
         <Stack.Screen name="VerifyVault" component={DevVerifyVault} />
+      )}
+      {DevStateReset && (
+        <Stack.Screen name="StateReset" component={DevStateReset} />
       )}
     </Stack.Navigator>
   )

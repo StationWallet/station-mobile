@@ -33,9 +33,12 @@ const AuthMenu = ({
     <View style={authStyles.container}>
       <PrimaryBackground />
       <ScrollView
+        testID="auth-scroll"
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + 120 },
+          {
+            paddingTop: insets.top + 120,
+          },
         ]}
         keyboardShouldPersistTaps="handled"
       >
@@ -83,7 +86,7 @@ const AuthMenu = ({
             </Text>
           </TouchableOpacity>
 
-          {DevFlags.FullE2ETest && (
+          {DevFlags.SeedLegacyData && (
             <>
               {goToMigration && (
                 <TouchableOpacity
@@ -96,24 +99,6 @@ const AuthMenu = ({
                   </Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity
-                testID="dev-crypto-test"
-                style={styles.secondaryButton}
-                onPress={() => navigation.navigate('CryptoTest')}
-              >
-                <Text style={styles.secondaryButtonText}>
-                  Crypto Tests (dev)
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                testID="dev-full-e2e-test"
-                style={styles.secondaryButton}
-                onPress={() => navigation.navigate('FullE2ETest')}
-              >
-                <Text style={styles.secondaryButtonText}>
-                  Full E2E Test (dev)
-                </Text>
-              </TouchableOpacity>
               <TouchableOpacity
                 testID="dev-seed-legacy"
                 style={styles.secondaryButton}
@@ -133,6 +118,18 @@ const AuthMenu = ({
                 </Text>
               </TouchableOpacity>
             </>
+          )}
+
+          {DevFlags.StateReset && (
+            <TouchableOpacity
+              testID="dev-reset-state"
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('StateReset')}
+            >
+              <Text style={styles.secondaryButtonText}>
+                Reset State (dev)
+              </Text>
+            </TouchableOpacity>
           )}
         </View>
       </ScrollView>

@@ -21,6 +21,7 @@
       "hooks/*": ["./hooks/*"],
       "stores/*": ["./stores/*"],
       "nativeModules/*": ["./nativeModules/*"],
+      "services/*": ["./services/*"],
       "lib/*": ["./lib/*"]
     }
   },

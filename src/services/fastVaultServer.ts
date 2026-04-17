@@ -1,4 +1,5 @@
-import { env } from '../config/env'
+import { env, STUB_VULTISERVER } from '../config/env'
+import * as stub from './fastVaultServer.stub'
 
 export type MpcProtocol = 'ecdsa' | 'eddsa'
 
@@ -14,6 +15,8 @@ export async function setupBatchImport(input: {
   protocols: MpcProtocol[]
   chains?: string[]
 }): Promise<void> {
+  if (STUB_VULTISERVER) return stub.setupBatchImport(input)
+
   const url = `${env.vultisigApiUrl}/vault/batch/import`
 
   const res = await fetch(url, {
@@ -32,6 +35,8 @@ export async function verifyVaultEmail(input: {
   public_key: string
   code: string
 }): Promise<void> {
+  if (STUB_VULTISERVER) return stub.verifyVaultEmail(input)
+
   const res = await fetch(
     `${env.vultisigApiUrl}/vault/verify/${input.public_key}/${input.code}`,
     { method: 'GET' }

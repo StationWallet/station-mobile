@@ -1,8 +1,5 @@
 import { create, toBinary, fromBinary } from '@bufbuild/protobuf'
-import { gcm } from '@noble/ciphers/aes.js'
-import { sha256 } from '@noble/hashes/sha2.js'
 import { base64 } from '@scure/base'
-import * as ExpoCrypto from 'expo-crypto'
 import {
   cacheDirectory,
   writeAsStringAsync,
@@ -15,25 +12,7 @@ import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container
 import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
 import { derivePublicKeyHex, buildVaultProto } from './vaultProto'
 import { getStoredVault } from './migrateToVault'
-
-/**
- * Encrypts binary data with AES-256-GCM using a password.
- * Key = SHA256(password), nonce = random 12 bytes.
- * Output: nonce (12) + ciphertext + authTag (16).
- * Matches vultiagent-app / vultisig-ios encryption format.
- */
-function encryptWithPassword(
-  data: Uint8Array,
-  password: string
-): Uint8Array {
-  const key = sha256(new TextEncoder().encode(password))
-  const nonce = ExpoCrypto.getRandomBytes(12)
-  const ciphertext = gcm(key, nonce).encrypt(data)
-  const result = new Uint8Array(nonce.length + ciphertext.length)
-  result.set(nonce, 0)
-  result.set(ciphertext, nonce.length)
-  return result
-}
+import { encryptWithPassword } from './vaultCrypto'
 
 /**
  * Exports a wallet as an encrypted .vult vault share file.

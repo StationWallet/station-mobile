@@ -20,6 +20,8 @@ import {
   randomUUID,
   sleep,
 } from '../utils/mpcCrypto'
+import { STUB_VULTISERVER } from '../config/env'
+import * as stubDkls from './dklsKeyImport.stub'
 
 export type KeyImportStep =
   | 'setup'
@@ -188,6 +190,8 @@ export async function importKeyToFastVault(options: {
 }): Promise<KeyImportResult> {
   const { name, email, password, privateKeyHex, onProgress, signal } =
     options
+
+  if (STUB_VULTISERVER) return stubDkls.importKeyToFastVault(options)
 
   const report = (p: KeyImportProgress): void => {
     if (__DEV__) {

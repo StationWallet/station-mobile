@@ -49,5 +49,14 @@
     "@typescript-eslint/camelcase": "off",
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/no-require-imports": "off"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["plugins/**/*.js", "metro.config.js"],
+      "rules": {
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "no-console": "off"
+      }
+    }
+  ]
 }

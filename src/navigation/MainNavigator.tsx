@@ -13,14 +13,6 @@ import type {
 import type { MigrationMode } from './MigrationNavigator'
 import { DevFlags } from '../config/env'
 
-const CryptoTestScreen = DevFlags.CryptoTestScreen
-  ? require('../components/CryptoTestScreen').default
-  : null
-
-const DevFullE2ETest = DevFlags.FullE2ETest
-  ? require('../components/DevFullE2ETest').default
-  : null
-
 const DevSeedLegacyData = DevFlags.SeedLegacyData
   ? require('../components/DevSeedLegacyData').default
   : null
@@ -33,17 +25,20 @@ const DevVerifyVault = DevFlags.VerifyVault
   ? require('../components/DevVerifyVault').default
   : null
 
+const DevStateReset = DevFlags.StateReset
+  ? require('../components/DevStateReset').default
+  : null
+
 export type MainStackParams = {
   WalletList: undefined
   AddWalletMenu: undefined
   AddNewWallet: undefined
   AddRecoverWallet: undefined
   ExportPrivateKey: { wallet: { name: string; address: string } }
-  CryptoTest: undefined
-  FullE2ETest: undefined
   SeedLegacyData: undefined
   SeedCorruptData: undefined
   VerifyVault: undefined
+  StateReset: undefined
   Migration: {
     screen:
       | 'MigrationHome'
@@ -84,15 +79,6 @@ export default function MainNavigator(): React.ReactElement {
         name="ExportPrivateKey"
         component={ExportPrivateKey}
       />
-      {CryptoTestScreen && (
-        <Stack.Screen
-          name="CryptoTest"
-          component={CryptoTestScreen}
-        />
-      )}
-      {DevFullE2ETest && (
-        <Stack.Screen name="FullE2ETest" component={DevFullE2ETest} />
-      )}
       {DevSeedLegacyData && (
         <Stack.Screen
           name="SeedLegacyData"
@@ -107,6 +93,9 @@ export default function MainNavigator(): React.ReactElement {
       )}
       {DevVerifyVault && (
         <Stack.Screen name="VerifyVault" component={DevVerifyVault} />
+      )}
+      {DevStateReset && (
+        <Stack.Screen name="StateReset" component={DevStateReset} />
       )}
       <Stack.Screen name="Migration" component={MigrationNavigator} />
     </Stack.Navigator>
