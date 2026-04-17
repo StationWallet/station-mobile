@@ -111,11 +111,19 @@ export default function AppNavigator(): React.ReactElement | null {
     setRootRoute('Migration')
   }, [])
 
+  /**
+   * Seed already written to RecoverWalletStore. Routes straight to VaultName
+   * in recover-seed mode (continues keygen).
+   */
   const startSeedRecovery = useCallback(() => {
     setMigrationEntry('recover-seed')
     setRootRoute('Migration')
   }, [])
 
+  /**
+   * User still needs to enter a seed. Routes to RecoverSeed, which captures
+   * the seed into RecoverWalletStore then calls startSeedRecovery.
+   */
   const startSeedRecoveryInput = useCallback(() => {
     setMigrationEntry('recover-seed-input')
     setRootRoute('Migration')

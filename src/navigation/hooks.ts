@@ -5,7 +5,15 @@ export interface WalletNav {
   goToMigration?: () => void
   goToAuth: () => void
   startCreateVault: () => void
+  /**
+   * Seed already written to RecoverWalletStore. Routes straight to VaultName
+   * in recover-seed mode (continues keygen).
+   */
   startSeedRecovery: () => void
+  /**
+   * User still needs to enter a seed. Routes to RecoverSeed, which captures
+   * the seed into RecoverWalletStore then calls startSeedRecovery.
+   */
   startSeedRecoveryInput: () => void
   startImportVault: () => void
   wallets: LocalWallet[]
