@@ -1,4 +1,5 @@
-import { create, toBinary } from '@bufbuild/protobuf'
+import { create, toBinary, fromBinary } from '@bufbuild/protobuf'
+import { base64 } from '@scure/base'
 
 import { __reset as resetSecure } from '../__mocks__/expo-secure-store'
 import { persistImportedVault } from 'services/importVaultBackup'
@@ -29,6 +30,14 @@ describe('persistImportedVault → getStoredVault', () => {
 
     const stored = await getStoredVault('RoundtripVault')
     expect(stored).toBeTruthy()
+
+    // Full persist → read → deserialize pipeline: proves the stored bytes
+    // are a valid vault, not just any non-null string.
+    const restored = fromBinary(VaultSchema, base64.decode(stored!))
+    expect(restored.name).toBe('RoundtripVault')
+    expect(restored.publicKeyEcdsa).toBe('abc123')
+    expect(restored.libType).toBe(LibType.DKLS)
+    expect(restored.keyShares[0].keyshare).toBe('deadbeef')
   })
 
   it('stores under a sanitized key for names with special chars', async () => {
@@ -46,6 +55,9 @@ describe('persistImportedVault → getStoredVault', () => {
     const bytes = toBinary(VaultSchema, vault)
 
     await persistImportedVault(bytes, 'My Weird/Vault!')
-    expect(await getStoredVault('My Weird/Vault!')).toBeTruthy()
+    const stored = await getStoredVault('My Weird/Vault!')
+    expect(stored).toBeTruthy()
+    const restored = fromBinary(VaultSchema, base64.decode(stored!))
+    expect(restored.name).toBe('My Weird/Vault!')
   })
 })

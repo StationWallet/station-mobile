@@ -1,11 +1,12 @@
 const store = new Map<string, string>()
 
-export const AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY =
-  'AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY'
+// Production value is a numeric enum; tests don't read it, so we just need
+// a stable non-undefined placeholder.
+export const AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY = 1
 
 export type SecureStoreOptions = {
   keychainService?: string
-  keychainAccessible?: string
+  keychainAccessible?: number
 }
 
 function compositeKey(key: string, opts?: SecureStoreOptions): string {

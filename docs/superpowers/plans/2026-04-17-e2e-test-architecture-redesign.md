@@ -1,5 +1,12 @@
 # E2E Test Architecture Redesign Implementation Plan
 
+> **HISTORICAL — partially shipped.** Phases A-E and F/G (Jest mocks,
+> Tier 1 tests, in-app dev helpers, stub scaffolding) landed in PR #42.
+> Phases H and I (Detox UI suites, nightly smoke) were abandoned during
+> implementation — the tests failed against a moving UI target and the
+> smoke workflow was never exercised. Treat the H/I task detail as
+> scaffolding notes for a future Detox push, not shipped code.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Split the current e2e test suite into three tiers (Jest logic tests, minimal Detox UI, nightly real-backend smoke) so the PR gate finishes in <30s instead of ~30 min.

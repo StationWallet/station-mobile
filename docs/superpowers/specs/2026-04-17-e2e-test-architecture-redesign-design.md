@@ -4,6 +4,17 @@
 **Branch:** `e2e/test-architecture-v2` (lands on PR #42)
 **Supersedes:** `docs/superpowers/specs/2026-04-16-e2e-test-cleanup-design.md`
 
+> **HISTORICAL — partially shipped.** The three-tier design below was only
+> partially adopted in PR #42. **Tier 1 (Jest unit tests) shipped and runs
+> on CI.** Tier 2 (Detox UI tests) and Tier 3 (nightly real-backend smoke)
+> were dropped during implementation: the Detox suites failed against a
+> moving UI target, and the smoke workflow was never exercised. Keep this
+> document as the plan-of-record for the Jest half; for the UI/smoke half,
+> treat it as scaffolding to revisit if Detox is resurrected. The
+> implementation plan at
+> `docs/superpowers/plans/2026-04-17-e2e-test-architecture-redesign.md`
+> has the same caveat.
+
 ## Problem
 
 The current Detox e2e suite takes ~25-35 min on a clean run (often longer when keygen flakes) and regularly fails for reasons unrelated to the code under test. The post-cleanup state on PR #42 still has the three dominant cost drivers intact:

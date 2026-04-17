@@ -52,7 +52,7 @@
   },
   "overrides": [
     {
-      "files": ["e2e/**/*.js", "plugins/**/*.js", "metro.config.js"],
+      "files": ["plugins/**/*.js", "metro.config.js"],
       "rules": {
         "@typescript-eslint/explicit-function-return-type": "off",
         "no-console": "off"

@@ -8,6 +8,14 @@ import { VaultContainerSchema } from '../../src/proto/vultisig/vault/v1/vault_co
 import { LibType } from '../../src/proto/vultisig/keygen/v1/lib_type_message_pb'
 import { buildVaultProto, derivePublicKeyHex } from 'services/vaultProto'
 
+// This file verifies the .vult container shape + protobuf round-trip.
+// encrypt/decrypt helpers below are test-scoped with a deterministic
+// nonce — they mirror the production AES-GCM scheme but are NOT the
+// production encryptor. Correctness of the production encrypt/decrypt
+// path is covered by __tests__/vault/import-file.test.ts, which runs
+// importVaultBackup against fixtures that were encrypted by production
+// code (test-vault.vult, test-vault.bak).
+
 const PK = '0000000000000000000000000000000000000000000000000000000000000001'
 const EXPECTED_PUB =
   '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'

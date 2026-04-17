@@ -44,6 +44,9 @@ import { useAlertViewState } from './AlertView'
 import { themes } from 'lib/contexts/useTheme'
 import { COLORS } from 'consts/theme'
 
+// TODO: migrate InteractionManager callers to requestIdleCallback and drop
+// this ignore. Silenced because the warning toast overlay blocks bottom-
+// positioned interactive elements in dev builds.
 LogBox.ignoreLogs([
   'EventEmitter.removeListener',
   'InteractionManager has been deprecated',
