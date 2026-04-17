@@ -173,20 +173,24 @@ export async function isVaultFastVault(
 }
 
 /**
- * One-time backfill: for wallets already migrated to fast vaults before the
- * `terraOnly` flag existed, inspect their vault's chainPublicKeys and stamp
- * `terraOnly: true` in authData if the vault only supports Terra.
+ * One-time backfill: every non-ledger authData entry in this app is Terra-only
+ * by construction — either a legacy Terra Station wallet (migrated from the old
+ * native keystore) or a Fast Vault created by this app (which only registers
+ * the Terra chain). Stamp `terraOnly: true` on any entry missing the flag.
+ *
+ * V2 reruns for users whose V1 backfill already completed, so legacy wallets
+ * that were never migrated to a Fast Vault also get the flag.
  */
 export async function backfillTerraOnlyFlag(): Promise<void> {
   const done = await preferences.getBool(
-    PreferencesEnum.terraOnlyBackfilled
+    PreferencesEnum.terraOnlyBackfilledV2
   )
   if (done) return
 
   const authData = await getAuthData()
   if (!authData) {
     await preferences.setBool(
-      PreferencesEnum.terraOnlyBackfilled,
+      PreferencesEnum.terraOnlyBackfilledV2,
       true
     )
     return
@@ -194,34 +198,23 @@ export async function backfillTerraOnlyFlag(): Promise<void> {
 
   let changed = false
 
-  for (const [name, entry] of Object.entries(authData)) {
+  for (const entry of Object.values(authData)) {
     if (entry.ledger) continue
     const val = entry as AuthDataValueType
-    if (val.terraOnly !== undefined) continue
+    if (val.terraOnly === true) continue
 
-    const stored = await getStoredVault(name)
-    if (!stored) continue
-
-    try {
-      const vault = fromBinary(VaultSchema, base64.decode(stored))
-      const isTerraOnly =
-        vault.chainPublicKeys.length === 1 &&
-        vault.chainPublicKeys[0].chain === 'Terra'
-
-      if (isTerraOnly) {
-        val.terraOnly = true
-        changed = true
-      }
-    } catch {
-      // Corrupted vault — skip
-    }
+    val.terraOnly = true
+    changed = true
   }
 
   if (changed) {
     await upsertAuthData({ authData })
   }
 
-  await preferences.setBool(PreferencesEnum.terraOnlyBackfilled, true)
+  await preferences.setBool(
+    PreferencesEnum.terraOnlyBackfilledV2,
+    true
+  )
 }
 
 export { VAULT_KEY_PREFIX, VAULT_STORE_OPTS, vaultStoreKey }

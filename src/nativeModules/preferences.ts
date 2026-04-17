@@ -14,6 +14,7 @@ export enum PreferencesEnum {
   legacyDataFound = 'legacyDataFound',
   vaultsUpgraded = 'vaultsUpgraded',
   terraOnlyBackfilled = 'terraOnlyBackfilled',
+  terraOnlyBackfilledV2 = 'terraOnlyBackfilledV2',
 }
 
 export type PreferencesType = {
