@@ -137,7 +137,10 @@ export default function AddWalletSheet({
               onPress={dismissAnd(onCreate)}
             >
               <PlusCircleIcon />
-              <Text fontType="brockmann-medium" style={styles.buttonLabel}>
+              <Text
+                fontType="brockmann-medium"
+                style={styles.buttonLabel}
+              >
                 Create New Wallet
               </Text>
             </TouchableOpacity>
@@ -150,7 +153,10 @@ export default function AddWalletSheet({
               onPress={dismissAnd(onRecover)}
             >
               <RestoreIcon />
-              <Text fontType="brockmann-medium" style={styles.buttonLabel}>
+              <Text
+                fontType="brockmann-medium"
+                style={styles.buttonLabel}
+              >
                 Recover Wallet
               </Text>
             </TouchableOpacity>
@@ -163,7 +169,10 @@ export default function AddWalletSheet({
               onPress={dismissAnd(onImport)}
             >
               <BoltIcon />
-              <Text fontType="brockmann-medium" style={styles.buttonLabel}>
+              <Text
+                fontType="brockmann-medium"
+                style={styles.buttonLabel}
+              >
                 Import Fast Vault
               </Text>
             </TouchableOpacity>
