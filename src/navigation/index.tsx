@@ -31,6 +31,7 @@ export type MigrationEntry =
   | 'default'
   | 'create-vault'
   | 'recover-seed'
+  | 'import-vault'
 
 export default function AppNavigator(): React.ReactElement | null {
   const [wallets, setWallets] = useState<LocalWallet[] | null>(null)
@@ -114,6 +115,16 @@ export default function AppNavigator(): React.ReactElement | null {
     setRootRoute('Migration')
   }, [])
 
+  const startImportVault = useCallback(() => {
+    setMigrationEntry('import-vault')
+    setRootRoute('Migration')
+  }, [])
+
+  const goToAuth = useCallback(() => {
+    setMigrationEntry('default')
+    setRootRoute('Auth')
+  }, [])
+
   const navTheme = useMemo(
     () => ({
       ...DefaultTheme,
@@ -130,16 +141,20 @@ export default function AppNavigator(): React.ReactElement | null {
     () => ({
       onWalletDisconnected,
       goToMigration,
+      goToAuth,
       startCreateVault,
       startSeedRecovery,
+      startImportVault,
       wallets,
       refreshWallets,
     }),
     [
       onWalletDisconnected,
       goToMigration,
+      goToAuth,
       startCreateVault,
       startSeedRecovery,
+      startImportVault,
       wallets,
       refreshWallets,
     ]

@@ -15,6 +15,7 @@ import FileDropZone from 'components/migration/FileDropZone'
 import DecryptPasswordSheet from 'components/migration/DecryptPasswordSheet'
 import { useImportFlow } from 'hooks/useImportFlow'
 import { MIGRATION } from 'consts/migration'
+import { useWalletNav } from 'navigation/hooks'
 
 function BackChevron(): React.ReactElement {
   return (
@@ -84,7 +85,16 @@ function ImportTooltip({
 
 export default function ImportVault(): React.ReactElement {
   const navigation = useNavigation()
+  const { goToAuth } = useWalletNav()
   const [showTooltip, setShowTooltip] = useState(false)
+
+  const handleBack = (): void => {
+    if (navigation.canGoBack()) {
+      navigation.goBack()
+    } else {
+      goToAuth()
+    }
+  }
   const {
     loading,
     fileName,
@@ -107,10 +117,7 @@ export default function ImportVault(): React.ReactElement {
   return (
     <View style={styles.container}>
       <View style={[styles.toolbar, { paddingTop: insets.top + 8 }]}>
-        <GlassButton
-          onPress={() => navigation.goBack()}
-          testID="import-vault-back"
-        >
+        <GlassButton onPress={handleBack} testID="import-vault-back">
           <BackChevron />
         </GlassButton>
         <Text fontType="brockmann-medium" style={styles.toolbarTitle}>

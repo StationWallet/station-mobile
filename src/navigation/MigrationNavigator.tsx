@@ -99,7 +99,11 @@ export type MigrationStackParams = {
 
 const Stack = createStackNavigator<MigrationStackParams>()
 
-type MigrationEntry = 'default' | 'create-vault' | 'recover-seed'
+type MigrationEntry =
+  | 'default'
+  | 'create-vault'
+  | 'recover-seed'
+  | 'import-vault'
 
 export default function MigrationNavigator({
   initialEntry = 'default',
@@ -110,6 +114,8 @@ export default function MigrationNavigator({
     initialEntry === 'create-vault' || initialEntry === 'recover-seed'
   const initialRouteName = isVaultNameEntry
     ? 'VaultName'
+    : initialEntry === 'import-vault'
+    ? 'ImportVault'
     : 'RiveIntro'
   const vaultNameInitialParams = isVaultNameEntry
     ? {
