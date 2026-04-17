@@ -87,5 +87,8 @@ google-service-account.json
 docs/status-update*.superpowers/
 docs/designs/
 
+# Superpowers scratch planning (specs + plans)
+docs/superpowers/
+
 # Git worktrees
 .worktrees/
