@@ -100,15 +100,6 @@ const AuthMenu = ({
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                testID="dev-crypto-test"
-                style={styles.secondaryButton}
-                onPress={() => navigation.navigate('CryptoTest')}
-              >
-                <Text style={styles.secondaryButtonText}>
-                  Crypto Tests (dev)
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
                 testID="dev-seed-legacy"
                 style={styles.secondaryButton}
                 onPress={() => navigation.navigate('SeedLegacyData')}

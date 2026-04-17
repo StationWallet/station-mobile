@@ -13,10 +13,6 @@ import type {
 import type { MigrationMode } from './MigrationNavigator'
 import { DevFlags } from '../config/env'
 
-const CryptoTestScreen = DevFlags.CryptoTestScreen
-  ? require('../components/CryptoTestScreen').default
-  : null
-
 const DevSeedLegacyData = DevFlags.SeedLegacyData
   ? require('../components/DevSeedLegacyData').default
   : null
@@ -35,7 +31,6 @@ export type MainStackParams = {
   AddNewWallet: undefined
   AddRecoverWallet: undefined
   ExportPrivateKey: { wallet: { name: string; address: string } }
-  CryptoTest: undefined
   SeedLegacyData: undefined
   SeedCorruptData: undefined
   VerifyVault: undefined
@@ -79,12 +74,6 @@ export default function MainNavigator(): React.ReactElement {
         name="ExportPrivateKey"
         component={ExportPrivateKey}
       />
-      {CryptoTestScreen && (
-        <Stack.Screen
-          name="CryptoTest"
-          component={CryptoTestScreen}
-        />
-      )}
       {DevSeedLegacyData && (
         <Stack.Screen
           name="SeedLegacyData"

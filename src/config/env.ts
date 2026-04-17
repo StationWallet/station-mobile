@@ -11,7 +11,6 @@ const showDevFeatures =
   __DEV__ && process.env.EXPO_PUBLIC_SHOW_DEV_FEATURES === 'true'
 
 export const DevFlags = {
-  CryptoTestScreen: showDevFeatures,
   SeedLegacyData: showDevFeatures,
   SeedCorruptData: showDevFeatures,
   VerifyVault: showDevFeatures,

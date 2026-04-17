@@ -5,10 +5,6 @@ import NewWalletStack from './NewWalletStack'
 import RecoverWalletStack from './RecoverWalletStack'
 import { DevFlags } from '../config/env'
 
-const CryptoTestScreen = DevFlags.CryptoTestScreen
-  ? require('../components/CryptoTestScreen').default
-  : null
-
 const DevSeedLegacyData = DevFlags.SeedLegacyData
   ? require('../components/DevSeedLegacyData').default
   : null
@@ -37,12 +33,6 @@ export default function AuthNavigator(): React.ReactElement {
         name="RecoverWallet"
         component={RecoverWalletStack}
       />
-      {CryptoTestScreen && (
-        <Stack.Screen
-          name="CryptoTest"
-          component={CryptoTestScreen}
-        />
-      )}
       {DevSeedLegacyData && (
         <Stack.Screen
           name="SeedLegacyData"
