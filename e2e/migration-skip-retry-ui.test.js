@@ -34,16 +34,17 @@ describe('Partial Fast Vault Migration — Skip/Retry', () => {
       .toBeVisible()
       .withTimeout(60000)
     await element(by.id('enter-vultiverse-cta')).tap()
-    await waitFor(element(by.id('migration-cta')))
+    // Wait for 'Start Migration' text — confirms discoverLegacyWallets() has
+    // resolved and hasLegacyWallets=true (else tap routes to VaultSetup).
+    await waitFor(element(by.text('Start Migration')))
       .toBeVisible()
       .withTimeout(30000)
     await element(by.id('migration-cta')).tap()
-    await waitFor(element(by.text('Your wallets')))
-      .toBeVisible()
-      .withTimeout(10000)
+    // WalletList loading overlay can briefly hide 'Your wallets' — wait
+    // directly for the migrate button on the first card instead.
     await waitFor(element(by.id('wallet-card-0-migrate')))
       .toBeVisible()
-      .withTimeout(5000)
+      .withTimeout(30000)
   })
 
   it('fails keygen immediately on corrupt key', async () => {

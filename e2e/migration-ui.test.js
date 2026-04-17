@@ -33,22 +33,22 @@ describe('Fast Vault Migration UI — Per-Wallet', () => {
       .withTimeout(60000)
     await element(by.id('enter-vultiverse-cta')).tap()
 
-    await waitFor(element(by.id('migration-cta')))
+    // Wait for the button text (not just the testID) to confirm
+    // discoverLegacyWallets() has resolved and hasLegacyWallets=true.
+    // Otherwise the button says 'Create a Fast Vault' and the tap
+    // routes to VaultSetup instead of WalletsFound.
+    await waitFor(element(by.text('Start Migration')))
       .toBeVisible()
       .withTimeout(30000)
   })
 
-  it('navigates to wallet list', async () => {
+  it('navigates to wallet list with both standard and ledger wallets', async () => {
     await element(by.id('migration-cta')).tap()
-    await waitFor(element(by.text('Your wallets')))
-      .toBeVisible()
-      .withTimeout(15000)
-  })
-
-  it('shows both standard and ledger wallets', async () => {
+    // WalletList renders a loading overlay while isVaultFastVault resolves;
+    // wait directly for wallet-card-0 so the overlay is definitely gone.
     await waitFor(element(by.id('wallet-card-0')))
       .toBeVisible()
-      .withTimeout(10000)
+      .withTimeout(30000)
     await waitFor(element(by.text('TestLedgerWallet')))
       .toBeVisible()
       .withTimeout(10000)
