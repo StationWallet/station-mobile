@@ -31,6 +31,7 @@ export type MigrationEntry =
   | 'default'
   | 'create-vault'
   | 'recover-seed'
+  | 'recover-seed-input'
   | 'import-vault'
 
 export default function AppNavigator(): React.ReactElement | null {
@@ -115,6 +116,11 @@ export default function AppNavigator(): React.ReactElement | null {
     setRootRoute('Migration')
   }, [])
 
+  const startSeedRecoveryInput = useCallback(() => {
+    setMigrationEntry('recover-seed-input')
+    setRootRoute('Migration')
+  }, [])
+
   const startImportVault = useCallback(() => {
     setMigrationEntry('import-vault')
     setRootRoute('Migration')
@@ -144,6 +150,7 @@ export default function AppNavigator(): React.ReactElement | null {
       goToAuth,
       startCreateVault,
       startSeedRecovery,
+      startSeedRecoveryInput,
       startImportVault,
       wallets,
       refreshWallets,
@@ -154,6 +161,7 @@ export default function AppNavigator(): React.ReactElement | null {
       goToAuth,
       startCreateVault,
       startSeedRecovery,
+      startSeedRecoveryInput,
       startImportVault,
       wallets,
       refreshWallets,

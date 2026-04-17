@@ -6,6 +6,7 @@ export interface WalletNav {
   goToAuth: () => void
   startCreateVault: () => void
   startSeedRecovery: () => void
+  startSeedRecoveryInput: () => void
   startImportVault: () => void
   wallets: LocalWallet[]
   refreshWallets: () => Promise<void>
@@ -17,6 +18,7 @@ export const WalletNavContext = createContext<WalletNav>({
   goToAuth: (): void => {},
   startCreateVault: (): void => {},
   startSeedRecovery: (): void => {},
+  startSeedRecoveryInput: (): void => {},
   startImportVault: (): void => {},
   wallets: [],
   refreshWallets: async (): Promise<void> => {},
