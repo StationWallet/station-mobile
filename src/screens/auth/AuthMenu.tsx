@@ -18,7 +18,8 @@ const AuthMenu = ({
 }: {
   navigation: { navigate: (screen: string) => void }
 }): React.ReactElement => {
-  const { goToMigration, startCreateVault } = useWalletNav()
+  const { goToMigration, startCreateVault, startImportVault } =
+    useWalletNav()
   const insets = useSafeAreaInsets()
 
   return (
@@ -67,6 +68,16 @@ const AuthMenu = ({
           >
             <Text style={styles.secondaryButtonText}>
               Recover Wallet
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            testID="auth-import-fast-vault"
+            style={styles.secondaryButton}
+            onPress={startImportVault}
+          >
+            <Text style={styles.secondaryButtonText}>
+              Import Fast Vault
             </Text>
           </TouchableOpacity>
 

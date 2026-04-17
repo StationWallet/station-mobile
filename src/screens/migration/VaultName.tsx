@@ -23,6 +23,7 @@ import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { formStyles } from 'components/migration/migrationStyles'
 import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
+import { useWalletNav } from 'navigation/hooks'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'VaultName'>
 type Route = RouteProp<MigrationStackParams, 'VaultName'>
@@ -30,9 +31,18 @@ type Route = RouteProp<MigrationStackParams, 'VaultName'>
 export default function VaultName(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
+  const { goToAuth } = useWalletNav()
   const mode = route.params?.mode ?? 'create'
   const insets = useSafeAreaInsets()
   const [name, setName] = useState('')
+
+  const handleBack = (): void => {
+    if (navigation.canGoBack()) {
+      navigation.goBack()
+    } else {
+      goToAuth()
+    }
+  }
 
   return (
     <View style={formStyles.container}>
@@ -41,7 +51,7 @@ export default function VaultName(): React.ReactElement {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={{ paddingTop: insets.top }}>
-          <MigrationToolbar onBack={() => navigation.goBack()} />
+          <MigrationToolbar onBack={handleBack} />
         </View>
 
         <StepProgressBar currentStep={1} />
