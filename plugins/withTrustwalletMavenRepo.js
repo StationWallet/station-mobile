@@ -13,12 +13,15 @@ const {
  * repositories, not the declaring submodule's — so the repo MUST live at
  * the app level even though the dependency originates from a subproject.
  *
- * The PAT is read from `GITHUB_PACKAGES_TOKEN` at Gradle-run time (not baked
- * into the file on disk). GitHub Packages' Basic Auth requires a
- * non-empty `username`, but the value is not actually validated against
- * the token — any literal string works — so we hardcode `"token"` and
- * only require the PAT itself from the environment. This keeps local
- * setup to a single exported env var.
+ * The PAT is read from `GITHUB_PACKAGES_TOKEN` at prebuild time (Node side)
+ * and baked literally into the generated Groovy. We used to defer the
+ * lookup to Gradle via `System.getenv(...)`, but observed 401s on EAS
+ * Build even with the env var present in the build environment — Gradle
+ * JVM didn't pick it up. Baking at prebuild is robust because Node's
+ * `process.env` reliably sees the EAS-injected variable.
+ *
+ * `android/` is gitignored and Expo prebuild regenerates it on every run,
+ * so the baked PAT only lives in the ephemeral build VM — never in git.
  *
  *   - GITHUB_PACKAGES_TOKEN = classic PAT with `read:packages` scope.
  *     Generate one at https://github.com/settings/tokens/new (classic
@@ -26,25 +29,39 @@ const {
  *     GitHub Packages Maven registry yet). Export it in your shell rc:
  *       export GITHUB_PACKAGES_TOKEN=ghp_xxx...
  *
- * The Groovy `System.getenv(...)` call is emitted literally so the PAT
- * never touches git.
+ * GitHub Packages' Basic Auth requires a non-empty `username`, but the
+ * value is not validated against the token — any literal works — so we
+ * hardcode `"token"`.
  */
 const MARKER =
   '// trustwallet-maven-repo (managed by withTrustwalletMavenRepo)'
 
-const REPO_BLOCK_LINES = [
-  `    ${MARKER}`,
-  '    maven {',
-  '      url = uri("https://maven.pkg.github.com/trustwallet/wallet-core")',
-  '      credentials {',
-  '        username = "token"',
-  '        password = System.getenv("GITHUB_PACKAGES_TOKEN") ?: ""',
-  '      }',
-  '      content { includeGroup("com.trustwallet") }',
-  '    }',
-]
+function escapeGroovyString(value) {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+}
 
-const REPO_BLOCK = REPO_BLOCK_LINES.join('\n')
+function buildRepoBlock() {
+  const token = process.env.GITHUB_PACKAGES_TOKEN || ''
+  if (!token) {
+    throw new Error(
+      '[withTrustwalletMavenRepo] GITHUB_PACKAGES_TOKEN is not set — ' +
+        'Gradle will 401 against maven.pkg.github.com/trustwallet. ' +
+        'Export a classic PAT with read:packages scope.'
+    )
+  }
+  const safeToken = escapeGroovyString(token)
+  return [
+    `    ${MARKER}`,
+    '    maven {',
+    '      url = uri("https://maven.pkg.github.com/trustwallet/wallet-core")',
+    '      credentials {',
+    '        username = "token"',
+    `        password = "${safeToken}"`,
+    '      }',
+    '      content { includeGroup("com.trustwallet") }',
+    '    }',
+  ].join('\n')
+}
 
 /**
  * Find the matching `}` for the `{` at `openIndex`, handling nested braces
@@ -117,7 +134,7 @@ const withTrustwalletMavenRepo = (config) =>
 
     const before = contents.slice(0, closeBraceIdx)
     const after = contents.slice(closeBraceIdx)
-    modConfig.modResults.contents = `${before}${REPO_BLOCK}\n  ${after}`
+    modConfig.modResults.contents = `${before}${buildRepoBlock()}\n  ${after}`
 
     return modConfig
   })
