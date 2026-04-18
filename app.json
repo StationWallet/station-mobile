@@ -42,7 +42,7 @@
         "backgroundColor": "#1f42b4"
       },
       "package": "money.terra.station",
-      "versionCode": 1,
+      "versionCode": 50000001,
 
       "permissions": [
         "android.permission.CAMERA",
