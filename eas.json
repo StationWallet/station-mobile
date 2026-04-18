@@ -8,16 +8,19 @@
       "developmentClient": true,
       "distribution": "internal",
       "channel": "development",
+      "environment": "development",
       "ios": {
         "simulator": true
       }
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview"
+      "channel": "preview",
+      "environment": "preview"
     },
     "production": {
       "channel": "production",
+      "environment": "production",
       "node": "20.20.2"
     }
   },
