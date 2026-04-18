@@ -104,7 +104,6 @@ const Stack = createStackNavigator<MigrationStackParams>()
 type MigrationEntry =
   | 'default'
   | 'create-vault'
-  | 'recover-seed'
   | 'recover-seed-input'
   | 'import-vault'
 
@@ -113,23 +112,18 @@ export default function MigrationNavigator({
 }: {
   initialEntry?: MigrationEntry
 }): React.ReactElement {
-  const isVaultNameEntry =
-    initialEntry === 'create-vault' || initialEntry === 'recover-seed'
-  const initialRouteName = isVaultNameEntry
-    ? 'VaultName'
-    : initialEntry === 'import-vault'
-    ? 'ImportVault'
-    : initialEntry === 'recover-seed-input'
-    ? 'RecoverSeed'
-    : 'RiveIntro'
-  const vaultNameInitialParams = isVaultNameEntry
-    ? {
-        mode:
-          initialEntry === 'recover-seed'
-            ? ('recover-seed' as const)
-            : ('create' as const),
-      }
-    : undefined
+  const initialRouteName =
+    initialEntry === 'create-vault'
+      ? 'VaultName'
+      : initialEntry === 'import-vault'
+      ? 'ImportVault'
+      : initialEntry === 'recover-seed-input'
+      ? 'RecoverSeed'
+      : 'RiveIntro'
+  const vaultNameInitialParams =
+    initialEntry === 'create-vault'
+      ? { mode: 'create' as const }
+      : undefined
 
   return (
     <Stack.Navigator
