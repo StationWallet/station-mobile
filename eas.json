@@ -21,7 +21,10 @@
     "production": {
       "channel": "production",
       "environment": "production",
-      "node": "20.20.2"
+      "node": "20.20.2",
+      "android": {
+        "gradleCommand": ":app:bundleRelease -Pgpr.key=$GITHUB_PACKAGES_TOKEN"
+      }
     }
   },
   "submit": {
