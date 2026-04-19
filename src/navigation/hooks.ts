@@ -7,13 +7,9 @@ export interface WalletNav {
   goHome: () => void
   startCreateVault: () => void
   /**
-   * Seed already written to RecoverWalletStore. Routes straight to VaultName
-   * in recover-seed mode (continues keygen).
-   */
-  startSeedRecovery: () => void
-  /**
-   * User still needs to enter a seed. Routes to RecoverSeed, which captures
-   * the seed into RecoverWalletStore then calls startSeedRecovery.
+   * Routes to RecoverSeed, which captures the user's seed into
+   * RecoverWalletStore then advances into the vault creation flow in
+   * recover-seed mode.
    */
   startSeedRecoveryInput: () => void
   startImportVault: () => void
@@ -27,7 +23,6 @@ export const WalletNavContext = createContext<WalletNav>({
   goToAuth: (): void => {},
   goHome: (): void => {},
   startCreateVault: (): void => {},
-  startSeedRecovery: (): void => {},
   startSeedRecoveryInput: (): void => {},
   startImportVault: (): void => {},
   wallets: [],

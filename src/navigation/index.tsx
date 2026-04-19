@@ -31,7 +31,6 @@ type RootRoute = 'Migration' | 'Auth' | 'Main'
 export type MigrationEntry =
   | 'default'
   | 'create-vault'
-  | 'recover-seed'
   | 'recover-seed-input'
   | 'import-vault'
 
@@ -125,18 +124,9 @@ export default function AppNavigator(): React.ReactElement | null {
   }, [])
 
   /**
-   * Seed already written to RecoverWalletStore. Routes straight to VaultName
-   * in recover-seed mode (continues keygen).
-   */
-  const startSeedRecovery = useCallback(() => {
-    preMigrationRootRef.current = rootRouteRef.current
-    setMigrationEntry('recover-seed')
-    setRootRoute('Migration')
-  }, [])
-
-  /**
-   * User still needs to enter a seed. Routes to RecoverSeed, which captures
-   * the seed into RecoverWalletStore then calls startSeedRecovery.
+   * Routes to RecoverSeed, which captures the user's seed into
+   * RecoverWalletStore then navigates within the Migration stack to VaultName
+   * in recover-seed mode.
    */
   const startSeedRecoveryInput = useCallback(() => {
     preMigrationRootRef.current = rootRouteRef.current
@@ -191,7 +181,6 @@ export default function AppNavigator(): React.ReactElement | null {
       goToAuth,
       goHome,
       startCreateVault,
-      startSeedRecovery,
       startSeedRecoveryInput,
       startImportVault,
       wallets,
@@ -203,7 +192,6 @@ export default function AppNavigator(): React.ReactElement | null {
       goToAuth,
       goHome,
       startCreateVault,
-      startSeedRecovery,
       startSeedRecoveryInput,
       startImportVault,
       wallets,

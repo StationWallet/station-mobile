@@ -9,20 +9,24 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
+import type { StackNavigationProp } from '@react-navigation/stack'
 import { useSetRecoilState } from 'recoil'
 import RecoverWalletStore from 'stores/RecoverWalletStore'
 import { formatSeedStringToArray } from 'utils/wallet'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { COLORS } from 'consts/theme'
 import { useWalletNav } from 'navigation/hooks'
+import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 import authStyles from '../auth/authStyles'
+
+type Nav = StackNavigationProp<MigrationStackParams, 'RecoverSeed'>
 
 const RecoverSeed = (): React.ReactElement => {
   const insets = useSafeAreaInsets()
-  const nav = useNavigation()
+  const nav = useNavigation<Nav>()
   const [seedText, setSeedText] = useState('')
   const setSeed = useSetRecoilState(RecoverWalletStore.seed)
-  const { startSeedRecovery, goHome } = useWalletNav()
+  const { goHome } = useWalletNav()
 
   const words = seedText.trim()
     ? formatSeedStringToArray(seedText)
@@ -32,7 +36,7 @@ const RecoverSeed = (): React.ReactElement => {
 
   const handleNext = (): void => {
     setSeed(words)
-    startSeedRecovery()
+    nav.navigate('VaultName', { mode: 'recover-seed' })
   }
 
   const handleBack = (): void => {
