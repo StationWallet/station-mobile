@@ -13,6 +13,7 @@ import Svg, { Path, Circle } from 'react-native-svg'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
+import { useKeyboardVisible } from 'hooks/useKeyboardVisible'
 import { MIGRATION } from 'consts/migration'
 
 function LockIcon(): React.ReactElement {
@@ -97,6 +98,7 @@ export default function DecryptPasswordSheet({
   loading = false,
 }: Props): React.ReactElement {
   const insets = useSafeAreaInsets()
+  const keyboardVisible = useKeyboardVisible()
   const inputRef = useRef<TextInput>(null)
   const [secureText, setSecureText] = useState(true)
   const [password, setPassword] = useState('')
@@ -202,7 +204,10 @@ export default function DecryptPasswordSheet({
     >
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
+        keyboardVerticalOffset={
+          Platform.OS === 'android' && keyboardVisible ? -100 : 0
+        }
       >
         {content}
       </KeyboardAvoidingView>
@@ -223,9 +228,6 @@ const styles = StyleSheet.create({
     backgroundColor: MIGRATION.bg,
     borderTopLeftRadius: 34,
     borderTopRightRadius: 34,
-    borderWidth: 1,
-    borderBottomWidth: 0,
-    borderColor: MIGRATION.strokeInput,
     paddingHorizontal: 16,
     paddingTop: 7,
     alignItems: 'center',

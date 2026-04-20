@@ -4,7 +4,7 @@ import type { MigrationResult } from 'services/migrateToVault'
 
 type MigrationNav = StackNavigationProp<
   MigrationStackParams,
-  'KeygenProgress' | 'VerifyEmail'
+  'KeygenProgress' | 'VerifyEmail' | 'BackupVault'
 >
 
 /**

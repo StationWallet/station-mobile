@@ -10,6 +10,7 @@ import VaultName from '../screens/migration/VaultName'
 import VaultEmail from '../screens/migration/VaultEmail'
 import VaultPassword from '../screens/migration/VaultPassword'
 import VerifyEmail from '../screens/migration/VerifyEmail'
+import BackupVault from '../screens/migration/BackupScreen'
 import ImportVault from '../screens/migration/ImportVault'
 import MigrationSuccess from '../screens/migration/MigrationSuccess'
 import RecoverSeed from '../screens/migration/RecoverSeed'
@@ -86,6 +87,13 @@ export type MigrationStackParams = {
     email: string
     keyImportResult: KeyImportResult
   }
+  BackupVault: {
+    walletName: string
+    walletIndex?: number
+    wallets?: MigrationWallet[]
+    results?: MigrationResult[]
+    mode: MigrationMode
+  }
   ImportVault: undefined
   MigrationSuccess: {
     results?: MigrationResult[]
@@ -155,6 +163,7 @@ export default function MigrationNavigator({
         component={KeygenProgress}
       />
       <Stack.Screen name="VerifyEmail" component={VerifyEmail} />
+      <Stack.Screen name="BackupVault" component={BackupVault} />
       <Stack.Screen name="ImportVault" component={ImportVault} />
       <Stack.Screen
         name="MigrationSuccess"

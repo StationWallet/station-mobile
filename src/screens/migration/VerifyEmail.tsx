@@ -25,7 +25,6 @@ import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 import { verifyVaultEmail } from 'services/fastVaultServer'
 import { storeFastVault } from 'services/migrateToVault'
-import { advanceToNextWallet } from 'utils/migrationNav'
 import { getErrorMessage } from 'utils/getErrorMessage'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
@@ -67,6 +66,7 @@ export default function VerifyEmail(): React.ReactElement {
     results = [],
     email,
     keyImportResult,
+    mode,
   } = route.params
 
   const [code, setCode] = useState('')
@@ -125,17 +125,15 @@ export default function VerifyEmail(): React.ReactElement {
         return
       }
 
-      advanceToNextWallet(navigation, {
+      // Route to the save-vault-share step before reaching
+      // MigrationSuccess. BackupVault takes over the advance-to-next
+      // responsibility once the share sheet is dismissed.
+      navigation.navigate('BackupVault', {
+        walletName,
+        walletIndex,
         wallets,
         results,
-        newResult: {
-          wallet: wallets[walletIndex] ?? {
-            name: walletName,
-            address: '',
-            ledger: false,
-          },
-          success: true,
-        },
+        mode,
       })
     },
     [
@@ -146,6 +144,7 @@ export default function VerifyEmail(): React.ReactElement {
       walletIndex,
       navigation,
       results,
+      mode,
     ]
   )
 
