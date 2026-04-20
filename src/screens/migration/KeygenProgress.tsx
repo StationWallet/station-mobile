@@ -11,11 +11,7 @@ import {
   PixelRatio,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import {
-  useNavigation,
-  useRoute,
-  useIsFocused,
-} from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { RouteProp } from '@react-navigation/native'
 
@@ -66,7 +62,6 @@ export default function KeygenProgress(): React.ReactElement {
     mode,
   } = route.params
 
-  const isFocused = useIsFocused()
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -253,24 +248,27 @@ export default function KeygenProgress(): React.ReactElement {
 
   return (
     <View style={styles.container}>
-      {/* Full-screen Rive animation — unmount when navigated away to stop audio */}
+      {/* Full-screen Rive animation. Mount unconditionally (not gated by
+          useIsFocused) so the ref resolves on first render and data bindings
+          take effect — matches vultiagent-app/KeygenScreen. A focus-gated
+          mount delayed ref resolution past the first autoBind flip, which
+          caused Connected/progessPercentage updates to never reach the
+          state machine. */}
       <View style={styles.riveContainer}>
-        {isFocused && (
-          <RiveComponent
-            ref={setRiveRef}
-            source={require('../../../assets/animations/keygen_fast.riv')}
-            autoplay
-            fit={RiveFitEnum.Layout}
-            layoutScaleFactor={PixelRatio.get()}
-            style={styles.riveView}
-            dataBinding={AutoBindFn(autoBind)}
-            onStateChanged={() => {
-              if (!autoBind) {
-                setAutoBind(true)
-              }
-            }}
-          />
-        )}
+        <RiveComponent
+          ref={setRiveRef}
+          source={require('../../../assets/animations/keygen_fast.riv')}
+          autoplay
+          fit={RiveFitEnum.Layout}
+          layoutScaleFactor={PixelRatio.get()}
+          style={styles.riveView}
+          dataBinding={AutoBindFn(autoBind)}
+          onStateChanged={() => {
+            if (!autoBind) {
+              setAutoBind(true)
+            }
+          }}
+        />
       </View>
 
       {/* Error overlay */}
