@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   spacerMid: {
-    flex: 0.5,
+    flex: 0.9,
   },
   textArea: {
     paddingHorizontal: 40,
