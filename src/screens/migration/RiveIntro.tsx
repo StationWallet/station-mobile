@@ -234,6 +234,9 @@ export default function RiveIntro(): React.ReactElement {
         ]}
       >
         <Pressable onPress={goToHome} testID="enter-vultiverse-cta">
+          <Text style={styles.ctaText} fontType="brockmann-semibold">
+            Enter the Vultiverse
+          </Text>
           <Animated.View
             style={[
               styles.chevron,
@@ -242,9 +245,6 @@ export default function RiveIntro(): React.ReactElement {
           >
             <ChevronUpIcon />
           </Animated.View>
-          <Text style={styles.ctaText} fontType="brockmann-semibold">
-            Enter the Vultiverse
-          </Text>
         </Pressable>
       </Animated.View>
 
@@ -324,6 +324,6 @@ const styles = StyleSheet.create({
   },
   chevron: {
     alignItems: 'center',
-    marginBottom: 6,
+    marginTop: 6,
   },
 })
