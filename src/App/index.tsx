@@ -157,7 +157,9 @@ const App = ({
                 <KeyboardAvoidingView
                   behavior="padding"
                   keyboardVerticalOffset={
-                    Platform.OS === 'android' && keyboardVisible ? -100 : 0
+                    Platform.OS === 'android' && keyboardVisible
+                      ? -100
+                      : 0
                   }
                   style={{
                     ...defaultViewStyle,

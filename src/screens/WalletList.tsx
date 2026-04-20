@@ -60,7 +60,7 @@ export default function WalletList(): React.ReactElement {
   const fastVaultQueries = useQueries(
     wallets.map((w) => ({
       queryKey: ['isFastVault', w.name],
-      queryFn: () => isVaultFastVault(w.name),
+      queryFn: (): Promise<boolean> => isVaultFastVault(w.name),
       staleTime: 30_000,
     }))
   )

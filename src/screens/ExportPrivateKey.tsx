@@ -135,7 +135,7 @@ export default function ExportPrivateKey(): React.ReactElement {
   } else if ((isFastVault || privateKey) && !showExportForm) {
     primary = {
       title: 'Export as Vault Share',
-      onPress: () => setShowExportForm(true),
+      onPress: (): void => setShowExportForm(true),
     }
   } else if (showExportForm) {
     primary = {

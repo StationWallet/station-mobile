@@ -1,5 +1,10 @@
 import React, { useState } from 'react'
-import { View, StyleSheet, TextInput, TouchableOpacity } from 'react-native'
+import {
+  View,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
