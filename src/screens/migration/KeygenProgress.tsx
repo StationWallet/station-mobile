@@ -68,6 +68,20 @@ export default function KeygenProgress(): React.ReactElement {
   const mountedRef = useRef(true)
   const recoverSeed = useRecoilValue(RecoverWalletStore.seed)
 
+  // Lazy-mount Rive one frame after this screen renders. Mounting it
+  // synchronously with the screen on Android blocks the UI thread long
+  // enough (Rive init + DKLS ceremony kicking off + new-arch SoftException
+  // spam from rive-react-native@9.8.1) that Android fires an ANR. Deferring
+  // by a frame lets the navigator animation in and the ceremony's initial
+  // setup schedule before Rive claims the GL surface.
+  const [riveMounted, setRiveMounted] = useState(false)
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => {
+      if (mountedRef.current) setRiveMounted(true)
+    })
+    return (): void => cancelAnimationFrame(raf)
+  }, [])
+
   // Rive data binding state
   const [autoBind, setAutoBind] = useState(false)
   const [setRiveRef, riveRef] = useRive()
@@ -248,27 +262,29 @@ export default function KeygenProgress(): React.ReactElement {
 
   return (
     <View style={styles.container}>
-      {/* Full-screen Rive animation. Mount unconditionally (not gated by
-          useIsFocused) so the ref resolves on first render and data bindings
-          take effect — matches vultiagent-app/KeygenScreen. A focus-gated
-          mount delayed ref resolution past the first autoBind flip, which
-          caused Connected/progessPercentage updates to never reach the
-          state machine. */}
+      {/* Full-screen Rive animation — lazy-mounted one frame after screen
+          enters (see riveMounted effect). Mounting synchronously on Android
+          ANR'd the app; gating on useIsFocused broke data bindings because
+          the ref attached after autoBind had already been consumed. The RAF
+          gate gives us both: ref attaches on the NEXT render (bindings wire
+          up cleanly) and the UI thread isn't blocked during transition. */}
       <View style={styles.riveContainer}>
-        <RiveComponent
-          ref={setRiveRef}
-          source={require('../../../assets/animations/keygen_fast.riv')}
-          autoplay
-          fit={RiveFitEnum.Layout}
-          layoutScaleFactor={PixelRatio.get()}
-          style={styles.riveView}
-          dataBinding={AutoBindFn(autoBind)}
-          onStateChanged={() => {
-            if (!autoBind) {
-              setAutoBind(true)
-            }
-          }}
-        />
+        {riveMounted && (
+          <RiveComponent
+            ref={setRiveRef}
+            source={require('../../../assets/animations/keygen_fast.riv')}
+            autoplay
+            fit={RiveFitEnum.Layout}
+            layoutScaleFactor={PixelRatio.get()}
+            style={styles.riveView}
+            dataBinding={AutoBindFn(autoBind)}
+            onStateChanged={() => {
+              if (!autoBind) {
+                setAutoBind(true)
+              }
+            }}
+          />
+        )}
       </View>
 
       {/* Error overlay */}
