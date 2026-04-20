@@ -23,7 +23,6 @@ import Svg, {
 } from 'react-native-svg'
 
 import Text from 'components/Text'
-import Button from 'components/Button'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { MIGRATION } from 'consts/migration'
 import preferences, {
@@ -187,15 +186,8 @@ export default function MigrationSuccess(): React.ReactElement {
           { paddingBottom: Math.max(insets.bottom, 16) },
         ]}
       >
-        <Button
-          title="Share your OG status"
-          theme="ctaBlue"
-          onPress={() => {}}
-          containerStyle={styles.shareButton}
-          titleFontType="brockmann-bold"
-          titleStyle={styles.shareButtonText}
-          testID="share-og-status"
-        />
+        {/* Share button intentionally hidden for now — onPress is a
+            no-op and no share flow exists yet. Reinstate when wired up. */}
 
         {hasUnmigrated ? (
           <TouchableOpacity
@@ -299,14 +291,6 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     alignItems: 'center',
     gap: 16,
-  },
-  shareButton: {
-    width: '100%',
-    height: MIGRATION.ctaHeight,
-    borderRadius: MIGRATION.radiusPill,
-  },
-  shareButtonText: {
-    fontSize: 14,
   },
   migrateAnother: {
     fontSize: 13,
