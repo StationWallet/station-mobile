@@ -41,8 +41,6 @@ import DebugBanner from './DebugBanner'
 import GlobalTopNotification from './GlobalTopNotification'
 
 import { useAlertViewState } from './AlertView'
-import { themes } from 'lib/contexts/useTheme'
-import { COLORS } from 'consts/theme'
 
 // TODO: migrate InteractionManager callers to requestIdleCallback and drop
 // this ignore. Silenced because the warning toast overlay blocks bottom-
@@ -77,7 +75,6 @@ const App = ({
   const { current: currentLang = '' } = config.lang
   const { current: currentChainOptions } = config.chain
   const { name: currentChain = '' } = currentChainOptions
-  const { current: currentTheme } = config.theme
 
   const { getSecurityErrorMessage, securityCheckFailed } =
     useSecurity()
@@ -114,17 +111,17 @@ const App = ({
               <SafeAreaProvider
                 style={{
                   flex: 1,
-                  backgroundColor:
-                    themes?.[currentTheme]?.backgroundColor ||
-                    COLORS.bg,
+                  // Hard-coded dark navy so the system nav-bar safe-area
+                  // paints the app's dark bg on Android edge-to-edge. The
+                  // theme-based bg defaulted to light (#fafbff) on fresh
+                  // installs, which made a white strip visible below every
+                  // screen (most noticeable after the keyboard closes).
+                  backgroundColor: '#02122b',
                 }}
               >
                 <StatusBar
                   barStyle="light-content"
-                  backgroundColor={
-                    themes?.[currentTheme]?.backgroundColor ??
-                    COLORS.bg
-                  }
+                  backgroundColor="#02122b"
                 />
                 <KeyboardAvoidingView
                   behavior={
@@ -132,9 +129,7 @@ const App = ({
                   }
                   style={{
                     ...defaultViewStyle,
-                    backgroundColor:
-                      themes?.[currentTheme]?.backgroundColor ||
-                      COLORS.bg,
+                    backgroundColor: '#02122b',
                   }}
                 >
                   {securityCheckFailed && Platform.OS === 'ios' ? (
