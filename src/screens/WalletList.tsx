@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { View, ScrollView, StyleSheet } from 'react-native'
 import {
   useFocusEffect,
@@ -8,6 +8,7 @@ import {
 import type { NavigationProp } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useQueries } from 'react-query'
 
 import { useWalletNav } from 'navigation/hooks'
 import { settings } from 'utils/storage'
@@ -43,60 +44,38 @@ export default function WalletList(): React.ReactElement {
     startImportVault,
   } = useWalletNav()
 
-  // Refresh wallets every time the screen gains focus. Returning here
-  // from the migration flow (e.g. "Migrate another wallet" on
-  // MigrationSuccess) does not remount the component, so a mount-only
-  // refresh would leave fastVaultMap stale and the just-migrated
-  // wallet would keep rendering the "Migrate to a vault" CTA.
+  // Refresh the list of wallets on focus so returning from the
+  // migration flow (e.g. "Migrate another wallet" on MigrationSuccess)
+  // reflects the just-migrated wallet without needing a remount.
   useFocusEffect(
     useCallback(() => {
       refreshWallets()
     }, [refreshWallets])
   )
 
-  const [fastVaultMap, setFastVaultMap] = useState<
-    Record<string, boolean>
-  >({})
-  const [loading, setLoading] = useState(true)
-  const [addSheetVisible, setAddSheetVisible] = useState(false)
+  // Per-wallet fast-vault status, cached by wallet name. react-query
+  // keeps data across renders, so navigating back to this screen
+  // doesn't blink the loading overlay — existing cards stay up while
+  // stale data revalidates in the background.
+  const fastVaultQueries = useQueries(
+    wallets.map((w) => ({
+      queryKey: ['isFastVault', w.name],
+      queryFn: () => isVaultFastVault(w.name),
+      staleTime: 30_000,
+    }))
+  )
+  const fastVaultMap: Record<string, boolean> = {}
+  wallets.forEach((w, i) => {
+    const result = fastVaultQueries[i]
+    if (result?.data !== undefined) fastVaultMap[w.name] = result.data
+  })
+  // Only show the blocking overlay on the very first resolve, not on
+  // revalidations triggered by focus. isLoading is react-query's
+  // "never-resolved-yet" signal; isFetching would fire on every refetch.
+  const loading =
+    wallets.length > 0 && fastVaultQueries.some((q) => q.isLoading)
 
-  useEffect(() => {
-    if (wallets.length === 0) {
-      setLoading(false)
-      return
-    }
-    setLoading(true)
-    let cancelled = false
-    Promise.allSettled(
-      wallets.map((w) =>
-        isVaultFastVault(w.name).then((isFast) => ({
-          name: w.name,
-          isFast,
-        }))
-      )
-    ).then((settled) => {
-      if (cancelled) return
-      const map: Record<string, boolean> = {}
-      for (const entry of settled) {
-        if (entry.status === 'fulfilled') {
-          map[entry.value.name] = entry.value.isFast
-        }
-      }
-      setFastVaultMap((prev) => {
-        const keys = Object.keys(map)
-        if (
-          keys.length === Object.keys(prev).length &&
-          keys.every((k) => prev[k] === map[k])
-        )
-          return prev
-        return map
-      })
-      setLoading(false)
-    })
-    return (): void => {
-      cancelled = true
-    }
-  }, [wallets])
+  const [addSheetVisible, setAddSheetVisible] = useState(false)
 
   const walletSummaries = wallets.map((w) => ({
     name: w.name,
