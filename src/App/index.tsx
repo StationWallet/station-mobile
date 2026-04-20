@@ -4,6 +4,7 @@ import {
   LogBox,
   View,
   StatusBar,
+  Keyboard,
   KeyboardAvoidingView,
 } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
@@ -41,8 +42,6 @@ import DebugBanner from './DebugBanner'
 import GlobalTopNotification from './GlobalTopNotification'
 
 import { useAlertViewState } from './AlertView'
-import { themes } from 'lib/contexts/useTheme'
-import { COLORS } from 'consts/theme'
 
 // TODO: migrate InteractionManager callers to requestIdleCallback and drop
 // this ignore. Silenced because the warning toast overlay blocks bottom-
@@ -77,7 +76,6 @@ const App = ({
   const { current: currentLang = '' } = config.lang
   const { current: currentChainOptions } = config.chain
   const { name: currentChain = '' } = currentChainOptions
-  const { current: currentTheme } = config.theme
 
   const { getSecurityErrorMessage, securityCheckFailed } =
     useSecurity()
@@ -105,6 +103,27 @@ const App = ({
     flex: 1,
   }
 
+  // Track keyboard visibility so the root KeyboardAvoidingView can drop its
+  // vertical offset to -100 on Android while the IME is up. Android 15
+  // edge-to-edge + windowSoftInputMode=adjustResize + KAV behavior="padding"
+  // double-pad the bottom by a small margin that stays even after the IME
+  // animates out; the conditional offset cancels the extra chrome while the
+  // keyboard is visible, then returns to 0 on hide so the layout doesn't
+  // end up with a sticky gap at the bottom of the app.
+  const [keyboardVisible, setKeyboardVisible] = useState(false)
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true)
+    )
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false)
+    )
+    return (): void => {
+      showSub.remove()
+      hideSub.remove()
+    }
+  }, [])
+
   return (
     <>
       {ready && (
@@ -114,35 +133,41 @@ const App = ({
               <SafeAreaProvider
                 style={{
                   flex: 1,
-                  backgroundColor:
-                    themes?.[currentTheme]?.backgroundColor ||
-                    COLORS.bg,
+                  // Hard-coded dark navy so the system nav-bar safe-area
+                  // paints the app's dark bg on Android edge-to-edge. The
+                  // theme-based bg defaulted to light (#fafbff) on fresh
+                  // installs, which made a white strip visible below every
+                  // screen (most noticeable after the keyboard closes).
+                  backgroundColor: '#02122b',
                 }}
               >
                 <StatusBar
                   barStyle="light-content"
-                  backgroundColor={
-                    themes?.[currentTheme]?.backgroundColor ??
-                    COLORS.bg
-                  }
+                  backgroundColor="#02122b"
                 />
+                {/* Use behavior="padding" on both platforms. "height" on
+                    Android double-handled the IME resize with
+                    windowSoftInputMode=adjustResize from the manifest, and
+                    when the keyboard closed the KAV's own animated height
+                    didn't fully restore — leaving a sticky blank strip for
+                    the rest of the app's lifetime. "padding" adds an
+                    animated paddingBottom instead of shrinking the view,
+                    so there's no layout race with the system and the
+                    padding always animates cleanly back to 0 on IME hide. */}
                 <KeyboardAvoidingView
-                  behavior={
-                    Platform.OS === 'ios' ? 'padding' : 'height'
+                  behavior="padding"
+                  keyboardVerticalOffset={
+                    Platform.OS === 'android' && keyboardVisible
+                      ? -100
+                      : 0
                   }
                   style={{
                     ...defaultViewStyle,
-                    backgroundColor:
-                      themes?.[currentTheme]?.backgroundColor ||
-                      COLORS.bg,
+                    backgroundColor: '#02122b',
                   }}
                 >
                   {securityCheckFailed && Platform.OS === 'ios' ? (
-                    <View
-                      style={{
-                        flex: 1,
-                      }}
-                    />
+                    <View style={{ flex: 1 }} />
                   ) : (
                     <>
                       <AppNavigator />

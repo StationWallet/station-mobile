@@ -11,11 +11,7 @@ import {
   PixelRatio,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
-import {
-  useNavigation,
-  useRoute,
-  useIsFocused,
-} from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { RouteProp } from '@react-navigation/native'
 
@@ -66,15 +62,44 @@ export default function KeygenProgress(): React.ReactElement {
     mode,
   } = route.params
 
-  const isFocused = useIsFocused()
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const mountedRef = useRef(true)
   const recoverSeed = useRecoilValue(RecoverWalletStore.seed)
 
+  // Lazy-mount Rive after the nav transition + DKLS setup have had time
+  // to clear the main thread. A single requestAnimationFrame was enough
+  // when KeygenProgress was effectively the first thing happening after
+  // navigating in; with more work now running on mount elsewhere (root
+  // KAV resize + keyboard listeners, react-query subscriptions held by
+  // prior screens), RAF cuts in too early and Android ANRs. A 250ms
+  // delay gives both the transition and DKLS session setup time to
+  // finish without perceptibly delaying when the user sees the animation.
+  const [riveMounted, setRiveMounted] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (mountedRef.current) setRiveMounted(true)
+    }, 250)
+    return (): void => clearTimeout(timer)
+  }, [])
+
   // Rive data binding state
   const [autoBind, setAutoBind] = useState(false)
+
+  // onStateChanged is what normally flips autoBind, but under new-arch
+  // rive-react-native 9.8.1 the callback sometimes never fires if the
+  // state machine is busy when the ref attaches (visible as an
+  // "animation not launched" initial state). Force autoBind true after
+  // a short delay so the Connected/progress bindings take effect even
+  // if the callback is swallowed.
+  useEffect(() => {
+    if (!riveMounted || autoBind) return
+    const timer = setTimeout(() => {
+      if (mountedRef.current && !autoBind) setAutoBind(true)
+    }, 500)
+    return (): void => clearTimeout(timer)
+  }, [riveMounted, autoBind])
   const [setRiveRef, riveRef] = useRive()
   const [, setConnected] = useRiveBoolean(riveRef, 'Connected')
   const [, setRiveProgress] = useRiveNumber(
@@ -253,9 +278,14 @@ export default function KeygenProgress(): React.ReactElement {
 
   return (
     <View style={styles.container}>
-      {/* Full-screen Rive animation — unmount when navigated away to stop audio */}
+      {/* Full-screen Rive animation — lazy-mounted one frame after screen
+          enters (see riveMounted effect). Mounting synchronously on Android
+          ANR'd the app; gating on useIsFocused broke data bindings because
+          the ref attached after autoBind had already been consumed. The RAF
+          gate gives us both: ref attaches on the NEXT render (bindings wire
+          up cleanly) and the UI thread isn't blocked during transition. */}
       <View style={styles.riveContainer}>
-        {isFocused && (
+        {riveMounted && (
           <RiveComponent
             ref={setRiveRef}
             source={require('../../../assets/animations/keygen_fast.riv')}

@@ -19,6 +19,7 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { RouteProp } from '@react-navigation/native'
 import Svg, { Path } from 'react-native-svg'
+import { useQueryClient } from 'react-query'
 
 import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
@@ -58,6 +59,7 @@ function EmailCircleIcon(): React.ReactElement {
 export default function VerifyEmail(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
+  const queryClient = useQueryClient()
   const {
     walletName,
     walletIndex = 0,
@@ -103,6 +105,11 @@ export default function VerifyEmail(): React.ReactElement {
       // earlier point leaves the legacy wallet recoverable.
       try {
         await storeFastVault(walletName, keyImportResult)
+        // The isFastVault status for this wallet just flipped from
+        // false -> true. Invalidate the cached query so WalletList
+        // re-renders the migrated wallet with the correct CTA instead
+        // of still offering "Migrate to a vault".
+        queryClient.invalidateQueries(['isFastVault', walletName])
       } catch (err) {
         // Vault activation succeeded on the server but local persistence
         // failed. The legacy key is still on-device, so the user isn't

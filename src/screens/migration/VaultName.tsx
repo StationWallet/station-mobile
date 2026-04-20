@@ -4,8 +4,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -46,10 +44,7 @@ export default function VaultName(): React.ReactElement {
 
   return (
     <View style={formStyles.container}>
-      <KeyboardAvoidingView
-        style={formStyles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={formStyles.flex}>
         <View style={{ paddingTop: insets.top }}>
           <MigrationToolbar onBack={handleBack} />
         </View>
@@ -112,7 +107,7 @@ export default function VaultName(): React.ReactElement {
             containerStyle={formStyles.ctaButton}
           />
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </View>
   )
 }

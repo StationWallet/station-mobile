@@ -4,7 +4,6 @@ import {
   Modal,
   Pressable,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -21,22 +20,21 @@ import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 
 const ICON_BLUE = MIGRATION.textLink
-const ICON_YELLOW = '#FFB833'
 const ANIMATION_DURATION_MS = 220
 const SCREEN_HEIGHT = Dimensions.get('window').height
 
 function PlusCircleIcon(): React.ReactElement {
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
       <Circle
-        cx={12}
-        cy={12}
-        r={10}
+        cx={10}
+        cy={10}
+        r={8.25}
         stroke={ICON_BLUE}
         strokeWidth={1.5}
       />
       <Path
-        d="M12 8V16M8 12H16"
+        d="M10 6.5v7M6.5 10h7"
         stroke={ICON_BLUE}
         strokeWidth={1.5}
         strokeLinecap="round"
@@ -45,48 +43,32 @@ function PlusCircleIcon(): React.ReactElement {
   )
 }
 
-function RestoreIcon(): React.ReactElement {
+function SeedPhraseIcon(): React.ReactElement {
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
       <Path
-        d="M3 12C3 7.029 7.029 3 12 3C15.027 3 17.71 4.495 19.355 6.79"
+        d="M3 5h14M3 10h14M3 15h10"
         stroke={ICON_BLUE}
         strokeWidth={1.5}
         strokeLinecap="round"
-      />
-      <Path
-        d="M21 12C21 16.971 16.971 21 12 21C8.973 21 6.29 19.505 4.645 17.21"
-        stroke={ICON_BLUE}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-      />
-      <Path
-        d="M19.5 3V7H15.5"
-        stroke={ICON_BLUE}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M4.5 21V17H8.5"
-        stroke={ICON_BLUE}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </Svg>
   )
 }
 
-function BoltIcon(): React.ReactElement {
+function VaultShareIcon(): React.ReactElement {
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
       <Path
-        d="M13 2L4 14H11L10 22L19 10H12L13 2Z"
-        fill={ICON_YELLOW}
-        stroke={ICON_YELLOW}
+        d="M4 4h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"
+        stroke={ICON_BLUE}
         strokeWidth={1.5}
-        strokeLinejoin="round"
+      />
+      <Path
+        d="M10 8v4M8 10h4"
+        stroke={ICON_BLUE}
+        strokeWidth={1.5}
+        strokeLinecap="round"
       />
     </Svg>
   )
@@ -174,7 +156,7 @@ export default function AddWalletSheet({
         <View
           style={[
             styles.sheet,
-            { paddingBottom: Math.max(insets.bottom, 24) },
+            { paddingBottom: Math.max(insets.bottom, 24) + 16 },
           ]}
         >
           <View style={styles.grabber} />
@@ -182,59 +164,88 @@ export default function AddWalletSheet({
           <Text fontType="brockmann-medium" style={styles.title}>
             Add Wallet
           </Text>
-          <Text fontType="brockmann-medium" style={styles.subtitle}>
-            Choose how to add a wallet
-          </Text>
 
-          <View style={styles.buttons}>
-            <TouchableOpacity
-              testID="add-wallet-create"
-              accessibilityRole="button"
-              accessibilityLabel="Create New Wallet"
-              style={styles.button}
-              onPress={dismissAnd(onCreate)}
-            >
+          {/* Create new wallet card */}
+          <Pressable
+            testID="add-wallet-create"
+            accessibilityRole="button"
+            accessibilityLabel="Create new wallet"
+            style={styles.card}
+            onPress={dismissAnd(onCreate)}
+          >
+            <View style={styles.cardTitleRow}>
               <PlusCircleIcon />
               <Text
                 fontType="brockmann-medium"
-                style={styles.buttonLabel}
+                style={styles.cardTitle}
               >
-                Create New Wallet
+                Create new wallet
               </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              testID="add-wallet-recover"
-              accessibilityRole="button"
-              accessibilityLabel="Recover Wallet"
-              style={styles.button}
-              onPress={dismissAnd(onRecover)}
+            </View>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.cardSubtitle}
             >
-              <RestoreIcon />
+              Start fresh with a brand-new vault.
+            </Text>
+          </Pressable>
+
+          {/* Recover / convert seedphrase card */}
+          <Pressable
+            testID="add-wallet-recover"
+            accessibilityRole="button"
+            accessibilityLabel="Recover wallet from seed phrase"
+            style={styles.card}
+            onPress={dismissAnd(onRecover)}
+          >
+            <View style={styles.cardTitleRow}>
+              <SeedPhraseIcon />
               <Text
                 fontType="brockmann-medium"
-                style={styles.buttonLabel}
+                style={styles.cardTitle}
               >
-                Recover Wallet
+                Recover wallet
               </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              testID="add-wallet-import"
-              accessibilityRole="button"
-              accessibilityLabel="Import Fast Vault"
-              style={styles.button}
-              onPress={dismissAnd(onImport)}
+            </View>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.cardSubtitle}
             >
-              <BoltIcon />
+              Enter your seed phrase to recover or convert a legacy
+              wallet into a vault.
+            </Text>
+          </Pressable>
+
+          {/* Import vault share card */}
+          <Pressable
+            testID="add-wallet-import"
+            accessibilityRole="button"
+            accessibilityLabel="Import vault share"
+            style={styles.card}
+            onPress={dismissAnd(onImport)}
+          >
+            <View style={styles.cardTitleRow}>
+              <VaultShareIcon />
               <Text
                 fontType="brockmann-medium"
-                style={styles.buttonLabel}
+                style={styles.cardTitle}
               >
-                Import Fast Vault
+                Import vault share
               </Text>
-            </TouchableOpacity>
-          </View>
+            </View>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.cardSubtitle}
+            >
+              Use a vault share to recover your vault.
+            </Text>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.cardCaption}
+            >
+              Supported file types: .bak & .vult
+            </Text>
+          </Pressable>
         </View>
       </Animated.View>
     </Modal>
@@ -256,55 +267,53 @@ const styles = StyleSheet.create({
     backgroundColor: MIGRATION.bg,
     borderTopLeftRadius: 34,
     borderTopRightRadius: 34,
-    borderWidth: 1,
-    borderBottomWidth: 0,
-    borderColor: MIGRATION.strokeInput,
     paddingHorizontal: 16,
-    paddingTop: 7,
-    alignItems: 'center',
+    paddingTop: 12,
+    gap: 14,
   },
   grabber: {
-    width: 36,
-    height: 5,
-    borderRadius: 9999,
+    width: 48,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: '#333333',
-    marginBottom: 24,
+    alignSelf: 'center',
+    marginBottom: 8,
   },
   title: {
     fontSize: 17,
-    lineHeight: 20,
-    letterSpacing: -0.3,
+    lineHeight: 22,
     color: MIGRATION.textPrimary,
     textAlign: 'center',
-    marginBottom: 8,
+    maxWidth: 340,
+    alignSelf: 'center',
+    marginBottom: 6,
   },
-  subtitle: {
-    fontSize: 12,
-    lineHeight: 16,
-    letterSpacing: 0.12,
-    color: MIGRATION.textTertiary,
-    textAlign: 'center',
-    marginBottom: 20,
+  card: {
+    backgroundColor: MIGRATION.surface1,
+    borderRadius: 16,
+    padding: 24,
   },
-  buttons: {
-    width: '100%',
-    gap: 12,
-  },
-  button: {
+  cardTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    width: '100%',
-    height: MIGRATION.ctaHeight,
-    borderRadius: MIGRATION.radiusPill,
-    backgroundColor: MIGRATION.buttonSecondary,
-    borderWidth: 1,
-    borderColor: MIGRATION.borderExtraLight,
+    gap: 8,
+    marginBottom: 12,
   },
-  buttonLabel: {
-    color: MIGRATION.textPrimary,
-    fontSize: 14,
+  cardTitle: {
+    fontSize: 15,
     lineHeight: 20,
+    color: MIGRATION.textPrimary,
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: MIGRATION.textTertiary,
+  },
+  cardCaption: {
+    fontSize: 10,
+    lineHeight: 14,
+    color: MIGRATION.textTertiary,
+    opacity: 0.7,
+    marginTop: 8,
   },
 })

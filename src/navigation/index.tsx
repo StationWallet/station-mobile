@@ -15,9 +15,6 @@ import AuthNavigator from './AuthNavigator'
 import MigrationNavigator from './MigrationNavigator'
 import { MigrationContext } from './MigrationContext'
 import { getWallets } from 'utils/wallet'
-import { useConfig } from 'lib'
-import { themes } from 'lib/contexts/useTheme'
-import { COLORS } from 'consts/theme'
 import { WalletNavContext } from './hooks'
 import preferences, {
   PreferencesEnum,
@@ -39,8 +36,6 @@ export default function AppNavigator(): React.ReactElement | null {
   const [rootRoute, setRootRoute] = useState<RootRoute | null>(null)
   const [migrationEntry, setMigrationEntry] =
     useState<MigrationEntry>('default')
-  const { theme } = useConfig()
-  const currentTheme = theme.current
 
   // Mirrors rootRoute so start* callbacks can read the current root without
   // being re-memoized on every root change.
@@ -167,11 +162,14 @@ export default function AppNavigator(): React.ReactElement | null {
       ...DefaultTheme,
       colors: {
         ...DefaultTheme.colors,
-        background:
-          themes?.[currentTheme]?.backgroundColor || COLORS.bg,
+        // Hard-code navy so stack transitions don't flash the default
+        // light theme bg (#fafbff) between screens on Android. The
+        // user's theme setting defaulted to 'light' on fresh installs,
+        // which made every navigation look like a white flash.
+        background: '#02122b',
       },
     }),
-    [currentTheme]
+    []
   )
 
   const walletNavValue = useMemo(
