@@ -16,6 +16,7 @@ import {
   StyleSheet,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import Svg, { Path } from 'react-native-svg'
 
@@ -23,12 +24,17 @@ import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
-function ChevronUpIcon(): React.ReactElement {
+function ChevronUpIcon({
+  opacity = 1,
+}: {
+  opacity?: number
+}): React.ReactElement {
   return (
     <Svg width={20} height={12} viewBox="0 0 20 12" fill="none">
       <Path
         d="M2 10L10 2L18 10"
         stroke={MIGRATION.textTertiary}
+        strokeOpacity={opacity}
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -64,6 +70,7 @@ type Nav = StackNavigationProp<MigrationStackParams, 'RiveIntro'>
 
 export default function RiveIntro(): React.ReactElement {
   const navigation = useNavigation<Nav>()
+  const insets = useSafeAreaInsets()
   const navigated = useRef(false)
 
   // Animated values for the exit transition — all native-driver compatible
@@ -227,6 +234,7 @@ export default function RiveIntro(): React.ReactElement {
       <Animated.View
         style={[
           styles.ctaWrap,
+          { paddingBottom: insets.bottom + 16 },
           {
             opacity: textOpacity,
             transform: [{ translateY: textTranslateY }],
@@ -234,17 +242,19 @@ export default function RiveIntro(): React.ReactElement {
         ]}
       >
         <Pressable onPress={goToHome} testID="enter-vultiverse-cta">
-          <Text style={styles.ctaText} fontType="brockmann-semibold">
-            Enter the Vultiverse
-          </Text>
           <Animated.View
             style={[
-              styles.chevron,
+              styles.chevronStack,
               { transform: [{ translateY: chevronBob }] },
             ]}
           >
+            <ChevronUpIcon opacity={0.5} />
+            <View style={styles.chevronSpacer} />
             <ChevronUpIcon />
           </Animated.View>
+          <Text style={styles.ctaText} fontType="brockmann-semibold">
+            Enter the Vultiverse
+          </Text>
         </Pressable>
       </Animated.View>
 
@@ -313,17 +323,21 @@ const styles = StyleSheet.create({
   },
   ctaWrap: {
     alignSelf: 'center',
-    paddingVertical: 12,
+    paddingTop: 12,
     paddingHorizontal: 24,
-    marginBottom: 16,
+    alignItems: 'center',
   },
   ctaText: {
     fontSize: 14,
     color: MIGRATION.textTertiary,
     lineHeight: 18,
+    marginTop: 12,
+    textAlign: 'center',
   },
-  chevron: {
+  chevronStack: {
     alignItems: 'center',
-    marginTop: 16,
+  },
+  chevronSpacer: {
+    height: 4,
   },
 })
