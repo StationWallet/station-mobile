@@ -123,33 +123,50 @@ const App = ({
                   barStyle="light-content"
                   backgroundColor="#02122b"
                 />
-                <KeyboardAvoidingView
-                  behavior={
-                    Platform.OS === 'ios' ? 'padding' : 'height'
-                  }
-                  style={{
-                    ...defaultViewStyle,
-                    backgroundColor: '#02122b',
-                  }}
-                >
-                  {securityCheckFailed && Platform.OS === 'ios' ? (
-                    <View
-                      style={{
-                        flex: 1,
-                      }}
-                    />
-                  ) : (
-                    <>
-                      <AppNavigator />
-                      <GlobalTopNotification />
-                      {config.chain.current.name !== 'mainnet' && (
-                        <DebugBanner
-                          title={config.chain.current.name.toUpperCase()}
-                        />
-                      )}
-                    </>
-                  )}
-                </KeyboardAvoidingView>
+                {/* On Android, rely on windowSoftInputMode=adjustResize from
+                    the manifest — KeyboardAvoidingView here double-handled
+                    the IME resize with the system and left a sticky blank
+                    strip at the bottom after the keyboard closed once. iOS
+                    still needs KAV (no adjustResize equivalent); its
+                    behavior="padding" doesn't have the stickiness. */}
+                {Platform.OS === 'ios' ? (
+                  <KeyboardAvoidingView
+                    behavior="padding"
+                    style={{
+                      ...defaultViewStyle,
+                      backgroundColor: '#02122b',
+                    }}
+                  >
+                    {securityCheckFailed ? (
+                      <View style={{ flex: 1 }} />
+                    ) : (
+                      <>
+                        <AppNavigator />
+                        <GlobalTopNotification />
+                        {config.chain.current.name !== 'mainnet' && (
+                          <DebugBanner
+                            title={config.chain.current.name.toUpperCase()}
+                          />
+                        )}
+                      </>
+                    )}
+                  </KeyboardAvoidingView>
+                ) : (
+                  <View
+                    style={{
+                      ...defaultViewStyle,
+                      backgroundColor: '#02122b',
+                    }}
+                  >
+                    <AppNavigator />
+                    <GlobalTopNotification />
+                    {config.chain.current.name !== 'mainnet' && (
+                      <DebugBanner
+                        title={config.chain.current.name.toUpperCase()}
+                      />
+                    )}
+                  </View>
+                )}
               </SafeAreaProvider>
             </AuthProvider>
           </ConfigProvider>
