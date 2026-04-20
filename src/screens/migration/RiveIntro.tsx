@@ -207,8 +207,8 @@ export default function RiveIntro(): React.ReactElement {
         <View style={styles.walletAnimation} />
       )}
 
-      {/* Flexible space between wallet and text */}
-      <View style={styles.flex1} />
+      {/* Small breathing room between wallet and text */}
+      <View style={styles.spacerSmall} />
 
       {/* Text area — dissolves upward on transition */}
       <Animated.View
@@ -229,6 +229,9 @@ export default function RiveIntro(): React.ReactElement {
           }
         </Text>
       </Animated.View>
+
+      {/* Flexible space pushes text up, leaves CTA at bottom */}
+      <View style={styles.flex1} />
 
       {/* CTA — also dissolves out */}
       <Animated.View
@@ -301,6 +304,9 @@ const styles = StyleSheet.create({
   },
   flex1: {
     flex: 1,
+  },
+  spacerSmall: {
+    height: 24,
   },
   textArea: {
     paddingHorizontal: 40,
