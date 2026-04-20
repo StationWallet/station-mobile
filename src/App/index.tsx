@@ -123,50 +123,36 @@ const App = ({
                   barStyle="light-content"
                   backgroundColor="#02122b"
                 />
-                {/* On Android, rely on windowSoftInputMode=adjustResize from
-                    the manifest — KeyboardAvoidingView here double-handled
-                    the IME resize with the system and left a sticky blank
-                    strip at the bottom after the keyboard closed once. iOS
-                    still needs KAV (no adjustResize equivalent); its
-                    behavior="padding" doesn't have the stickiness. */}
-                {Platform.OS === 'ios' ? (
-                  <KeyboardAvoidingView
-                    behavior="padding"
-                    style={{
-                      ...defaultViewStyle,
-                      backgroundColor: '#02122b',
-                    }}
-                  >
-                    {securityCheckFailed ? (
-                      <View style={{ flex: 1 }} />
-                    ) : (
-                      <>
-                        <AppNavigator />
-                        <GlobalTopNotification />
-                        {config.chain.current.name !== 'mainnet' && (
-                          <DebugBanner
-                            title={config.chain.current.name.toUpperCase()}
-                          />
-                        )}
-                      </>
-                    )}
-                  </KeyboardAvoidingView>
-                ) : (
-                  <View
-                    style={{
-                      ...defaultViewStyle,
-                      backgroundColor: '#02122b',
-                    }}
-                  >
-                    <AppNavigator />
-                    <GlobalTopNotification />
-                    {config.chain.current.name !== 'mainnet' && (
-                      <DebugBanner
-                        title={config.chain.current.name.toUpperCase()}
-                      />
-                    )}
-                  </View>
-                )}
+                {/* Use behavior="padding" on both platforms. "height" on
+                    Android double-handled the IME resize with
+                    windowSoftInputMode=adjustResize from the manifest, and
+                    when the keyboard closed the KAV's own animated height
+                    didn't fully restore — leaving a sticky blank strip for
+                    the rest of the app's lifetime. "padding" adds an
+                    animated paddingBottom instead of shrinking the view,
+                    so there's no layout race with the system and the
+                    padding always animates cleanly back to 0 on IME hide. */}
+                <KeyboardAvoidingView
+                  behavior="padding"
+                  style={{
+                    ...defaultViewStyle,
+                    backgroundColor: '#02122b',
+                  }}
+                >
+                  {securityCheckFailed && Platform.OS === 'ios' ? (
+                    <View style={{ flex: 1 }} />
+                  ) : (
+                    <>
+                      <AppNavigator />
+                      <GlobalTopNotification />
+                      {config.chain.current.name !== 'mainnet' && (
+                        <DebugBanner
+                          title={config.chain.current.name.toUpperCase()}
+                        />
+                      )}
+                    </>
+                  )}
+                </KeyboardAvoidingView>
               </SafeAreaProvider>
             </AuthProvider>
           </ConfigProvider>
