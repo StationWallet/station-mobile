@@ -39,6 +39,7 @@ import { advanceToNextWallet } from 'utils/migrationNav'
 import { exportVaultShare } from 'services/exportVaultShare'
 import VaultSharing from '../../../modules/vault-sharing'
 import { getErrorMessage } from 'utils/getErrorMessage'
+import { useKeyboardVisible } from 'hooks/useKeyboardVisible'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'BackupVault'>
@@ -120,6 +121,7 @@ export default function BackupVault(): React.ReactElement {
     mode,
   } = route.params
 
+  const keyboardVisible = useKeyboardVisible()
   const [step, setStep] = useState<BackupStep>('options')
   const [understood, setUnderstood] = useState(false)
   const [backupPassword, setBackupPassword] = useState('')
@@ -251,7 +253,10 @@ export default function BackupVault(): React.ReactElement {
         </View>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior="padding"
+          keyboardVerticalOffset={
+            Platform.OS === 'android' && keyboardVisible ? -100 : 0
+          }
         >
           <View style={styles.passwordBody}>
             <Text
@@ -266,6 +271,8 @@ export default function BackupVault(): React.ReactElement {
               placeholderTextColor={MIGRATION.textInputPlaceholder}
               secureTextEntry
               autoFocus
+              autoCapitalize="none"
+              autoCorrect={false}
               value={backupPassword}
               onChangeText={(t): void => {
                 setBackupPassword(t)
@@ -278,6 +285,8 @@ export default function BackupVault(): React.ReactElement {
               placeholder="Verify password"
               placeholderTextColor={MIGRATION.textInputPlaceholder}
               secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
               value={confirmPassword}
               onChangeText={(t): void => {
                 setConfirmPassword(t)
