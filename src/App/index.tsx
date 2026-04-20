@@ -4,6 +4,7 @@ import {
   LogBox,
   View,
   StatusBar,
+  Keyboard,
   KeyboardAvoidingView,
 } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
@@ -102,6 +103,27 @@ const App = ({
     flex: 1,
   }
 
+  // Track keyboard visibility so the root KeyboardAvoidingView can drop its
+  // vertical offset to -100 on Android while the IME is up. Android 15
+  // edge-to-edge + windowSoftInputMode=adjustResize + KAV behavior="padding"
+  // double-pad the bottom by a small margin that stays even after the IME
+  // animates out; the conditional offset cancels the extra chrome while the
+  // keyboard is visible, then returns to 0 on hide so the layout doesn't
+  // end up with a sticky gap at the bottom of the app.
+  const [keyboardVisible, setKeyboardVisible] = useState(false)
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true)
+    )
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false)
+    )
+    return (): void => {
+      showSub.remove()
+      hideSub.remove()
+    }
+  }, [])
+
   return (
     <>
       {ready && (
@@ -134,6 +156,9 @@ const App = ({
                     padding always animates cleanly back to 0 on IME hide. */}
                 <KeyboardAvoidingView
                   behavior="padding"
+                  keyboardVerticalOffset={
+                    Platform.OS === 'android' && keyboardVisible ? -100 : 0
+                  }
                   style={{
                     ...defaultViewStyle,
                     backgroundColor: '#02122b',
