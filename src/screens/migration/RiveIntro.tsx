@@ -324,6 +324,6 @@ const styles = StyleSheet.create({
   },
   chevron: {
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 16,
   },
 })
