@@ -237,7 +237,7 @@ export default function RiveIntro(): React.ReactElement {
       <Animated.View
         style={[
           styles.ctaWrap,
-          { paddingBottom: insets.bottom + 16 },
+          { paddingBottom: insets.bottom + 32 },
           {
             opacity: textOpacity,
             transform: [{ translateY: textTranslateY }],
