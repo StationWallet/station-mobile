@@ -15,10 +15,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { getDecyrptedKey } from 'utils/wallet'
-import {
-  exportVaultShare,
-  shareVaultFile,
-} from 'services/exportVaultShare'
+import { exportVaultShare } from 'services/exportVaultShare'
+import VaultSharing from '../../modules/vault-sharing'
 import { isVaultFastVault } from 'services/migrateToVault'
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -98,7 +96,7 @@ export default function ExportPrivateKey(): React.ReactElement {
           exportPassword,
           isFastVault ? undefined : privateKey ?? undefined
         )
-        await shareVaultFile(fileUri)
+        await VaultSharing.shareAsync(fileUri)
         setShowExportForm(false)
         setExportPassword('')
       } catch (e) {

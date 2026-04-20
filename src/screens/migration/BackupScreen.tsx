@@ -36,10 +36,8 @@ import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { formStyles } from 'components/migration/migrationStyles'
 import { MIGRATION } from 'consts/migration'
 import { advanceToNextWallet } from 'utils/migrationNav'
-import {
-  exportVaultShare,
-  shareVaultFile,
-} from 'services/exportVaultShare'
+import { exportVaultShare } from 'services/exportVaultShare'
+import VaultSharing from '../../../modules/vault-sharing'
 import { getErrorMessage } from 'utils/getErrorMessage'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
@@ -161,14 +159,14 @@ export default function BackupVault(): React.ReactElement {
     setExporting(true)
     try {
       const fileUri = await exportVaultShare(walletName, password)
-      // shareVaultFile resolves even when the user cancels the share
-      // sheet on iOS — there's no first-class "completed" signal from
-      // expo-sharing, so we optimistically advance. On Android cancel
-      // behaves the same. If we later want the stricter gate from
-      // vultiagent-app, swap to a native module that exposes the
-      // UIActivityViewController completion handler.
-      await shareVaultFile(fileUri)
-      await afterShare(true)
+      // VaultSharing.shareAsync uses ACTION_CREATE_DOCUMENT on Android
+      // (Storage Access Framework "save as") and a proper
+      // UIActivityViewController completion handler on iOS, so we get a
+      // real `completed` signal — the user must either save the file or
+      // explicitly cancel. On cancel we bounce back to the retry alert;
+      // on save we advance to MigrationSuccess.
+      const result = await VaultSharing.shareAsync(fileUri)
+      await afterShare(result.completed)
     } catch (err) {
       Alert.alert('Backup failed', getErrorMessage(err))
     } finally {

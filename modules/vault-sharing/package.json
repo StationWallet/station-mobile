@@ -1,0 +1,7 @@
+{
+  "name": "vault-sharing",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "private": true,
+  "description": "Native module for sharing vault backups with completion callbacks"
+}
