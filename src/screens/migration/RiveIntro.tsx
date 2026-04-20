@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingVertical: 12,
     paddingHorizontal: 24,
-    marginBottom: 60,
+    marginBottom: 16,
   },
   ctaText: {
     fontSize: 14,
