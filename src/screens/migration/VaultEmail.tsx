@@ -1,11 +1,5 @@
 import React, { useState } from 'react'
-import {
-  View,
-  StyleSheet,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native'
+import { View, StyleSheet, TextInput } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
@@ -48,10 +42,7 @@ export default function VaultEmail(): React.ReactElement {
 
   return (
     <View style={formStyles.container}>
-      <KeyboardAvoidingView
-        style={formStyles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={formStyles.flex}>
         <View style={{ paddingTop: insets.top }}>
           <MigrationToolbar onBack={() => navigation.goBack()} />
         </View>
@@ -115,7 +106,7 @@ export default function VaultEmail(): React.ReactElement {
             containerStyle={formStyles.ctaButton}
           />
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </View>
   )
 }
