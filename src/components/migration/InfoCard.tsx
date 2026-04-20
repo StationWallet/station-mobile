@@ -134,13 +134,9 @@ export default function InfoCard({
             </Text>
 
             <Text fontType="brockmann-medium" style={styles.body}>
-              Early explorers get{' '}
+              Be an early explorer and increase your chance for{' '}
               <Text fontType="brockmann-bold" style={styles.bodyBold}>
-                Station OG
-              </Text>{' '}
-              status and a{' '}
-              <Text fontType="brockmann-bold" style={styles.bodyBold}>
-                $VULT airdrop
+                rewards
               </Text>
               .
             </Text>
