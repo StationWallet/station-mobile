@@ -1,6 +1,12 @@
-import React, { useCallback, useRef, useState } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import {
   Animated,
+  Easing,
   NativeModules,
   PanResponder,
   PixelRatio,
@@ -10,11 +16,32 @@ import {
   StyleSheet,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { StackNavigationProp } from '@react-navigation/stack'
+import Svg, { Path } from 'react-native-svg'
 
 import Text from 'components/Text'
 import { MIGRATION } from 'consts/migration'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
+
+function ChevronUpIcon({
+  opacity = 1,
+}: {
+  opacity?: number
+}): React.ReactElement {
+  return (
+    <Svg width={20} height={12} viewBox="0 0 20 12" fill="none">
+      <Path
+        d="M2 10L10 2L18 10"
+        stroke={MIGRATION.textTertiary}
+        strokeOpacity={opacity}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  )
+}
 
 // Skip Rive only under Detox — its native runtime keeps the iOS main
 // run loop busy, blocking Detox idle detection. Normal dev mode loads it.
@@ -43,6 +70,7 @@ type Nav = StackNavigationProp<MigrationStackParams, 'RiveIntro'>
 
 export default function RiveIntro(): React.ReactElement {
   const navigation = useNavigation<Nav>()
+  const insets = useSafeAreaInsets()
   const navigated = useRef(false)
 
   // Animated values for the exit transition — all native-driver compatible
@@ -54,6 +82,32 @@ export default function RiveIntro(): React.ReactElement {
 
   // Show the background Rive only after gesture starts
   const [showBgTransition, setShowBgTransition] = useState(false)
+
+  // Looping bob for the swipe-up hint chevron
+  const chevronBob = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(chevronBob, {
+          toValue: -6,
+          duration: 700,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(chevronBob, {
+          toValue: 0,
+          duration: 700,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    )
+    loop.start()
+    return (): void => {
+      loop.stop()
+    }
+  }, [chevronBob])
 
   const goToHome = useCallback(() => {
     if (navigated.current) return
@@ -154,7 +208,7 @@ export default function RiveIntro(): React.ReactElement {
       )}
 
       {/* Flexible space between wallet and text */}
-      <View style={styles.flex1} />
+      <View style={styles.spacerMid} />
 
       {/* Text area — dissolves upward on transition */}
       <Animated.View
@@ -176,10 +230,14 @@ export default function RiveIntro(): React.ReactElement {
         </Text>
       </Animated.View>
 
+      {/* Flexible space pushes text up, leaves CTA at bottom */}
+      <View style={styles.flex1} />
+
       {/* CTA — also dissolves out */}
       <Animated.View
         style={[
           styles.ctaWrap,
+          { paddingBottom: insets.bottom + 32 },
           {
             opacity: textOpacity,
             transform: [{ translateY: textTranslateY }],
@@ -187,6 +245,16 @@ export default function RiveIntro(): React.ReactElement {
         ]}
       >
         <Pressable onPress={goToHome} testID="enter-vultiverse-cta">
+          <Animated.View
+            style={[
+              styles.chevronStack,
+              { transform: [{ translateY: chevronBob }] },
+            ]}
+          >
+            <ChevronUpIcon opacity={0.5} />
+            <View style={styles.chevronSpacer} />
+            <ChevronUpIcon />
+          </Animated.View>
           <Text style={styles.ctaText} fontType="brockmann-semibold">
             Enter the Vultiverse
           </Text>
@@ -237,6 +305,9 @@ const styles = StyleSheet.create({
   flex1: {
     flex: 1,
   },
+  spacerMid: {
+    flex: 1.2,
+  },
   textArea: {
     paddingHorizontal: 40,
     alignItems: 'center',
@@ -258,13 +329,21 @@ const styles = StyleSheet.create({
   },
   ctaWrap: {
     alignSelf: 'center',
-    paddingVertical: 12,
+    paddingTop: 12,
     paddingHorizontal: 24,
-    marginBottom: 60,
+    alignItems: 'center',
   },
   ctaText: {
     fontSize: 14,
     color: MIGRATION.textTertiary,
     lineHeight: 18,
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  chevronStack: {
+    alignItems: 'center',
+  },
+  chevronSpacer: {
+    height: 4,
   },
 })
