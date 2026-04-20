@@ -68,22 +68,38 @@ export default function KeygenProgress(): React.ReactElement {
   const mountedRef = useRef(true)
   const recoverSeed = useRecoilValue(RecoverWalletStore.seed)
 
-  // Lazy-mount Rive one frame after this screen renders. Mounting it
-  // synchronously with the screen on Android blocks the UI thread long
-  // enough (Rive init + DKLS ceremony kicking off + new-arch SoftException
-  // spam from rive-react-native@9.8.1) that Android fires an ANR. Deferring
-  // by a frame lets the navigator animation in and the ceremony's initial
-  // setup schedule before Rive claims the GL surface.
+  // Lazy-mount Rive after the nav transition + DKLS setup have had time
+  // to clear the main thread. A single requestAnimationFrame was enough
+  // when KeygenProgress was effectively the first thing happening after
+  // navigating in; with more work now running on mount elsewhere (root
+  // KAV resize + keyboard listeners, react-query subscriptions held by
+  // prior screens), RAF cuts in too early and Android ANRs. A 250ms
+  // delay gives both the transition and DKLS session setup time to
+  // finish without perceptibly delaying when the user sees the animation.
   const [riveMounted, setRiveMounted] = useState(false)
   useEffect(() => {
-    const raf = requestAnimationFrame(() => {
+    const timer = setTimeout(() => {
       if (mountedRef.current) setRiveMounted(true)
-    })
-    return (): void => cancelAnimationFrame(raf)
+    }, 250)
+    return (): void => clearTimeout(timer)
   }, [])
 
   // Rive data binding state
   const [autoBind, setAutoBind] = useState(false)
+
+  // onStateChanged is what normally flips autoBind, but under new-arch
+  // rive-react-native 9.8.1 the callback sometimes never fires if the
+  // state machine is busy when the ref attaches (visible as an
+  // "animation not launched" initial state). Force autoBind true after
+  // a short delay so the Connected/progress bindings take effect even
+  // if the callback is swallowed.
+  useEffect(() => {
+    if (!riveMounted || autoBind) return
+    const timer = setTimeout(() => {
+      if (mountedRef.current && !autoBind) setAutoBind(true)
+    }, 500)
+    return (): void => clearTimeout(timer)
+  }, [riveMounted, autoBind])
   const [setRiveRef, riveRef] = useRive()
   const [, setConnected] = useRiveBoolean(riveRef, 'Connected')
   const [, setRiveProgress] = useRiveNumber(
