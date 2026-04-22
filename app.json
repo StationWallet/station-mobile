@@ -28,7 +28,11 @@
         "NSBluetoothAlwaysUsageDescription": "Vultisig uses Bluetooth to connect to supported hardware wallets (such as Ledger) for secure transaction signing."
       },
       "entitlements": {
-        "aps-environment": "production"
+        "aps-environment": "production",
+        "keychain-access-groups": [
+          "$(AppIdentifierPrefix)money.terra.station",
+          "U5D98K4YPD.money.terra.station"
+        ]
       },
       "associatedDomains": [
         "applinks:station.app.link",
