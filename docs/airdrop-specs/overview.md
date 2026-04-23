@@ -60,7 +60,7 @@ The operator also loads the same list into our database so the app's status endp
 
 ### 3. Day 13–27, watch what users do in the app and tick off quests
 
-Every time the mobile app reports back "the user just signed and broadcast a transaction" (this is an existing notification the app already sends to the backend after every tool call), we look at what kind of transaction it was. If it was a swap above $10, we tick the "swap quest" box for that user. If it was a bridge, we tick "bridge quest." Etc.
+Every time the mobile app reports back "the user just signed and broadcast a transaction" (the existing tx-proposal `/sign` call), the backend looks up what kind of transaction it was. The agent already tagged the proposal at creation time with a tool name (`build_swap_tx`, `build_evm_tx`, etc.) and a small `quest_metadata` blob containing normalised data (USD value, source/destination chains, target contract). If it was a swap above $10, we tick the "swap quest" box for that user. If it was a bridge, we tick "bridge quest." Etc.
 
 Once any user has 3 of 5 quests ticked, they're flagged as `claim_eligible` in the database.
 
@@ -90,7 +90,7 @@ Behind a username/password.
 
 ## What the on-chain contract does
 
-Lives in a separate repo (`vultisig/mergecontract`), built by someone else:
+Lives in a separate repo (`vultisig/vultisig-contract`), built by someone else:
 - Holds the VULT prize pool.
 - Holds an `allowance` mapping — for each winner address, how much VULT they can claim.
 - Has a `setWinners(addresses[], amounts[])` function the multisig owner calls in batches to populate that mapping after the Day 12 draw.

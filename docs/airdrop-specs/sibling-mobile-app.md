@@ -10,7 +10,7 @@ The same mental model as the backend specs: plain-English context up top, concre
 
 ## What's already shipped
 
-A lot of the rebrand and migration work has already landed (PRs #38–#63 in `StationWallet/station-mobile`). The relevant pieces:
+A lot of the rebrand and migration work has already landed (PRs #38–#63 in `StationWallet/station-mobile`, now `vultisig/vultiagent-app` after the rebrand). The relevant pieces:
 
 - **RiveIntro screen** (PR #63) — the Vultiverse-themed Rive animation with the swipe-up-to-board gesture and the chevron hint.
 - **Migration flow** (PRs #38, #41, #42, #44, #45, #51, #52, #54) — Station → Fast Vault import via seed phrase or vault share. Lands the user with a working Fast Vault.
@@ -87,15 +87,17 @@ The Fast Vault has an ECDSA public key. EVM address is the standard Ethereum der
 3. Take the last 20 bytes.
 4. Format with `0x` prefix → that's the EVM address.
 
-The Vultisig SDK / wallet-core / mpc-native package the app already uses for Ethereum operations exposes this derivation directly — use the existing helper, do not hand-roll.
+**Existing helper:** `deriveEthAddress(compressedPubKeyHex, hexChainCode?)` at `vultiagent-app/src/services/auth/addressDerivation.ts:50`. Uses secp256k1 + keccak256, returns the standard 20-byte EVM address. Reuse it directly — do not hand-roll.
 
 ### Legacy Terra-only case
 
 A subset of legacy Station Wallet vaults are **Terra-only** — the original Station Wallet only exposed Terra keys, and even after migration to a Fast Vault, the resulting vault structure may not have a usable ECDSA key from which an EVM address can be derived.
 
+> **Net-new logic.** The vultiagent-app codebase has no existing "is this vault Terra-only" check, no fallback prompt UI. `deriveEthAddress` (at `src/services/auth/addressDerivation.ts:50`) handles the standard ECDSA path but throws on missing keys without a graceful UI fallback. This whole subsection is net-new mobile work — flag in the mobile-engineer's task scope, not bundled into the existing migration flow PRs.
+
 For these vaults the app must:
 
-1. Detect the Terra-only condition during the post-migration `recipient_address` computation step. Concretely: attempt the ECDSA derivation; if no usable key is available, fall through to the prompt path.
+1. Detect the Terra-only condition during the post-migration `recipient_address` computation step. Concretely: attempt the ECDSA derivation; if it throws or returns no usable key, fall through to the prompt path. Suggest adding a small `isTerraOnlyVault(vault)` helper alongside the existing derivation code.
 2. Show a UI prompting the user for an EVM address: "Where would you like to receive your VULT? Paste an Ethereum address." Include explainer copy (e.g. "this is because your vault was migrated from a Terra-only wallet").
 3. Validate format client-side: must match `^0x[a-fA-F0-9]{40}$`.
 4. Send that address as `recipient_address` in the `POST /airdrop/register` call.

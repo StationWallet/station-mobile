@@ -14,7 +14,7 @@ The contract is the source of truth for who's a winner. The backend's `agent_raf
 
 1. Boarding window closes at `TRANSITION_WINDOW_END`.
 2. Operator runs `airdrop-raffle draw --seed <int>`. CLI emits `winners.csv` and `manifest.json` to a local output directory.
-3. Operator commits the artifact directory to a private ops repo (or `vultisig/mergecontract`) for durability + audit trail.
+3. Operator commits the artifact directory to a private ops repo (or `vultisig/vultisig-contract`) for durability + audit trail.
 4. Operator hands `winners.csv` to the multisig signer.
 5. Multisig signer reviews the CSV (row count, eyeball spot-check), splits it into batches of ~100, and calls `AirdropClaim.setWinners(addresses, amounts)` once per batch (~7 txs total for 700 winners).
 6. Operator runs `airdrop-raffle load-winners --output-dir <dir>`. Inserts every winner into `agent_raffle_winners` in a single transaction. Stage 1's `/airdrop/status` endpoint immediately starts returning `won` / `lost` to all users.
@@ -35,6 +35,20 @@ This is "trust Vultisig but verifiable after the fact" rather than "trustless vi
 ## Recipient address
 
 `recipient` for each winner is read directly from `agent_airdrop_registrations.recipient_address` — the column is `NOT NULL`, captured client-side at registration time (see Stage 1). The CLI never derives, never inspects vault internals, never falls back. If the registration row is missing for some reason, that's a hard error.
+
+### Correcting a wrong winner address
+
+If a winner's recipient address turns out to be wrong (mobile-app derivation bug, user complaint about a typo, lost wallet), the multisig can fix it by calling `setWinners([wrongWinnerAddress, correctWinnerAddress], [0, originalAmount])`. Setting the wrong address's allowance to 0 effectively revokes it; setting the new address's allowance to the original amount re-arms the claim there. The relayer then sees the corrected address on next claim.
+
+This works because `setWinners` is repeatable and doesn't track who's been "officially registered" beyond the mapping itself. The operational guard is the multisig's own checklist: never re-arm an already-claimed address (ops should diff against confirmed `Claimed` events on Etherscan before re-running setWinners).
+
+After correcting on-chain, also update the local `agent_raffle_winners` row with the new `recipient` so the `/airdrop/status` response matches:
+
+```sql
+UPDATE agent_raffle_winners SET recipient = '0xCORRECT' WHERE public_key = 'pk1';
+```
+
+A small `airdrop-raffle update-recipient --public-key X --new-recipient 0xY` subcommand could wrap this; deferred until ops actually hits the case.
 
 ---
 
@@ -139,7 +153,7 @@ No `leaf` or `proof[]` columns — those were Merkle artifacts and are gone.
 
 No new env vars. All inputs are CLI flags so the same binary can target dev / staging / prod by varying the flags rather than swapping config.
 
-Artifact durability is achieved by the operator committing the output directory to a private ops repo (or `vultisig/mergecontract`) after the draw — same audit trail as a versioned bucket, no AWS dependency in the CLI.
+Artifact durability is achieved by the operator committing the output directory to a private ops repo (or `vultisig/vultisig-contract`) after the draw — same audit trail as a versioned bucket, no AWS dependency in the CLI.
 
 ---
 
@@ -170,7 +184,7 @@ This is a CLI, not a service — no Prometheus surface. Observability is:
 - `verify-onchain` against an Anvil-deployed `AirdropClaim` with full + matching mapping → all pass.
 - `verify-onchain` against an Anvil-deployed `AirdropClaim` with deliberately-missing entries → reports the gaps non-zero.
 
-**End-to-end (with `mergecontract`):**
+**End-to-end (with `vultisig-contract`):**
 - `draw` → operator splits `winners.csv` and calls `setWinners` in batches against a Foundry-deployed `AirdropClaim.sol` → `verify-onchain` passes → `load-winners` → claim flow (Stage 4) succeeds for a sample winner.
 
 ---
@@ -200,7 +214,7 @@ No more `leaf_encoding.go`, `merkle.go`. Both deleted along with the cross-langu
 ## Open dependencies
 
 - **Stage 0 — `slot_count` and `vult_amount` decisions locked.** These are CLI flags; without locked values the CLI can run against placeholders in dev but won't ship to mainnet.
-- **Stage 0 — private ops repo (or `mergecontract`) available to the operator** for committing artifact directories post-draw.
+- **Stage 0 — private ops repo (or `vultisig-contract`) available to the operator** for committing artifact directories post-draw.
 - **Stage 1 — `recipient_address` column populated.** Done — see Stage 1 spec.
 - **Stage 4 — relayer reads `agent_raffle_winners`.** This spec defines the table; Stage 4 spec consumes it.
 - **`AirdropClaim.sol` deployed and `setWinners` callable** by the multisig before Day 28. The `verify-onchain` subcommand depends on the contract being live.
