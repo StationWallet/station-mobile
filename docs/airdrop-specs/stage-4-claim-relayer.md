@@ -32,7 +32,6 @@ Concurrency model: claim handlers serialize through `SELECT FOR UPDATE` on the r
 |---|---|
 | `POST /airdrop/claim` | JWT (existing middleware) |
 | `GET /internal/relayer/*` | `X-Internal-Token` header (same secret as quest endpoints) |
-| `POST /internal/relayer/rebroadcast` | `X-Internal-Token` |
 | `GET /ops/*`, `POST /ops/*` | HTTP Basic Auth via `OPS_USERNAME` + `OPS_PASSWORD` env vars |
 
 ---
@@ -49,7 +48,7 @@ POST /airdrop/claim
 Authorization: Bearer <jwt>
 ```
 
-Empty body. Public key from JWT, recipient + amount + proof from `agent_raffle_proofs` lookup.
+Empty body. Public key from JWT, recipient + amount from `agent_raffle_winners` lookup. (Recipient + amount are also the source of truth on-chain via the contract's `allowance(recipient)` mapping; the local table is what the relayer reads to build calldata.)
 
 **Response — 200 (fresh submission):**
 ```json
@@ -96,9 +95,9 @@ Empty body. Public key from JWT, recipient + amount + proof from `agent_raffle_p
 6. `SELECT ... FROM agent_relayer_state WHERE id = 1 FOR UPDATE` — serializes all claim handlers.
 7. `SELECT * FROM agent_claim_submissions WHERE public_key = ? AND status IN ('submitted', 'confirmed')`. If a row exists, COMMIT and return it (idempotent retry).
 8. `next_nonce = relayer_state.next_nonce`.
-9. Fetch `(recipient, amount, proof)` from `agent_raffle_proofs WHERE public_key = ?`.
+9. Fetch `(recipient, amount)` from `agent_raffle_winners WHERE public_key = ?`. (No proof — the contract's allowance mapping is the source of truth on-chain.)
 10. Query EVM RPC for current gas estimates: `eth_maxPriorityFeePerGas` for tip, latest block's `baseFeePerGas` for the base. `maxFeePerGas = 2 * baseFee + tip` (standard padded formula).
-11. Build the calldata for `AirdropClaim.claim(merkleProof[], amount, recipient)`. Exact ABI from `mergecontract`.
+11. Build the calldata for `AirdropClaim.claim(recipient)`. Exact ABI from `mergecontract`. The `amount` is already locked in the contract's allowance; we record it locally only for display in the status response.
 12. Build EIP-1559 tx with `next_nonce`, gas params from step 10, calldata, chain ID from `EVM_CHAIN_ID`.
 13. Sign the tx via AWS KMS `Sign` with `KMS_RELAYER_KEY_ARN`. Convert returned DER signature to EVM `(r, s, v)` and assemble the signed tx bytes.
 14. Broadcast via RPC (`eth_sendRawTransaction`).
@@ -165,42 +164,7 @@ The eligibility check in step 4 calls the shared `eligibility.go` helper from St
 
 Sorted by `minutes_pending` descending. Empty array (count: 0) is the healthy state.
 
-### `POST /internal/relayer/rebroadcast`
-
-**Purpose:** ops manually re-submits a stuck claim with bumped gas.
-
-**Request:**
-```http
-POST /internal/relayer/rebroadcast
-X-Internal-Token: <secret>
-Content-Type: application/json
-
-{ "public_key": "...", "bump_gwei": 50 }
-```
-
-`bump_gwei` is added to both `maxPriorityFeePerGas` and `maxFeePerGas` of the previous attempt. Default 50 if omitted.
-
-**Response — 200:**
-```json
-{
-  "new_tx_hash": "0x...",
-  "previous_tx_hash": "0x...",
-  "new_max_fee_gwei": 100,
-  "new_max_priority_fee_gwei": 52,
-  "nonce": 17
-}
-```
-
-**Errors:**
-
-| Status | Body | When |
-|---|---|---|
-| 401 | `{"error":"UNAUTHORIZED"}` | Missing/wrong `X-Internal-Token` |
-| 404 | `{"error":"CLAIM_NOT_FOUND"}` | No `claim_submissions` row for `public_key` |
-| 400 | `{"error":"CLAIM_NOT_STUCK","status":"confirmed"}` | The claim has already confirmed — no rebroadcast needed |
-| 503 | `{"error":"RPC_UNAVAILABLE"}` | RPC failed |
-
-**Behavior:** read existing row, sign new EIP-1559 tx with **same nonce** + bumped fees, broadcast, append previous `tx_hash` to a `previous_tx_hashes` array column, update `tx_hash` + gas fields. The old tx and new tx race in the mempool — whichever lands first wins, both share the same nonce so only one can confirm.
+Rebroadcast lives on the operator UI surface only — see `POST /ops/rebroadcast` below. There's no separate `/internal/relayer/rebroadcast` endpoint; one form handler over Basic Auth covers both browser ops and curl-from-script use.
 
 ---
 
@@ -213,9 +177,9 @@ Server-rendered HTML pages using Go's `html/template`. No JS build, no client-si
 | `GET /ops` | Landing page. Links to balance, stuck-claims. Shows last-refreshed time. |
 | `GET /ops/balance` | Renders the JSON output of `/internal/relayer/balance` as a styled table. Auto-refreshes every 30s via `<meta http-equiv="refresh">`. Big red banner if `low_balance_warning`. |
 | `GET /ops/stuck-claims` | Table of `/internal/relayer/stuck-claims` output. Each row has a "Rebroadcast (+50 gwei)" button. |
-| `POST /ops/rebroadcast` | Form handler. Submits `{public_key, bump_gwei}` to the internal endpoint. Renders a success/error page with the new tx hash + Etherscan link. |
+| `POST /ops/rebroadcast` | Form handler. Reads `{public_key, bump_gwei}` (default 50). Calls the rebroadcast service in-process: sign new EIP-1559 tx with **same nonce** + bumped fees, broadcast, append previous `tx_hash` to `previous_tx_hashes`, update `tx_hash` + gas fields. Returns 404 if no row, 400 if already confirmed, 503 if RPC failed. Renders a success/error page with the new tx hash + Etherscan link. The old tx and new tx race in the mempool — both share the same nonce so only one can confirm. |
 
-The ops pages call the `/internal/*` endpoints in-process (with the same `X-Internal-Token` from config). No new business logic — UI is a thin layer over the internal API.
+The two `GET` ops pages call the matching `/internal/*` endpoints in-process (with the same `X-Internal-Token` from config). The rebroadcast page calls the rebroadcast service directly — no internal HTTP roundtrip.
 
 Templates in `internal/api/ops/templates/`. CSS inlined into `<style>` blocks (no separate static asset pipeline). One Go file per route.
 
@@ -275,12 +239,14 @@ CREATE INDEX idx_claim_submissions_pending
 -- Relayer wallet nonce + general state
 CREATE TABLE agent_relayer_state (
     id           INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),                       -- singleton
-    next_nonce   BIGINT          NOT NULL,                                       -- starts at the on-chain value at deploy time
+    next_nonce   BIGINT,                                                         -- NULL until first boot reads it from the chain
     last_synced  TIMESTAMPTZ     NOT NULL DEFAULT NOW()
 );
 
-INSERT INTO agent_relayer_state (id, next_nonce) VALUES (1, 0);                  -- ops sets to actual on-chain nonce before going live
+INSERT INTO agent_relayer_state (id) VALUES (1);                                 -- next_nonce auto-populated on first boot
 ```
+
+On service boot, if `next_nonce` is NULL the relayer queries `eth_getTransactionCount(relayer_address, 'pending')` and writes the result inside a `SELECT FOR UPDATE` transaction. Subsequent boots no-op. Removes the manual `psql UPDATE` that would otherwise be a Day 28 footgun.
 
 `previous_tx_hashes` preserves the audit trail across rebroadcasts. `nonce UNIQUE` is the database-level guard against accidental nonce reuse (anywhere — across all users). The partial unique index on `(public_key)` enforces the "one claim per user" invariant. The `(submitted_at) WHERE status='submitted'` partial index makes the monitor's scan O(unconfirmed) rather than O(all_claims).
 
@@ -301,8 +267,6 @@ INSERT INTO agent_relayer_state (id, next_nonce) VALUES (1, 0);                 
 | `CONFIRMATION_POLL_INTERVAL_SECONDS` | int, default 15 | How often the monitor checks for receipts. |
 | `OPS_USERNAME` / `OPS_PASSWORD` | strings | HTTP Basic Auth credentials for the operator UI. |
 | `INTERNAL_API_KEY` | string secret | (Reused from Stage 3.) `X-Internal-Token` header value. |
-
-Initial nonce setup at deploy time: ops queries `eth_getTransactionCount(relayer_address, 'pending')` from the same RPC and writes that value into `agent_relayer_state.next_nonce` via a `psql` UPDATE. Documented in the Day 28 runbook.
 
 ---
 
@@ -339,15 +303,15 @@ A Prometheus alert on `airdrop_relayer_eth_balance_wei < 0.5e18` pages ops.
 - KMS DER → EVM signature: golden test against a known-good signature.
 
 **Integration (real Postgres + LocalStack KMS + Anvil mainnet fork):**
-- Full path: synthetic raffle-proofs row → quest fixtures making user eligible → POST /airdrop/claim → tx confirms on Anvil → confirmation monitor flips status → next status request shows `already_claimed: true`.
+- Full path: synthetic raffle-winners row + on-chain `setWinners` call to Anvil → quest fixtures making user eligible → POST /airdrop/claim → tx confirms on Anvil → confirmation monitor flips status → next status request shows `already_claimed: true`.
 - Restart-safety: kill the service after the broadcast UPDATE but before… (well, the broadcast and UPDATE are in one txn, so there's no in-between state). Test instead: kill the service immediately after broadcast (one tx in `submitted` state in DB), restart, observe monitor pick up the submitted row on its first tick and confirm against Anvil.
 - Concurrency: 50 concurrent /airdrop/claim calls for 50 distinct eligible users → 50 distinct nonces, 50 distinct tx hashes, no DB constraint violations, all submitted within ~50 seconds.
 - Concurrency: 50 concurrent /airdrop/claim calls for the same user → exactly one tx submitted, 49 idempotent-retry responses with the same tx_hash.
-- Stuck-tx flow: tx broadcast at low gas → never confirms → `/internal/relayer/stuck-claims` lists it → `POST /internal/relayer/rebroadcast` with bump → new tx confirms → original is dropped (same nonce).
+- Stuck-tx flow: tx broadcast at low gas → never confirms → `/internal/relayer/stuck-claims` lists it → `POST /ops/rebroadcast` form with bump → new tx confirms → original is dropped (same nonce).
 - Balance endpoint returns expected values; low-balance threshold flips the warning.
 
 **End-to-end (with `mergecontract`):**
-- Drawn root submitted to Foundry-deployed `AirdropClaim.sol` → KMS-signed attestation issued by Stage 3 → claim submitted by Stage 4's relayer against the same contract → contract pays VULT to recipient.
+- Multisig calls `setWinners` on Foundry-deployed `AirdropClaim.sol` → claim submitted by Stage 4's relayer against the same contract → contract pays VULT to recipient.
 
 ---
 
@@ -362,26 +326,24 @@ internal/api/airdrop/
 
 internal/api/relayer/
 ├── balance.go            GET /internal/relayer/balance
-├── stuck_claims.go       GET /internal/relayer/stuck-claims
-└── rebroadcast.go        POST /internal/relayer/rebroadcast
+└── stuck_claims.go       GET /internal/relayer/stuck-claims
 
 internal/api/ops/
-├── handler.go            Routing + Basic Auth middleware
+├── handler.go            Routing + inline Basic Auth check (5-line stdlib helper, no shared middleware)
 ├── templates/
 │   ├── layout.html
 │   ├── balance.html
 │   ├── stuck_claims.html
 │   └── rebroadcast_result.html
-└── ops.go                One file per page wiring data → template
+└── ops.go                One file per page wiring data → template; rebroadcast page calls relayer/rebroadcast.go directly
 
 internal/service/airdrop/relayer/
-├── claim.go              Top-level claim flow (validation → tx build → broadcast → DB)
-├── eligibility.go        (shared with Stage 3 — could live in a common subdir)
-├── nonce.go              SELECT FOR UPDATE singleton, increment, etc.
-├── kms_signer.go         AWS KMS Sign + DER → EVM (r,s,v) (could share with Stage 3's quest signer)
+├── claim.go              Top-level claim flow (validation → tx build → broadcast → DB). Calls eligibility helper from internal/service/airdrop/quests/eligibility.go
+├── nonce.go              Initialise on first boot from chain; SELECT FOR UPDATE singleton; increment
+├── kms_signer.go         AWS KMS Sign + DER → EVM (r,s,v)
 ├── ethclient.go          go-ethereum/ethclient wrapper; gas estimation; tx building; broadcast
 ├── monitor.go            Background confirmation poller
-└── rebroadcast.go        Manual rebroadcast logic shared by /internal/ and /ops/
+└── rebroadcast.go        Manual rebroadcast logic (called by the ops form handler)
 
 internal/storage/postgres/
 ├── migrations/XXXXXXXXXXXXXX_create_agent_claim_submissions.sql
@@ -402,10 +364,11 @@ docs/runbooks/
 - **Stage 0 — `CLAIM_WINDOW_OPEN_AT` decision locked.**
 - **Stage 0 — VULT prize pool funded into `AirdropClaim.sol`.** Without VULT in the contract, claims revert.
 - **`mergecontract` — `AirdropClaim.sol` deployed to mainnet** with the claim function ABI matching what we encode in step 12 of the claim flow.
-- **Stage 2 — `agent_raffle_proofs` populated.** Pre-condition for the claim handler's proof lookup.
+- **Stage 2 — `agent_raffle_winners` populated.** Pre-condition for the claim handler's recipient/amount lookup.
+- **Multisig has called `setWinners(...)` on the contract** for every row in `agent_raffle_winners` before Day 28. Without this, every claim reverts on the contract's `amount == 0` check. Stage 2's `verify-onchain` subcommand is the gate that confirms this.
 - **Stage 3 — `eligibility.go` shared helper available.** Called inline from the claim handler.
 - **EVM RPC chosen** — free public endpoint is acceptable per eng-lead decision.
-- **Initial nonce sync** — operator runs the documented `psql` UPDATE on Day 28 before enabling the endpoint.
+- **EVM RPC reachable from the relayer at boot** — needed for the auto nonce-sync on first boot.
 
 ---
 
@@ -420,6 +383,6 @@ docs/runbooks/
 - `/internal/relayer/balance` returns sane values; low-balance flag flips at the configured threshold.
 - `/internal/relayer/stuck-claims` lists pending-too-long rows; empty when none.
 - `/ops` UI is reachable behind Basic Auth and renders the three pages correctly.
-- E2E test against Foundry-deployed `AirdropClaim.sol` passes start-to-finish: register → win raffle → complete quests → claim → VULT received at recipient.
-- Day 28 runbook drafted (`docs/runbooks/relayer-day-28.md`) covering: deploy steps, initial nonce sync, smoke test, kill switch flip-on.
+- E2E test against Foundry-deployed `AirdropClaim.sol` passes start-to-finish: register → win raffle → multisig calls setWinners → complete quests → claim → VULT received at recipient.
+- Day 28 runbook drafted (`docs/runbooks/relayer-day-28.md`) covering: deploy steps, smoke test, kill switch flip-on. (No manual nonce sync step — that auto-runs on first boot.)
 - Stuck-tx runbook drafted covering: how to read `/ops/stuck-claims`, decide bump amount, handle "still stuck after rebroadcast" case (probably a free RPC throttling issue → switch RPC URL or pay for one).

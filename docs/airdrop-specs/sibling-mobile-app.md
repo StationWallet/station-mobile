@@ -48,7 +48,7 @@ App polls the endpoint while the screen is active (suggested cadence: every 30s)
 | `lost` | n/a | Consolation copy: "No win this time. Try the agent — it's open to everyone." |
 | `won`, `quests_completed < 3`, `claim_eligible: false` | per-quest state map | "You won! Complete 3 of 5 quests to claim." Renders the 5 quest tiles, each marked completed/pending. |
 | `won`, `claim_eligible: true`, `already_claimed: false` | n/a | "You're cleared to claim." Shows a prominent **Claim my VULT** button. |
-| `won`, `already_claimed: true` | n/a | "VULT received." Etherscan link if the app has the tx_hash from the prior claim response. |
+| `won`, `already_claimed: true` | n/a | "VULT received." Etherscan link from `claim_tx_hash` in the status response (server-side, survives reinstall). |
 
 Not registered (`registered: false`) — show the same boarding entry CTA as a fresh user.
 
@@ -76,7 +76,7 @@ If the POST returns 403 with `CLAIM_DISABLED` — show "claims temporarily pause
 
 ## EVM address derivation
 
-The backend never derives EVM addresses. **The app does.** This is load-bearing: every winner's prize is paid to the address the app sends at registration time, and that address is committed to a Merkle tree on Day 12 — wrong address = wrong recipient = user can't recover their VULT.
+The backend never derives EVM addresses. **The app does.** This is load-bearing: every winner's prize is paid to the address the app sends at registration time, and that address is published on-chain on Day 12 (via the multisig's batched `setWinners` calls) — wrong address = wrong recipient = user can't recover their VULT.
 
 ### Standard case (most users)
 
@@ -155,10 +155,10 @@ The app must handle these error responses gracefully:
 To make the contract clear:
 
 - **Does not** sign claim transactions. The relayer signs them with its own KMS key.
-- **Does not** know about the Merkle proof, the contract address, or any Ethereum chain interaction beyond receiving an `etherscan.io/tx/<hash>` URL to display.
+- **Does not** know about the contract address or any Ethereum chain interaction beyond receiving an `etherscan.io/tx/<hash>` URL to display.
 - **Does not** track quest events itself. Tool-result reporting (already a thing) is the only signal.
 - **Does not** verify the user is eligible — backend does. App reads `claim_eligible` from `/airdrop/status` and uses it as a UI gate only.
-- **Does not** know the random seed used for the raffle, the slot count, the VULT amount, or the merkle root — these are backend / contract concerns. App reads outcomes only.
+- **Does not** know the random seed used for the raffle, the slot count, or the VULT amount — these are backend / contract concerns. App reads outcomes only.
 
 ---
 

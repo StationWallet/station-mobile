@@ -50,12 +50,13 @@ Plus one row in the database per user who joined.
 Once boarding closes, an operator (a human) runs a CLI tool that:
 1. Reads everyone who registered.
 2. Randomly picks the winners.
-3. Builds a "merkle tree" — a cryptographic data structure that lets the on-chain contract verify each individual winner's claim later, without storing the full list of winners on-chain.
-4. Spits out the winners list, the proofs, and the merkle root (one hash that summarizes the whole tree).
+3. Spits out a `winners.csv` with one row per winner — Ethereum address + VULT amount.
 
-The operator then hands the merkle root to whoever holds the multisig wallet that owns the on-chain contract. They publish the root to the contract via `closeRaffle(root)`. Now the contract knows who's allowed to claim.
+The operator then hands `winners.csv` to whoever holds the multisig wallet that owns the on-chain contract. The multisig signer splits the list into chunks of about 100 and calls `setWinners(addresses[], amounts[])` on the contract once per chunk — about seven transactions in total. Each call writes those winners' allowances into the contract's storage. After this, the contract knows exactly how much VULT each winner address can claim.
 
-The operator also loads the per-winner proofs into our database so the relayer (step 4) can serve them on demand.
+The operator also loads the same list into our database so the app's status endpoint can tell each user whether they won or lost, and so the relayer (step 4) can look up "this user's recipient address and amount" when they tap claim.
+
+(Earlier drafts of this campaign used a Merkle tree to compress the winners list into a single hash on-chain. Dropped 2026-04-23 in favour of the simpler mapping above — for our 700-winner scale with a centralised relayer paying gas, the mapping was both cheaper overall and substantially simpler.)
 
 ### 3. Day 13–27, watch what users do in the app and tick off quests
 
@@ -67,7 +68,7 @@ Once any user has 3 of 5 quests ticked, they're flagged as `claim_eligible` in t
 
 The user taps "claim my VULT." The app POSTs to `/airdrop/claim`. The backend:
 1. Checks they're a winner with 3 quests done and haven't already claimed.
-2. Looks up their merkle proof from the database.
+2. Looks up their recipient address and amount from the database.
 3. Builds an Ethereum transaction calling the contract's `claim()` function.
 4. **Pays the gas itself** — out of a "relayer wallet" the team funded ahead of time with about 5 ETH.
 5. Signs the transaction using a key held in AWS KMS (so the key never lives on a server's disk).
@@ -91,11 +92,12 @@ Behind a username/password.
 
 Lives in a separate repo (`vultisig/mergecontract`), built by someone else:
 - Holds the VULT prize pool.
-- Holds the merkle root of winners.
-- Has a `claim()` function that accepts a winner's proof and pays them VULT.
+- Holds an `allowance` mapping — for each winner address, how much VULT they can claim.
+- Has a `setWinners(addresses[], amounts[])` function the multisig owner calls in batches to populate that mapping after the Day 12 draw.
+- Has a `claim(recipient)` function that pays the recipient's allowance and zeros the slot.
 - Has a `recoverERC20()` function the multisig can call after the campaign to reclaim unclaimed VULT.
 
-Our backend's only on-chain interaction is calling `claim()` repeatedly, once per claiming user. We also need the contract's address and ABI to build those calls.
+Our backend's only on-chain interaction is calling `claim(recipient)` repeatedly, once per claiming user. We also need the contract's address and ABI to build those calls.
 
 ---
 
