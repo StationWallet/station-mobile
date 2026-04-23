@@ -87,8 +87,6 @@ Authorization: Bearer <jwt>
   "source": "seed",
   "recipient_address": "0x...",
   "raffle_state": "pending" | "awaiting_draw" | "won" | "lost",
-
-  // Stage 3 fields (always present after Stage 3 ships):
   "quests": {
     "swap":        "completed" | "pending",
     "bridge":      "completed" | "pending",
@@ -98,9 +96,8 @@ Authorization: Bearer <jwt>
   },
   "quests_completed": 2,
   "claim_eligible": false,
-
-  // Stage 4 field (always present after Stage 4 ships):
-  "already_claimed": false
+  "already_claimed": false,
+  "claim_tx_hash": null
 }
 ```
 
@@ -109,20 +106,24 @@ Authorization: Bearer <jwt>
 { "registered": false }
 ```
 
+All fields above are **always present** in registered responses regardless of campaign phase. Before Stages 3 / 4 deploy, downstream-stage fields default to safe values (`quests` all `pending`, `quests_completed: 0`, `claim_eligible: false`, `already_claimed: false`, `claim_tx_hash: null`). The mobile app integrates against one stable shape forever.
+
 `claim_eligible` is the composite the app uses to enable the claim button. Backend computes it: `claim_eligible = (raffle_state == "won") AND (quests_completed >= QUEST_THRESHOLD) AND (already_claimed == false)`. Single source of truth — the client doesn't recompute.
 
-`quest_states` and `already_claimed` come from the Stage 3 / Stage 4 tables (`agent_user_quests`, `agent_claim_submissions`); Stage 1 spec defines the response shape; Stage 3 / Stage 4 specs define the underlying writes.
+`claim_tx_hash` is the latest submission's `tx_hash` from `agent_claim_submissions` when `already_claimed: true`; null otherwise. Lets the app render an Etherscan link without keeping local state across reinstalls.
+
+`quests`, `already_claimed`, and `claim_tx_hash` come from the Stage 3 / Stage 4 tables (`agent_user_quests`, `agent_claim_submissions`); Stage 1 spec defines the response shape; Stage 3 / Stage 4 specs define the underlying writes.
 
 **Raffle state machine** (computed at request time):
 
 | State | Condition |
 |---|---|
 | `pending` | `now() < TRANSITION_WINDOW_END` |
-| `awaiting_draw` | `now() >= TRANSITION_WINDOW_END` AND `NOT EXISTS(SELECT 1 FROM agent_raffle_proofs LIMIT 1)` |
-| `won` | a row exists in `agent_raffle_proofs` for this public_key |
-| `lost` | window closed AND `EXISTS(SELECT 1 FROM agent_raffle_proofs LIMIT 1)` AND no row for this public_key |
+| `awaiting_draw` | `now() >= TRANSITION_WINDOW_END` AND `NOT EXISTS(SELECT 1 FROM agent_raffle_winners LIMIT 1)` |
+| `won` | a row exists in `agent_raffle_winners` for this public_key |
+| `lost` | window closed AND `EXISTS(SELECT 1 FROM agent_raffle_winners LIMIT 1)` AND no row for this public_key |
 
-The "raffle has been drawn" signal is just `EXISTS(SELECT 1 FROM agent_raffle_proofs LIMIT 1)` — Stage 2's `load-proofs` runs in a single transaction, so this is reliable.
+The "raffle has been drawn" signal is just `EXISTS(SELECT 1 FROM agent_raffle_winners LIMIT 1)` — Stage 2's `load-winners` runs in a single transaction, so this is reliable.
 
 **Errors:** `401` only.
 
@@ -143,14 +144,9 @@ The "raffle has been drawn" signal is just `EXISTS(SELECT 1 FROM agent_raffle_pr
 }
 ```
 
-**Behavior:**
+**Behavior:** single Postgres query (`SELECT source, COUNT(*) FROM agent_airdrop_registrations GROUP BY source`), marshal, return. Table is small (single-digit thousands at most); query is sub-millisecond. No caching — the cache layer was more code than the query it would protect.
 
-1. Try Redis `GET airdrop:stats`. On hit, return immediately.
-2. On miss: query Postgres for the counts, compute window state, marshal, write to Redis with `SETEX airdrop:stats 30 <body>`, return.
-
-No stampede protection — the surface is small and 30s TTL is short enough that even cold-miss bursts are fine.
-
-**Errors:** none expected; if Redis is down, fall back to direct DB query and skip the cache write.
+**Errors:** none expected.
 
 ---
 
@@ -169,7 +165,7 @@ CREATE TABLE agent_airdrop_registrations (
 );
 ```
 
-No secondary indexes — the only queries are by public_key (PK lookup) and full-table aggregations for `/airdrop/stats` (cached 30s, table is small). `recipient_address` is consumed at draw time by Stage 2.
+No secondary indexes — the only queries are by public_key (PK lookup) and full-table aggregations for `/airdrop/stats` (table stays small). `recipient_address` is consumed at draw time by Stage 2.
 
 Naming follows the existing `agent_*` convention.
 
@@ -196,7 +192,6 @@ Prometheus metrics (following existing `agent-backend` conventions in `internal/
 |---|---|---|
 | `airdrop_register_total` | Counter | `result` ∈ `{created, existing, window_not_open, window_closed, invalid_source}` |
 | `airdrop_status_total` | Counter | `state` ∈ `{not_registered, pending, awaiting_draw, won, lost}` |
-| `airdrop_stats_cache_total` | Counter | `result` ∈ `{hit, miss, redis_error}` |
 
 Per-endpoint latency + error metrics come from the existing HTTP middleware automatically.
 
@@ -211,18 +206,17 @@ Structured logs include: `public_key` (first 8 chars only — privacy), `source`
 - Recipient validation: missing (rejected), valid lowercase, valid mixed-case, missing 0x prefix, wrong length, non-hex chars.
 - Window enforcement: before-start, at-start, mid-window, at-end, after-end. Use an injected clock.
 - Idempotency: register twice returns same row; second source / recipient_address values are ignored.
-- Raffle state computation: each of the four states with mocked `raffle_proofs` and clock.
+- Raffle state computation: each of the four states with mocked `raffle_winners` and clock.
 
-**Integration (against real Postgres + Redis):**
+**Integration (against real Postgres):**
 - Full round-trip: register → status (own status, pending) → stats (count incremented).
 - Concurrent register: 100 parallel calls for the same public_key insert exactly one row.
 - Concurrent register: 100 parallel calls for 100 different public_keys insert 100 rows.
-- Stats cache hit + miss: first call increments `cache_miss`, subsequent calls within 30s increment `cache_hit`.
 - Window transition: register at `TRANSITION_WINDOW_END - 1s` succeeds, at `TRANSITION_WINDOW_END + 1s` returns `WINDOW_CLOSED`.
 
 **Load:**
 - 1000 concurrent registers across 1000 distinct public keys: p99 latency under 100ms.
-- 100 RPS sustained against `/airdrop/stats` for 1 minute: cache hit rate above 95%.
+- 100 RPS sustained against `/airdrop/stats` for 1 minute: p99 latency under 50ms.
 
 ---
 
@@ -235,7 +229,7 @@ internal/api/airdrop/
 └── stats.go            GET /airdrop/stats handler
 
 internal/service/airdrop/
-└── registration.go     Pure business logic — register, status, stats. DB + Redis injected; no I/O in unit tests.
+└── registration.go     Pure business logic — register, status, stats. DB injected; no I/O in unit tests.
 
 internal/storage/postgres/
 ├── migrations/XXXXXXXXXXXXXX_create_airdrop_registrations.sql
@@ -251,7 +245,7 @@ Routes register under existing patterns — JWT-scoped routes go through the sam
 
 ## Open dependencies
 
-- **Stage 2 contract — `agent_raffle_proofs` table exists.** Stage 1's status endpoint reads it for the `won` / `lost` / `awaiting_draw` state. Stage 2 spec defines the schema.
+- **Stage 2 contract — `agent_raffle_winners` table exists.** Stage 1's status endpoint reads it for the `won` / `lost` / `awaiting_draw` state. Stage 2 spec defines the schema.
 - **Stage 0 decisions table rows 1, 3, 4** — `slot_count` is not used by Stage 1 directly but informs the load-test sizing and the marketing copy ("X of N entries"). `TRANSITION_WINDOW_END` is the load-bearing env var; without it Stage 1 cannot deploy.
 
 ---
@@ -261,6 +255,6 @@ Routes register under existing patterns — JWT-scoped routes go through the sam
 - Migration committed and applied to staging.
 - Three endpoints respond with documented shapes against documented status codes.
 - Unit and integration tests above pass.
-- Load test meets p99 < 100ms for register and cache hit rate > 95% for stats.
+- Load test meets p99 < 100ms for register and p99 < 50ms for stats.
 - All three endpoints live in staging by Day 8.
 - Stats endpoint URL handed to marketing for their live counter.

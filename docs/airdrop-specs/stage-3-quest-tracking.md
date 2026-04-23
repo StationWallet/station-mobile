@@ -73,10 +73,10 @@ Per-quest `data` payloads:
 
 **Response — 200:**
 ```json
-{ "recorded": true, "quest_completed": false, "quests_completed_total": 2 }
+{ "recorded": true, "quest_completed": false, "quests_completed": 2 }
 ```
 
-`recorded` is true for both fresh inserts and idempotent retries. `quest_completed` is true only when this event is the one that flipped the user's `user_quests` row to complete (i.e. the first qualifying event for that quest). `quests_completed_total` is the user's running count (used by callers for logging or UX hints).
+`recorded` is true for both fresh inserts and idempotent retries. `quest_completed` is true only when this event is the one that flipped the user's `user_quests` row to complete (i.e. the first qualifying event for that quest). `quests_completed` is the user's running count (used by callers for logging or UX hints).
 
 **Errors:**
 
@@ -96,7 +96,7 @@ Per-quest `data` payloads:
 5. If `qualifies == true`:
    - `INSERT INTO agent_quest_events ... ON CONFLICT (tool_call_id) DO NOTHING` (idempotent).
    - `INSERT INTO agent_user_quests (public_key, quest_id) VALUES (...) ON CONFLICT DO NOTHING RETURNING xmax = 0 AS was_inserted` to mark the quest complete (no-op if already complete).
-   - Read the user's current `quests_completed_total`.
+   - Read the user's current `quests_completed`.
 6. Return 200 with the result fields.
 
 ## Eligibility check
@@ -105,7 +105,7 @@ Stage 4's relayer reads eligibility directly from the database — there is no `
 
 ```sql
 SELECT
-  EXISTS(SELECT 1 FROM agent_raffle_proofs WHERE public_key = $1) AS won_raffle,
+  EXISTS(SELECT 1 FROM agent_raffle_winners WHERE public_key = $1) AS won_raffle,
   (SELECT COUNT(*) FROM agent_user_quests WHERE public_key = $1) AS quests_completed
 ```
 
@@ -159,7 +159,7 @@ Two tables. `quest_events` is the append-only audit log (one row per incoming ev
 
 `tool_call_id` as the events PK gives free idempotency at the database layer. `(public_key, quest_id)` as the user_quests PK gives free deduplication ("a quest is either complete or not, two qualifying events for the same quest = one row").
 
-`quests_completed_total` for a user is `SELECT COUNT(*) FROM agent_user_quests WHERE public_key = ?` — fast PK lookup, no separate counter to keep in sync.
+`quests_completed` for a user is `SELECT COUNT(*) FROM agent_user_quests WHERE public_key = ?` — fast PK lookup, no separate counter to keep in sync.
 
 ---
 
@@ -200,11 +200,11 @@ Structured logs include `public_key` (first 8 chars), `quest_type`, `tool_call_i
 **Unit (eligibility helper):**
 - Won raffle + 3 quests + not claimed → eligible.
 - Won raffle + 2 quests → not eligible.
-- Lost raffle (no proofs row) + 3 quests → not eligible.
+- Lost raffle (no winners row) + 3 quests → not eligible.
 - Won raffle + 3 quests + already claimed → not eligible.
 
 **Integration (real Postgres):**
-- Full path: tool-result handler receives synthetic broadcast notification → quest event recorded → `quests_completed_total` increments → eligibility check flips to true at 3rd completion.
+- Full path: tool-result handler receives synthetic broadcast notification → quest event recorded → `quests_completed` increments → eligibility check flips to true at 3rd completion.
 - Activation timestamp gate: pre-activation event is rejected; post-activation is counted.
 
 ---
@@ -226,7 +226,7 @@ internal/service/airdrop/quests/
 │   ├── defi_action.go   Hard-coded DeFi action validator
 │   ├── alert.go         Stub until Product locks
 │   └── dca.go           Stub until Product locks
-└── eligibility.go       Computes claim_eligible from raffle_proofs + user_quests + claim_submissions; called by Stage 1 status + Stage 4 claim
+└── eligibility.go       Computes claim_eligible from raffle_winners + user_quests + claim_submissions; called by Stage 1 status + Stage 4 claim
 
 internal/service/agent/conversations/
 └── tool_result.go       (edit) — wire the quest hook after the existing tool-result storage logic; map tool name → quest_type via quest_dispatch.go

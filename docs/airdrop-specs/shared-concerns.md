@@ -16,13 +16,13 @@ A single engineer can ship the whole pipeline in roughly this sequence. Stages h
 
 1. **This doc + the shared infra it scopes** (auth middleware, env-var loader, KMS signer, EVM client). Roughly a day's work; no external dependencies.
 2. **Stage 1 — Boarding.** Hard deadline Day 8. Must be live in staging first.
-3. **Stage 2 — Raffle Draw CLI.** Doesn't deploy as a service; can be developed in parallel with Stage 3 once Stage 1 is in staging.
+3. **Stage 2 — Raffle Draw CLI.** Doesn't deploy as a service; can be developed in parallel with Stage 3 once Stage 1 is in staging. One subcommand (`draw`) plus `load-winners` and `verify-onchain` helpers.
 4. **Stage 3 — Quest Tracking.** Needs the runtime hook into the existing `tool-result` handler — coordinate with the agent codebase's review cycle.
-5. **Stage 4 — Claim Relayer.** Depends on Stage 2's `agent_raffle_proofs` table existing and on Stage 3's `eligibility.go` helper.
+5. **Stage 4 — Claim Relayer.** Depends on Stage 2's `agent_raffle_winners` table existing and on Stage 3's `eligibility.go` helper.
 
 Sibling missions run in parallel:
 - **Mobile app** (`sibling-mobile-app.md`) needs the Stage 1 endpoints in staging by Day 8 to wire up boarding.
-- **On-chain contract** (`sibling-on-chain-contract.md`) needs to be deployed and `closeRaffle()` called before Day 28; the merkle leaf encoding must be agreed with this team on day one.
+- **On-chain contract** (`sibling-on-chain-contract.md`) needs to be deployed before the Day 12 raffle, and the multisig must finish the batched `setWinners(...)` calls before Day 28. Stage 2's `verify-onchain` subcommand is the gate confirming the on-chain mapping matches `winners.csv`.
 
 ---
 
@@ -33,12 +33,12 @@ Three distinct auth mechanisms, each owning a clear path prefix:
 | Surface | Auth | Used by | Implemented in |
 |---|---|---|---|
 | `/airdrop/register`, `/airdrop/status`, `/airdrop/claim` | JWT (existing `/auth/token` flow — vault ECDSA sig → 24h JWT) | Mobile app | Existing `internal/api/middleware.go` — no changes needed |
-| `/internal/quests/event`, `/internal/relayer/balance`, `/internal/relayer/stuck-claims`, `/internal/relayer/rebroadcast` | `X-Internal-Token: <secret>` matching `INTERNAL_API_KEY` env var | Other parts of the same service binary (executor.go), curl by ops | New: `internal/api/middleware/internal_token.go` |
-| `/ops/*` (HTML pages) | HTTP Basic Auth via `OPS_USERNAME` + `OPS_PASSWORD` env vars | Operator's browser | New: `internal/api/ops/basicauth.go` |
+| `/internal/quests/event`, `/internal/relayer/balance`, `/internal/relayer/stuck-claims` | `X-Internal-Token: <secret>` matching `INTERNAL_API_KEY` env var | Other parts of the same service binary (executor.go), curl by ops | New: `internal/api/middleware/internal_token.go` |
+| `/ops/*` (HTML pages, including `POST /ops/rebroadcast`) | HTTP Basic Auth via `OPS_USERNAME` + `OPS_PASSWORD` env vars | Operator's browser, or curl-from-script | Inlined: 5-line stdlib check in the ops handler |
 | `/airdrop/stats` | None (public) | Marketing | n/a |
 | `/healthz` | None (existing) | Load balancer | Existing |
 
-The new middleware files are tiny (~15-30 lines each). Implement them once in the shared infra phase; every endpoint in subsequent stages picks them up via route registration.
+The internal-token middleware is tiny (~15 lines). Implement it once in the shared infra phase; every internal endpoint picks it up via route registration. Basic Auth is inlined in the ops handler — only one route group uses it, so no shared package warranted.
 
 ---
 
@@ -79,13 +79,13 @@ Six new tables, one shared types prefix (`airdrop_*` for Postgres enums). All na
 | Table | Owning stage | Purpose | Key columns |
 |---|---|---|---|
 | `agent_airdrop_registrations` | 1 | One row per user who joined the raffle | `public_key` (PK), `source`, `recipient_address`, `registered_at` |
-| `agent_raffle_proofs` | 2 | One row per winner; populated by `load-proofs` CLI | `public_key` (PK), `recipient`, `amount`, `leaf`, `proof[]`, `loaded_at` |
+| `agent_raffle_winners` | 2 | One row per winner; populated by `load-winners` CLI. Mirrors the contract's on-chain `allowance` mapping for status display. | `public_key` (PK), `recipient`, `amount`, `loaded_at` |
 | `agent_quest_events` | 3 | Append-only audit log of incoming quest events (counted + rejected) | `tool_call_id` (PK), `public_key`, `quest_id`, `tx_hash`, `status`, `payload`, `created_at` |
 | `agent_user_quests` | 3 | Materialized "which quests has each user completed" | `(public_key, quest_id)` (PK), `completed_at` |
 | `agent_claim_submissions` | 4 | One row per claim attempt; lifecycle from submitted → confirmed/failed | `nonce` (UNIQUE), `public_key`, `recipient`, `amount`, `tx_hash`, `previous_tx_hashes[]`, `status`, gas fields, timestamps |
 | `agent_relayer_state` | 4 | Singleton holding the relayer's `next_nonce` counter | `id=1` (CHECK), `next_nonce`, `last_synced` |
 
-Plus three Postgres enum types:
+Plus four Postgres enum types:
 - `airdrop_registration_source` — `seed`, `vault_share`
 - `airdrop_quest_id` — `swap`, `bridge`, `defi_action`, `alert`, `dca`
 - `airdrop_quest_event_status` — `counted`, `rejected`
@@ -98,7 +98,7 @@ No foreign keys between airdrop tables — the relationships are by `public_key`
 Goose migration filenames need monotonically increasing timestamps. Create migrations in this order to match the implementation sequence:
 
 1. `XXXXXXXXXXXXXX_create_agent_airdrop_registrations.sql`
-2. `XXXXXXXXXXXXXX_create_agent_raffle_proofs.sql`
+2. `XXXXXXXXXXXXXX_create_agent_raffle_winners.sql`
 3. `XXXXXXXXXXXXXX_create_agent_quest_events.sql`
 4. `XXXXXXXXXXXXXX_create_agent_user_quests.sql`
 5. `XXXXXXXXXXXXXX_create_agent_claim_submissions.sql`
@@ -120,21 +120,13 @@ func InternalTokenAuth(secret string) echo.MiddlewareFunc
 
 Reads `X-Internal-Token` header, compares to `secret` (constant-time), 401 on mismatch. Used by Stage 3 (`/internal/quests/event`) and Stage 4 (`/internal/relayer/*`).
 
-### `internal/api/ops/basicauth.go`
-
-```
-func BasicAuth(username, password string) echo.MiddlewareFunc
-```
-
-Standard HTTP Basic Auth check. Used by Stage 4's `/ops/*` routes only, but lives here to be findable.
-
 ### `internal/service/airdrop/quests/eligibility.go`
 
 ```
 func IsClaimEligible(ctx context.Context, db DB, publicKey string) (eligible bool, reason string, err error)
 ```
 
-Computes the composite from `agent_raffle_proofs`, `agent_user_quests`, and `agent_claim_submissions`. Returns a `reason` string for logging when eligible == false (`"not_a_winner"`, `"only_2_quests_complete"`, `"already_claimed"`, etc.). Called inline by Stage 1's status handler and Stage 4's claim handler — pure DB read, no HTTP boundary.
+Computes the composite from `agent_raffle_winners`, `agent_user_quests`, and `agent_claim_submissions`. Returns a `reason` string for logging when eligible == false (`"not_a_winner"`, `"only_2_quests_complete"`, `"already_claimed"`, etc.). Called inline by Stage 1's status handler and Stage 4's claim handler — pure DB read, no HTTP boundary.
 
 ### `internal/service/airdrop/kms/signer.go`
 
@@ -177,11 +169,11 @@ Three artifacts cross repo boundaries. All need to be locked early to avoid late
 
 ### Backend ↔ `vultisig/mergecontract`
 
-**Outbound:** the cross-language `test_vector.json` for the merkle leaf encoding. Backend's Go test and the contract's Foundry test both consume the same file. Lives in the `mergecontract` repo (as `test/leaf_vector.json` or similar); backend pulls it via vendoring or a path checkout at test time.
-
 **Inbound:** compiled `AirdropClaim.sol` ABI, deployed mainnet address, local Foundry/Anvil deployment fixture for backend integration tests against a fork.
 
-**When to lock:** day one. This is deck Risk #1 — wrong leaf encoding bricks all claims.
+**Outbound:** the `winners.csv` artifact from Stage 2's `draw` CLI is what the multisig signer uses to construct the batched `setWinners(...)` calls. No off-chain merkle artifacts to share — the contract's `allowance` mapping is the on-chain source of truth.
+
+**When to lock:** the contract ABI must be stable before Stage 4 starts encoding `claim(recipient)` calldata. No cross-language hashing concerns to resolve (Merkle was dropped 2026-04-23, removing what used to be deck Risk #1).
 
 ### Backend ↔ Mobile app
 
@@ -191,7 +183,7 @@ Three artifacts cross repo boundaries. All need to be locked early to avoid late
 
 ### Backend → Operator
 
-The single `merkle_root.txt` artifact from Stage 2's `draw` subcommand, handed to the multisig signer for `closeRaffle(root)`. Format is hex-encoded 32 bytes, no `0x` prefix, no newline — for unambiguous copy-paste.
+The `winners.csv` artifact from Stage 2's `draw` subcommand, handed to the multisig signer for batched `setWinners(...)` calls. Standard CSV with header row: `public_key, recipient, amount, registered_at, source`. The multisig signer (or their tooling) splits this into ~100-row batches and constructs one `setWinners(addresses[], amounts[])` tx per batch.
 
 ---
 
@@ -221,7 +213,7 @@ To keep scope clear:
 
 ## Done when
 
-- The four shared Go packages above exist and have unit tests.
+- The three shared Go packages above exist and have unit tests.
 - The six migrations exist and apply cleanly on a fresh DB in order.
 - The 19 env vars are loadable from the existing config struct without errors.
 - Internal-token middleware rejects missing/wrong tokens with 401; accepts correct tokens.
