@@ -14,11 +14,12 @@ If you're picking up a stage and find yourself building something that "feels ge
 
 A single engineer can ship the whole pipeline in roughly this sequence. Stages have hard external deadlines (Day 8, 12, 13, 28); shared infra has none, so it slots in wherever attention is available.
 
-1. **This doc + the shared infra it scopes** (auth middleware, env-var loader, KMS signer, EVM client). Roughly a day's work; no external dependencies.
-2. **Stage 1 — Boarding.** Hard deadline Day 8. Must be live in staging first.
+0. **Cross-team prerequisite for Stage 3.** MCP team adds `quest_metadata` to `build_*` tool results; agent-backend team adds `tool_name` + `quest_metadata` columns to `agent_tx_proposals` and populates them at proposal-creation time. **Hard blocker for Stage 3.** Schema in `stage-3-quest-tracking.md` "Cross-team contract" section. Slot in early — both PRs need to merge before Stage 3 can be E2E-tested.
+1. **This doc + the shared infra it scopes** (internal-token middleware, env-var loader, KMS signer, EVM client, eligibility helper). Roughly a day's work; no external dependencies.
+2. **Stage 1 — Boarding.** Hard deadline Day 8. Must be live in staging first. First consumer of `eligibility.go`.
 3. **Stage 2 — Raffle Draw CLI.** Doesn't deploy as a service; can be developed in parallel with Stage 3 once Stage 1 is in staging. One subcommand (`draw`) plus `load-winners` and `verify-onchain` helpers.
-4. **Stage 3 — Quest Tracking.** Needs the runtime hook into the existing `tool-result` handler — coordinate with the agent codebase's review cycle.
-5. **Stage 4 — Claim Relayer.** Depends on Stage 2's `agent_raffle_winners` table existing and on Stage 3's `eligibility.go` helper.
+4. **Stage 3 — Quest Tracking.** Hooks into the existing `SignTxProposal` handler (`internal/api/tx_proposals.go`), reading `tool_name` + `quest_metadata` from the just-signed proposal row. Blocked on item 0.
+5. **Stage 4 — Claim Relayer.** Depends on Stage 2's `agent_raffle_winners` table existing and reuses `eligibility.go` from shared infra.
 
 Sibling missions run in parallel:
 - **Mobile app** (`sibling-mobile-app.md`) needs the Stage 1 endpoints in staging by Day 8 to wire up boarding.
@@ -33,7 +34,7 @@ Three distinct auth mechanisms, each owning a clear path prefix:
 | Surface | Auth | Used by | Implemented in |
 |---|---|---|---|
 | `/airdrop/register`, `/airdrop/status`, `/airdrop/claim` | JWT (existing `/auth/token` flow — vault ECDSA sig → 24h JWT) | Mobile app | Existing `internal/api/middleware.go` — no changes needed |
-| `/internal/quests/event`, `/internal/relayer/balance`, `/internal/relayer/stuck-claims` | `X-Internal-Token: <secret>` matching `INTERNAL_API_KEY` env var | Other parts of the same service binary (executor.go), curl by ops | New: `internal/api/middleware/internal_token.go` |
+| `/internal/quests/event` | `X-Internal-Token: <secret>` matching `INTERNAL_API_KEY` env var | The agent-backend's `SignTxProposal` handler (in this same binary), curl by ops | New: `internal/api/internal_token_middleware.go` |
 | `/ops/*` (HTML pages, including `POST /ops/rebroadcast`) | HTTP Basic Auth via `OPS_USERNAME` + `OPS_PASSWORD` env vars | Operator's browser, or curl-from-script | Inlined: 5-line stdlib check in the ops handler |
 | `/airdrop/stats` | None (public) | Marketing | n/a |
 | `/healthz` | None (existing) | Load balancer | Existing |
@@ -80,18 +81,19 @@ Six new tables, one shared types prefix (`airdrop_*` for Postgres enums). All na
 |---|---|---|---|
 | `agent_airdrop_registrations` | 1 | One row per user who joined the raffle | `public_key` (PK), `source`, `recipient_address`, `registered_at` |
 | `agent_raffle_winners` | 2 | One row per winner; populated by `load-winners` CLI. Mirrors the contract's on-chain `allowance` mapping for status display. | `public_key` (PK), `recipient`, `amount`, `loaded_at` |
-| `agent_quest_events` | 3 | Append-only audit log of incoming quest events (counted + rejected) | `tool_call_id` (PK), `public_key`, `quest_id`, `tx_hash`, `status`, `payload`, `created_at` |
+| `agent_quest_events` | 3 | Append-only audit log of incoming quest events (counted + rejected) | `tool_call_id` (PK), `public_key`, `quest_id`, `tx_hash`, `counted` (bool), `reject_reason`, `tx_proposal_id`, `created_at` |
 | `agent_user_quests` | 3 | Materialized "which quests has each user completed" | `(public_key, quest_id)` (PK), `completed_at` |
-| `agent_claim_submissions` | 4 | One row per claim attempt; lifecycle from submitted → confirmed/failed | `nonce` (UNIQUE), `public_key`, `recipient`, `amount`, `tx_hash`, `previous_tx_hashes[]`, `status`, gas fields, timestamps |
+| `agent_claim_submissions` | 4 | One row per claim attempt; lifecycle from submitted → confirmed/failed. Rebroadcasts update `tx_hash` in place. | `nonce` (UNIQUE), `public_key`, `recipient`, `amount`, `tx_hash`, `status`, gas fields, timestamps |
 | `agent_relayer_state` | 4 | Singleton holding the relayer's `next_nonce` counter | `id=1` (CHECK), `next_nonce`, `last_synced` |
 
-Plus four Postgres enum types:
+Plus three Postgres enum types:
 - `airdrop_registration_source` — `seed`, `vault_share`
 - `airdrop_quest_id` — `swap`, `bridge`, `defi_action`, `alert`, `dca`
-- `airdrop_quest_event_status` — `counted`, `rejected`
 - `airdrop_claim_status` — `submitted`, `confirmed`, `failed`
 
 No foreign keys between airdrop tables — the relationships are by `public_key` value only. This keeps each migration independent and avoids ordering games at deploy time.
+
+**Cross-cutting note:** Stage 3 also depends on two new columns on the existing `agent_tx_proposals` table — `tool_name TEXT` and `quest_metadata JSONB` — populated by the agent-backend at proposal-creation time. Those columns aren't airdrop-owned and the migration that adds them lives in the agent-backend team's PR (see Stage 3 plan Task 0). Listed here for cross-cutting visibility.
 
 ### Migration ordering
 
@@ -112,13 +114,13 @@ Each migration is a single `CREATE TABLE` (plus `CREATE TYPE` for enums where ne
 
 Code that should live in one place even though multiple stages use it.
 
-### `internal/api/middleware/internal_token.go`
+### `internal/api/internal_token_middleware.go`
 
 ```
-func InternalTokenAuth(secret string) echo.MiddlewareFunc
+func (s *Server) InternalTokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 ```
 
-Reads `X-Internal-Token` header, compares to `secret` (constant-time), 401 on mismatch. Used by Stage 3 (`/internal/quests/event`) and Stage 4 (`/internal/relayer/*`).
+Reads `X-Internal-Token` header, compares to `s.internalToken` (constant-time), 401 on mismatch. Used by Stage 3 (`/internal/quests/event`). Stage 4's ops health and stuck-claims views are served directly from `/ops/*` over Basic Auth — no `/internal/relayer/*` route group exists.
 
 ### `internal/service/airdrop/quests/eligibility.go`
 
@@ -127,6 +129,8 @@ func IsClaimEligible(ctx context.Context, db DB, publicKey string) (eligible boo
 ```
 
 Computes the composite from `agent_raffle_winners`, `agent_user_quests`, and `agent_claim_submissions`. Returns a `reason` string for logging when eligible == false (`"not_a_winner"`, `"only_2_quests_complete"`, `"already_claimed"`, etc.). Called inline by Stage 1's status handler and Stage 4's claim handler — pure DB read, no HTTP boundary.
+
+**Owned by Stage 1's plan** (Stage 1 is the first consumer); listed here because Stages 3 + 4 both reuse it. Don't duplicate in stage-specific code.
 
 ### `internal/service/airdrop/kms/signer.go`
 
@@ -154,6 +158,7 @@ type Client interface {
     GetTransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
     BalanceOf(ctx context.Context, token, account common.Address) (*big.Int, error)
     Balance(ctx context.Context, account common.Address) (*big.Int, error)
+    BlockNumber(ctx context.Context) (uint64, error)
 }
 
 func NewClient(rpcURL string) (Client, error)
@@ -167,7 +172,7 @@ Thin wrapper over `go-ethereum/ethclient.Client` exposing only the methods the r
 
 Three artifacts cross repo boundaries. All need to be locked early to avoid late surprises.
 
-### Backend ↔ `vultisig/mergecontract`
+### Backend ↔ `vultisig/vultisig-contract`
 
 **Inbound:** compiled `AirdropClaim.sol` ABI, deployed mainnet address, local Foundry/Anvil deployment fixture for backend integration tests against a fork.
 
@@ -207,18 +212,19 @@ To keep scope clear:
 - Operational runbooks (Day 12 raffle runbook, Day 28 relayer bringup, oracle key rotation — all are stage-specific or have been removed). They live in `docs/runbooks/` once written.
 - The contract source code or contract repo conventions (covered by `sibling-on-chain-contract.md`).
 - The mobile app UI implementation (covered by `sibling-mobile-app.md`).
-- Anything in the existing `agent-backend` codebase that doesn't change — the existing JWT middleware, the existing tool-result handler, the `cmd/server` entrypoint, etc.
+- Anything in the existing `agent-backend` codebase that doesn't change — the existing JWT middleware, the existing `SignTxProposal` handler (which Stage 3 hooks into additively), the `cmd/server` entrypoint, etc.
 
 ---
 
 ## Done when
 
-- The three shared Go packages above exist and have unit tests.
+- The four shared Go packages above exist and have unit tests (internal-token middleware, eligibility helper, KMS signer, ETH client).
 - The six migrations exist and apply cleanly on a fresh DB in order.
 - The 19 env vars are loadable from the existing config struct without errors.
 - Internal-token middleware rejects missing/wrong tokens with 401; accepts correct tokens.
-- Basic Auth middleware returns the `WWW-Authenticate: Basic` challenge on missing creds.
 - KMS signer can sign a no-op digest against a real (LocalStack) KMS key and the recovered EVM address matches.
-- ETH client can read the latest base fee against a public mainnet RPC.
+- ETH client can read the latest base fee + block number against a public mainnet RPC.
+
+(Basic Auth coverage lives in Stage 4 — it's inlined in the ops handler, not part of shared infra.)
 
 Once those tick, the per-stage work has the foundations it needs.

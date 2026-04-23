@@ -2,9 +2,9 @@
 
 ## What this spec covers
 
-The Solidity contract that holds the VULT prize pool, accepts a per-recipient allowance map from the multisig owner, and pays VULT to claiming winners. **Owned by the contract engineer** (separate engineer, in the existing `vultisig/mergecontract` repo). Documented here so the backend ↔ contract interface is shared and both teams can review.
+The Solidity contract that holds the VULT prize pool, accepts a per-recipient allowance map from the multisig owner, and pays VULT to claiming winners. **Owned by the contract engineer** (separate engineer, in the existing `vultisig/vultisig-contract` repo). Documented here so the backend ↔ contract interface is shared and both teams can review.
 
-The contract is a fork of the team's existing `ETHClaim.sol` per the campaign deck, simplified during the 2026-04-22 (eligibility moves backend-side) and 2026-04-23 (Merkle dropped in favour of an on-chain mapping) spec passes.
+The contract is net-new code in `vultisig/vultisig-contract` (no existing `ETHClaim.sol` to fork from — the campaign deck's reference was aspirational). Patterns follow the team's existing contracts in that repo (`Stake.sol`, `Token.sol`, `LaunchList.sol`) — Foundry-built, OZ ^5.2.0, Solidity ^0.8.28. The simplified surface (mapping-based allowance + setWinners + claim) reflects the 2026-04-22 (eligibility moves backend-side) and 2026-04-23 (Merkle dropped) decisions.
 
 ---
 
@@ -22,9 +22,9 @@ What remains is a minimal allowance-based claim contract — about 30 lines of S
 
 ## Tech stack
 
-- Solidity ^0.8.20+
-- Foundry (`forge` for tests, `cast` for deploy)
-- OpenZeppelin contracts: `Ownable`, `SafeERC20`
+- Solidity ^0.8.28 (matches existing `Token.sol` in vultisig-contract)
+- Foundry (`forge` for tests, `cast` for deploy) — `foundry.toml` already in repo root
+- OpenZeppelin contracts ^5.2.0 (already vendored under `lib/openzeppelin-contracts`): `Ownable`, `SafeERC20`
 - Ethereum mainnet (chain ID 1)
 
 ---
@@ -142,7 +142,7 @@ The "Day 0 → Day 28 critical path" from the contract side:
 5. **Backend (Stage 2)** runs the raffle CLI on Day 12; produces `winners.csv`.
 6. **Multisig calls `setWinners(addresses, amounts)`** in batched chunks (~100/batch, ~7 txs total for 700 winners) before the relayer goes live on Day 28.
 7. **Backend (Stage 4)** relayer goes live; starts processing claims.
-8. **End of campaign**: multisig calls `recoverERC20` to pull unclaimed VULT back to treasury.
+8. **End of campaign**: backend operator flips `CLAIM_ENABLED=false` so the relayer stops accepting new claims. Multisig then calls `recoverERC20(VULT_TOKEN, vult.balanceOf(thisContract), treasuryAddress)` to drain unclaimed VULT back to treasury. The contract is then dormant — no `selfdestruct`, no upgrade path. Stays deployed indefinitely so the public can verify the historical state on Etherscan.
 
 Setup gas (one-time): ~700k for deploy + ~18M total across the setWinners batches ≈ **~$2k at 30 gwei** (~$6k at 100 gwei spike). Treasury should be aware of this Day 12 burn.
 
@@ -175,9 +175,11 @@ Setup gas (one-time): ~700k for deploy + ~18M total across the setWinners batche
 
 ## Open dependencies
 
-- VULT token deployed at a known address (separate concern, presumably already done).
-- Multisig owner address known (probably already exists for other Vultisig contracts).
+- **VULT token mainnet address — UNKNOWN.** `Token.sol` exists in `vultisig-contract` but no deployment config in the repo references a deployed mainnet address. Must be confirmed with whoever holds the VULT token contract before deploy. Hard blocker for the constructor.
+- **Multisig owner address — UNKNOWN.** No precedent in the repo's existing `script/Deploy*.s.sol` files. Must be confirmed with whoever holds the Vultisig treasury multisig. Hard blocker for the constructor's `_initialOwner` argument.
 - Free public Ethereum RPC for backend integration testing — operator concern.
+
+Both UNKNOWN items are tracked in Stage 0's procurement section as hard prerequisites (see `stage-0-preflight.md`).
 
 ---
 
