@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   NativeModules,
@@ -29,6 +29,7 @@ import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
 import { useMigrationComplete } from 'navigation/MigrationContext'
+import { shareOgStatus } from 'services/shareOgStatus'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
@@ -81,6 +82,19 @@ export default function MigrationSuccess(): React.ReactElement {
 
   const wallets = params.wallets
   const hasUnmigrated = wallets != null && wallets.length > 0
+
+  const [sharing, setSharing] = useState(false)
+  const handleShareOg = async (): Promise<void> => {
+    if (sharing) return
+    setSharing(true)
+    try {
+      await shareOgStatus()
+    } catch {
+      // Sharing was cancelled or failed silently — no toast surface here yet.
+    } finally {
+      setSharing(false)
+    }
+  }
 
   const handleBack = (): void => {
     // If nested inside MainNavigator (tapped a migrated wallet from WalletList),
@@ -186,8 +200,24 @@ export default function MigrationSuccess(): React.ReactElement {
           { paddingBottom: Math.max(insets.bottom, 16) },
         ]}
       >
-        {/* Share button intentionally hidden for now — onPress is a
-            no-op and no share flow exists yet. Reinstate when wired up. */}
+        <TouchableOpacity
+          style={[
+            styles.shareButton,
+            sharing && styles.shareButtonBusy,
+          ]}
+          onPress={handleShareOg}
+          disabled={sharing}
+          testID="share-og-status"
+          accessibilityRole="button"
+          accessibilityLabel="Share my Station OG status"
+        >
+          <Text
+            fontType="brockmann-medium"
+            style={styles.shareButtonText}
+          >
+            Share my OG status
+          </Text>
+        </TouchableOpacity>
 
         {hasUnmigrated ? (
           <TouchableOpacity
@@ -291,6 +321,22 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     alignItems: 'center',
     gap: 16,
+  },
+  shareButton: {
+    alignSelf: 'stretch',
+    backgroundColor: MIGRATION.ctaBlue,
+    borderRadius: MIGRATION.radiusPill,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareButtonBusy: {
+    opacity: 0.6,
+  },
+  shareButtonText: {
+    fontSize: 15,
+    color: MIGRATION.textPrimary,
+    lineHeight: 20,
   },
   migrateAnother: {
     fontSize: 13,
