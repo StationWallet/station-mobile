@@ -19,6 +19,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   TextInput,
   View,
@@ -48,19 +49,6 @@ type Route = RouteProp<MigrationStackParams, 'BackupVault'>
 type BackupStep = 'options' | 'password' | 'done'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
-
-function KeyIcon(): React.ReactElement {
-  return (
-    <View style={styles.keyIcon}>
-      <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
-        <Path
-          d="M12.65 10a6 6 0 10-9.73 6.76A6 6 0 008 20h.34l2.66-2.66V16h2v-2h2l1.66-1.66A6 6 0 0012.65 10zM7 11a1 1 0 110-2 1 1 0 010 2z"
-          fill={MIGRATION.textPrimary}
-        />
-      </Svg>
-    </View>
-  )
-}
 
 function InfoBox({
   icon,
@@ -337,7 +325,16 @@ export default function BackupVault(): React.ReactElement {
       <View style={{ paddingTop: insets.top }}>
         <MigrationToolbar onBack={() => navigation.goBack()} />
       </View>
-      <View style={styles.optionsBody}>
+      {/* Body is scrollable so the Rive splash + 3 InfoBoxes can't
+          overflow under the consent + CTA block on shorter devices.
+          On iPhone Pro+ heights this scrolls 0px and looks identical
+          to before; on iPhone 15-class heights the user can swipe to
+          read the third box. */}
+      <ScrollView
+        style={styles.optionsBody}
+        contentContainerStyle={styles.optionsBodyContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.rivePlaceholder}>
           <RiveComponent
             source={require('../../../assets/animations/backupvault_splash.riv')}
@@ -345,9 +342,6 @@ export default function BackupVault(): React.ReactElement {
             fit={RiveFitEnum.FitWidth}
             style={{ width: SCREEN_WIDTH, height: 220 }}
           />
-        </View>
-        <View style={styles.keyIconWrap}>
-          <KeyIcon />
         </View>
         <Text fontType="brockmann-medium" style={styles.title}>
           Protect your backup
@@ -369,7 +363,7 @@ export default function BackupVault(): React.ReactElement {
             highlight="there is no way to recover it."
           />
         </View>
-      </View>
+      </ScrollView>
       <View
         style={[
           formStyles.buttonContainer,
@@ -442,7 +436,10 @@ const styles = StyleSheet.create({
   },
   optionsBody: {
     flex: 1,
+  },
+  optionsBodyContent: {
     paddingHorizontal: MIGRATION.screenPadding,
+    paddingBottom: 8,
   },
   passwordBody: {
     flex: 1,
@@ -452,19 +449,6 @@ const styles = StyleSheet.create({
   rivePlaceholder: {
     alignItems: 'center',
     marginTop: 8,
-  },
-  keyIconWrap: {
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  keyIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    backgroundColor: MIGRATION.surface1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   title: {
     fontSize: 22,
