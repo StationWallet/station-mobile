@@ -19,6 +19,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   TextInput,
   View,
@@ -337,7 +338,16 @@ export default function BackupVault(): React.ReactElement {
       <View style={{ paddingTop: insets.top }}>
         <MigrationToolbar onBack={() => navigation.goBack()} />
       </View>
-      <View style={styles.optionsBody}>
+      {/* Body is scrollable so the Rive splash + 3 InfoBoxes can't
+          overflow under the consent + CTA block on shorter devices.
+          On iPhone Pro+ heights this scrolls 0px and looks identical
+          to before; on iPhone 15-class heights the user can swipe to
+          read the third box. */}
+      <ScrollView
+        style={styles.optionsBody}
+        contentContainerStyle={styles.optionsBodyContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.rivePlaceholder}>
           <RiveComponent
             source={require('../../../assets/animations/backupvault_splash.riv')}
@@ -369,7 +379,7 @@ export default function BackupVault(): React.ReactElement {
             highlight="there is no way to recover it."
           />
         </View>
-      </View>
+      </ScrollView>
       <View
         style={[
           formStyles.buttonContainer,
@@ -442,7 +452,10 @@ const styles = StyleSheet.create({
   },
   optionsBody: {
     flex: 1,
+  },
+  optionsBodyContent: {
     paddingHorizontal: MIGRATION.screenPadding,
+    paddingBottom: 8,
   },
   passwordBody: {
     flex: 1,
