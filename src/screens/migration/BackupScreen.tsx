@@ -50,19 +50,6 @@ type BackupStep = 'options' | 'password' | 'done'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
-function KeyIcon(): React.ReactElement {
-  return (
-    <View style={styles.keyIcon}>
-      <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
-        <Path
-          d="M12.65 10a6 6 0 10-9.73 6.76A6 6 0 008 20h.34l2.66-2.66V16h2v-2h2l1.66-1.66A6 6 0 0012.65 10zM7 11a1 1 0 110-2 1 1 0 010 2z"
-          fill={MIGRATION.textPrimary}
-        />
-      </Svg>
-    </View>
-  )
-}
-
 function InfoBox({
   icon,
   text,
@@ -356,9 +343,6 @@ export default function BackupVault(): React.ReactElement {
             style={{ width: SCREEN_WIDTH, height: 220 }}
           />
         </View>
-        <View style={styles.keyIconWrap}>
-          <KeyIcon />
-        </View>
         <Text fontType="brockmann-medium" style={styles.title}>
           Protect your backup
         </Text>
@@ -465,19 +449,6 @@ const styles = StyleSheet.create({
   rivePlaceholder: {
     alignItems: 'center',
     marginTop: 8,
-  },
-  keyIconWrap: {
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  keyIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    backgroundColor: MIGRATION.surface1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   title: {
     fontSize: 22,
