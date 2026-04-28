@@ -209,13 +209,13 @@ export default function MigrationSuccess(): React.ReactElement {
           disabled={sharing}
           testID="share-og-status"
           accessibilityRole="button"
-          accessibilityLabel="Share my Station OG status"
+          accessibilityLabel="Share your Station OG status"
         >
           <Text
             fontType="brockmann-medium"
             style={styles.shareButtonText}
           >
-            Share my OG status
+            Share your OG status
           </Text>
         </TouchableOpacity>
 
@@ -322,11 +322,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
+  // Primary CTA — matches Figma node 73721:10250 (Button/Small Medium).
+  // Pill, ctaBlue fill, faint hairline border (3% white per token), and
+  // 14×24 padding. Inset highlight/lowlight shadows from the spec are
+  // omitted: RN doesn't support inset box-shadows natively, and the
+  // border + fill already read correctly on the dark space background.
   shareButton: {
     alignSelf: 'stretch',
     backgroundColor: MIGRATION.ctaBlue,
     borderRadius: MIGRATION.radiusPill,
+    borderWidth: 1,
+    borderColor: MIGRATION.borderExtraLight,
     paddingVertical: 14,
+    paddingHorizontal: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -334,9 +342,9 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   shareButtonText: {
-    fontSize: 15,
+    fontSize: 14,
+    lineHeight: 18,
     color: MIGRATION.textPrimary,
-    lineHeight: 20,
   },
   migrateAnother: {
     fontSize: 13,
