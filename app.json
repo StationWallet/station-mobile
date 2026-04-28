@@ -19,7 +19,7 @@
     },
     "ios": {
       "backgroundColor": "#02122B",
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "money.terra.station",
       "appleTeamId": "4268K8DFX6",
       "buildNumber": "1",
