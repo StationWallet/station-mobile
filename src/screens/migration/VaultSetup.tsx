@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   View,
+  ScrollView,
   StyleSheet,
   Dimensions,
   PixelRatio,
@@ -123,17 +124,32 @@ function LockIcon(): React.ReactElement {
   )
 }
 
+const BOTTOM_PAD_TOP = 12
+const BOTTOM_BUTTON_AREA = MIGRATION.ctaHeight + BOTTOM_PAD_TOP
+
 export default function VaultSetup(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
+  const safeBottom = Math.max(insets.bottom, 16)
+
+  const handleBack = (): void => {
+    if (navigation.canGoBack()) navigation.goBack()
+  }
 
   return (
     <View style={styles.container}>
       <View style={{ paddingTop: insets.top }}>
-        <MigrationToolbar onBack={() => navigation.goBack()} />
+        <MigrationToolbar onBack={handleBack} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.contentScroll}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: BOTTOM_BUTTON_AREA + safeBottom },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         <Text fontType="brockmann-medium" style={styles.title}>
           Your vault setup
         </Text>
@@ -187,13 +203,11 @@ export default function VaultSetup(): React.ReactElement {
           title="Multisig with one device"
           description="A co-signer can never initiate transactions; only assists with signing them."
         />
-      </View>
+      </ScrollView>
 
       <View
-        style={[
-          styles.bottom,
-          { paddingBottom: Math.max(insets.bottom, 16) },
-        ]}
+        pointerEvents="box-none"
+        style={[styles.bottom, { paddingBottom: safeBottom }]}
       >
         <Button
           testID="vault-setup-get-started"
@@ -213,8 +227,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: MIGRATION.bg,
   },
-  content: {
+  contentScroll: {
     flex: 1,
+  },
+  content: {
     paddingHorizontal: 24,
   },
   title: {
@@ -307,7 +323,12 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   bottom: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     paddingHorizontal: 24,
-    paddingBottom: 16,
+    paddingTop: BOTTOM_PAD_TOP,
+    backgroundColor: MIGRATION.bg,
   },
 })
