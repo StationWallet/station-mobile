@@ -7,6 +7,14 @@ export const env = {
 export const MIGRATION_FLOW_ENABLED =
   process.env.EXPO_PUBLIC_MIGRATION_FLOW_ENABLED === 'true'
 
+/**
+ * When `true`, fresh installs boot into the dev `AuthMenu` (with seed/dev
+ * buttons) instead of the production migration flow. Used by Detox E2E
+ * tests to seed legacy-wallet fixtures before walking the migration path.
+ */
+export const BYPASS_AUTH_FOR_TESTING =
+  process.env.EXPO_PUBLIC_BYPASS_AUTH_FOR_TESTING === 'true'
+
 const showDevFeatures =
   __DEV__ && process.env.EXPO_PUBLIC_SHOW_DEV_FEATURES === 'true'
 

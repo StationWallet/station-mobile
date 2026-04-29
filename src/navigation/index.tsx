@@ -19,7 +19,10 @@ import { WalletNavContext } from './hooks'
 import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
-import { MIGRATION_FLOW_ENABLED } from 'config/env'
+import {
+  MIGRATION_FLOW_ENABLED,
+  BYPASS_AUTH_FOR_TESTING,
+} from 'config/env'
 
 export { useWalletDisconnected, useWalletNav } from './hooks'
 
@@ -73,9 +76,7 @@ export default function AppNavigator(): React.ReactElement | null {
       ) {
         setRootRoute('Migration')
       } else if (loaded.length === 0) {
-        // In dev mode, show Auth first so E2E dev seed buttons are accessible.
-        // In production, brand new users go straight to the migration/creation flow.
-        setRootRoute(__DEV__ ? 'Auth' : 'Migration')
+        setRootRoute(BYPASS_AUTH_FOR_TESTING ? 'Auth' : 'Migration')
       } else {
         setRootRoute('Main')
       }
@@ -153,7 +154,7 @@ export default function AppNavigator(): React.ReactElement | null {
     if ((wallets?.length ?? 0) > 0) {
       setRootRoute('Main')
     } else {
-      setRootRoute(__DEV__ ? 'Auth' : 'Migration')
+      setRootRoute(BYPASS_AUTH_FOR_TESTING ? 'Auth' : 'Migration')
     }
   }, [wallets])
 
