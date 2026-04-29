@@ -63,22 +63,12 @@ function CalendarClockIcon(): React.ReactElement {
 
 type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
 
-/** Migration deadline — 30 days from a fixed launch date. */
-const MIGRATION_DEADLINE = new Date('2026-05-09T00:00:00Z')
-
-function computeDaysRemaining(): number {
-  const now = new Date()
-  const diff = MIGRATION_DEADLINE.getTime() - now.getTime()
-  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
-}
-
 export default function MigrationHome(): React.ReactElement {
   const insets = useSafeAreaInsets()
   const navigation = useNavigation<Nav>()
   const [wallets, setWallets] = useState<MigrationWallet[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setReady used to track loading state
   const [_ready, setReady] = useState(false)
-  const daysRemaining = computeDaysRemaining()
 
   useEffect(() => {
     discoverLegacyWallets()
@@ -133,10 +123,7 @@ export default function MigrationHome(): React.ReactElement {
             entering={FadeIn.delay(1200).duration(300)}
             style={styles.cardWrapper}
           >
-            <InfoCard
-              daysRemaining={daysRemaining}
-              connectedBottom={!MIGRATION_FLOW_ENABLED}
-            />
+            <InfoCard connectedBottom={!MIGRATION_FLOW_ENABLED} />
             {!MIGRATION_FLOW_ENABLED && (
               <View
                 style={styles.checkBackCard}
