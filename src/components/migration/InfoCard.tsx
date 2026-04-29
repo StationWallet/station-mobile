@@ -74,12 +74,10 @@ function CalendarClockIcon(): React.ReactElement {
 }
 
 type Props = {
-  daysRemaining: number
   connectedBottom?: boolean
 }
 
 export default function InfoCard({
-  daysRemaining,
   connectedBottom = false,
 }: Props): React.ReactElement {
   return (
@@ -149,7 +147,7 @@ export default function InfoCard({
         <View style={styles.countdownStrip}>
           <CalendarClockIcon />
           <Text fontType="brockmann-medium" style={styles.countdown}>
-            The window closes in {daysRemaining} days.
+            This window closes soon.
           </Text>
         </View>
       )}
