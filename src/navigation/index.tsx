@@ -76,9 +76,6 @@ export default function AppNavigator(): React.ReactElement | null {
       ) {
         setRootRoute('Migration')
       } else if (loaded.length === 0) {
-        // Default route is the production migration flow. Detox tests flip
-        // BYPASS_AUTH_FOR_TESTING=true to land on AuthMenu instead, where
-        // they can tap dev seed buttons before walking the migration path.
         setRootRoute(BYPASS_AUTH_FOR_TESTING ? 'Auth' : 'Migration')
       } else {
         setRootRoute('Main')
