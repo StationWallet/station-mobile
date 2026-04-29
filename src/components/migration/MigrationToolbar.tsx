@@ -19,7 +19,7 @@ function ChevronLeftIcon(): React.ReactElement {
 }
 
 type Props = {
-  onBack: () => void
+  onBack?: () => void
   testID?: string
   children?: React.ReactNode
 }
@@ -31,9 +31,13 @@ export default function MigrationToolbar({
 }: Props): React.ReactElement {
   return (
     <View style={styles.toolbar}>
-      <GlassButton onPress={onBack} testID={testID}>
-        <ChevronLeftIcon />
-      </GlassButton>
+      {onBack ? (
+        <GlassButton onPress={onBack} testID={testID}>
+          <ChevronLeftIcon />
+        </GlassButton>
+      ) : (
+        <View />
+      )}
       {children}
     </View>
   )
