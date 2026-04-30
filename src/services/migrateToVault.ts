@@ -169,7 +169,7 @@ export async function storeFastVault(
           encryptedKey: '',
           password: '',
           ledger: false,
-          airdropBucket: options.airdropBucket ?? 'campaign_new',
+          airdropBucket: options.airdropBucket,
           airdropRegistrationSource:
             options.airdropRegistrationSource,
           airdropRecipientAddress: options.airdropRecipientAddress,

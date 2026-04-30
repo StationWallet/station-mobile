@@ -143,6 +143,8 @@ export const addWallet = async ({
       },
     })
   } else {
+    // addWallet is only used by the seed/recover path; Fast Vault
+    // creation is stamped from VerifyEmail via storeFastVault.
     return await upsertAuthData({
       authData: {
         [wallet.name]: {

@@ -59,6 +59,34 @@ function buildStampedAuthData(authData: string): string {
   })
 }
 
+function buildLedgerOnlyAuthData(): string {
+  return JSON.stringify({
+    TestLedgerWallet: {
+      ledger: true,
+      address: 'terra1test000e2e000ledger001',
+      path: 0,
+    },
+  })
+}
+
+function buildPreStampedAuthData(): string {
+  return JSON.stringify({
+    TestWallet1: {
+      ledger: false,
+      address: 'terra1test000e2e000wallet001',
+      password: 'testPassword1!',
+      encryptedKey: encrypt(PK1, 'testPassword1!'),
+      airdropBucket: 'campaign_new',
+      airdropRegistrationSource: 'vault_share',
+    },
+    TestLedgerWallet: {
+      ledger: true,
+      address: 'terra1test000e2e000ledger001',
+      path: 0,
+    },
+  })
+}
+
 // resetSecure() also wipes preferences state — the production
 // `nativeModules/preferences` writes into `expo-secure-store`, and
 // babel-plugin-module-resolver rewrites the `nativeModules/*` alias
@@ -133,6 +161,44 @@ describe('migrateLegacyKeystore', () => {
       address: 'terra1test000e2e000ledger001',
       path: 0,
     })
+  })
+
+  it('preserves ledger-only legacy data without stamping buckets', async () => {
+    const authData = buildLedgerOnlyAuthData()
+    await LegacyKeystore.seedLegacyTestData(KeystoreEnum.AuthData, authData)
+
+    await migrateLegacyKeystore()
+
+    expect(await keystore.read(KeystoreEnum.AuthData)).toBe(authData)
+  })
+
+  it('preserves pre-stamped airdrop metadata', async () => {
+    const authData = buildPreStampedAuthData()
+    await LegacyKeystore.seedLegacyTestData(KeystoreEnum.AuthData, authData)
+
+    await migrateLegacyKeystore()
+
+    expect(await keystore.read(KeystoreEnum.AuthData)).toBe(authData)
+  })
+
+  it('does not migrate malformed legacy entries', async () => {
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined)
+    await LegacyKeystore.seedLegacyTestData(
+      KeystoreEnum.AuthData,
+      JSON.stringify({ BrokenWallet: 'not-an-object' })
+    )
+
+    await migrateLegacyKeystore()
+
+    expect(await keystore.read(KeystoreEnum.AuthData)).toBe('')
+    expect(
+      await preferences.getBool(
+        PreferencesEnum.legacyKeystoreMigrated
+      )
+    ).toBe(false)
+    consoleSpy.mockRestore()
   })
 
   it('derives expected secp256k1 public key from decrypted wallet 1', async () => {

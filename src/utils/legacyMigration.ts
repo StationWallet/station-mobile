@@ -5,21 +5,26 @@ import preferences, {
 } from 'nativeModules/preferences'
 import { LEGACY_ACCOUNT, keychainOpts } from 'nativeModules/keystore'
 import type {
-  AuthDataType,
   AuthDataValueType,
   LedgerDataValueType,
 } from './authData'
 
-function stampLegacyAirdropBucket(raw: unknown): AuthDataType {
+type LegacyAuthData = Record<
+  string,
+  AuthDataValueType | LedgerDataValueType
+>
+
+function stampLegacyAirdropBucket(raw: unknown): LegacyAuthData {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     throw new Error('Legacy auth data must be an object')
   }
 
-  const stamped: Exclude<AuthDataType, undefined> = {}
+  const stamped: LegacyAuthData = {}
   for (const [walletName, value] of Object.entries(raw)) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
-      stamped[walletName] = value as AuthDataValueType
-      continue
+      throw new Error(
+        `Legacy auth data entry ${walletName} must be an object`
+      )
     }
 
     const entry = value as AuthDataValueType | LedgerDataValueType
