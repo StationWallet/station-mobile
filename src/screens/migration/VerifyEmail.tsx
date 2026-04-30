@@ -26,10 +26,36 @@ import { MIGRATION } from 'consts/migration'
 import { verifyVaultEmail } from 'services/fastVaultServer'
 import { storeFastVault } from 'services/migrateToVault'
 import { getErrorMessage } from 'utils/getErrorMessage'
+import type {
+  AirdropBucket,
+  AirdropRegistrationSource,
+} from 'utils/authData'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'VerifyEmail'>
 type Route = RouteProp<MigrationStackParams, 'VerifyEmail'>
+
+function airdropMetadataForMode(mode: Route['params']['mode']): {
+  airdropBucket: AirdropBucket
+  airdropRegistrationSource: AirdropRegistrationSource
+} {
+  if (mode === 'migrate') {
+    return {
+      airdropBucket: 'station_migration',
+      airdropRegistrationSource: 'seed',
+    }
+  }
+  if (mode === 'create') {
+    return {
+      airdropBucket: 'campaign_new',
+      airdropRegistrationSource: 'create',
+    }
+  }
+  return {
+    airdropBucket: 'campaign_new',
+    airdropRegistrationSource: 'seed',
+  }
+}
 
 function EmailCircleIcon(): React.ReactElement {
   return (
@@ -104,7 +130,11 @@ export default function VerifyEmail(): React.ReactElement {
       // legacy auth data. Doing this after verify means a failure at any
       // earlier point leaves the legacy wallet recoverable.
       try {
-        await storeFastVault(walletName, keyImportResult)
+        await storeFastVault(
+          walletName,
+          keyImportResult,
+          airdropMetadataForMode(mode)
+        )
         // The isFastVault status for this wallet just flipped from
         // false -> true. Invalidate the cached query so WalletList
         // re-renders the migrated wallet with the correct CTA instead

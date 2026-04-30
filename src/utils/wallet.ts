@@ -151,6 +151,8 @@ export const addWallet = async ({
           password: password || '',
           encryptedKey: key || '',
           terraOnly: true,
+          airdropBucket: 'campaign_new',
+          airdropRegistrationSource: 'seed',
         },
       },
     })

@@ -4,6 +4,41 @@ import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
 import { LEGACY_ACCOUNT, keychainOpts } from 'nativeModules/keystore'
+import type {
+  AuthDataType,
+  AuthDataValueType,
+  LedgerDataValueType,
+} from './authData'
+
+function stampLegacyAirdropBucket(raw: unknown): AuthDataType {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('Legacy auth data must be an object')
+  }
+
+  const stamped: Exclude<AuthDataType, undefined> = {}
+  for (const [walletName, value] of Object.entries(raw)) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      stamped[walletName] = value as AuthDataValueType
+      continue
+    }
+
+    const entry = value as AuthDataValueType | LedgerDataValueType
+    if (entry.ledger === true) {
+      stamped[walletName] = entry
+      continue
+    }
+
+    const authEntry = entry as AuthDataValueType
+    stamped[walletName] = {
+      ...authEntry,
+      airdropBucket: authEntry.airdropBucket ?? 'station_migration',
+      airdropRegistrationSource:
+        authEntry.airdropRegistrationSource ?? 'seed',
+    }
+  }
+
+  return stamped
+}
 
 /**
  * Migrate wallet data from the old native Keystore module to expo-secure-store.
@@ -64,13 +99,13 @@ export async function migrateLegacyKeystore(): Promise<void> {
       }),
     ]).finally(() => clearTimeout(timer!))
     if (legacyData) {
-      // Validate it's parseable JSON before writing
-      JSON.parse(legacyData)
+      // Validate and stamp legacy Station wallets before writing.
+      const stampedData = stampLegacyAirdropBucket(JSON.parse(legacyData))
 
       // Write to new expo-secure-store location
       await SecureStore.setItemAsync(
         LEGACY_ACCOUNT,
-        legacyData,
+        JSON.stringify(stampedData),
         keychainOpts('AD')
       )
 

@@ -1,12 +1,19 @@
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
 import _ from 'lodash'
 
+export type AirdropBucket = 'station_migration' | 'campaign_new'
+export type AirdropRegistrationSource = 'seed' | 'vault_share' | 'create'
+
 export type AuthDataValueType = {
   ledger?: false
   encryptedKey: string
   address: string
   password: string
   terraOnly?: boolean
+  airdropBucket?: AirdropBucket
+  airdropRegistrationSource?: AirdropRegistrationSource
+  airdropRecipientAddress?: string
+  airdropRegisteredAt?: string
 }
 
 export type LedgerDataValueType = {

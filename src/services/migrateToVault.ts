@@ -9,6 +9,8 @@ import {
   upsertAuthData,
   AuthDataValueType,
   LedgerDataValueType,
+  AirdropBucket,
+  AirdropRegistrationSource,
 } from 'utils/authData'
 import preferences, {
   PreferencesEnum,
@@ -39,6 +41,13 @@ export interface MigrationResult {
   wallet: MigrationWallet
   success: boolean
   error?: string
+}
+
+export interface StoreFastVaultOptions {
+  airdropBucket?: AirdropBucket
+  airdropRegistrationSource?: AirdropRegistrationSource
+  airdropRecipientAddress?: string
+  airdropRegisteredAt?: string
 }
 
 /**
@@ -80,7 +89,8 @@ export async function getStoredVault(
  */
 export async function storeFastVault(
   walletName: string,
-  result: KeyImportResult
+  result: KeyImportResult,
+  options: StoreFastVaultOptions = {}
 ): Promise<void> {
   if (await isVaultFastVault(walletName)) {
     // eslint-disable-next-line no-console -- important diagnostic for double-migration attempts
@@ -138,6 +148,16 @@ export async function storeFastVault(
           password: '',
           ledger: false,
           terraOnly: true,
+          airdropBucket:
+            entry.airdropBucket ?? options.airdropBucket,
+          airdropRegistrationSource:
+            entry.airdropRegistrationSource ??
+            options.airdropRegistrationSource,
+          airdropRecipientAddress:
+            entry.airdropRecipientAddress ??
+            options.airdropRecipientAddress,
+          airdropRegisteredAt:
+            entry.airdropRegisteredAt ?? options.airdropRegisteredAt,
         },
       },
     })
@@ -150,6 +170,11 @@ export async function storeFastVault(
           encryptedKey: '',
           password: '',
           ledger: false,
+          airdropBucket: options.airdropBucket ?? 'campaign_new',
+          airdropRegistrationSource:
+            options.airdropRegistrationSource,
+          airdropRecipientAddress: options.airdropRecipientAddress,
+          airdropRegisteredAt: options.airdropRegisteredAt,
         },
       },
     })

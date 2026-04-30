@@ -123,6 +123,8 @@ export async function persistImportedVault(
         encryptedKey: '',
         password: '',
         ledger: false,
+        airdropBucket: 'campaign_new',
+        airdropRegistrationSource: 'vault_share',
       },
     },
   })
