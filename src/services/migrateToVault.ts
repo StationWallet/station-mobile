@@ -148,8 +148,7 @@ export async function storeFastVault(
           password: '',
           ledger: false,
           terraOnly: true,
-          airdropBucket:
-            entry.airdropBucket ?? options.airdropBucket,
+          airdropBucket: entry.airdropBucket ?? options.airdropBucket,
           airdropRegistrationSource:
             entry.airdropRegistrationSource ??
             options.airdropRegistrationSource,

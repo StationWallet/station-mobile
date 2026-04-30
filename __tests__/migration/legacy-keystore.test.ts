@@ -42,6 +42,23 @@ function buildAuthData(): string {
   })
 }
 
+function buildStampedAuthData(authData: string): string {
+  const parsed = JSON.parse(authData)
+  return JSON.stringify({
+    ...parsed,
+    TestWallet1: {
+      ...parsed.TestWallet1,
+      airdropBucket: 'station_migration',
+      airdropRegistrationSource: 'seed',
+    },
+    TestWallet2: {
+      ...parsed.TestWallet2,
+      airdropBucket: 'station_migration',
+      airdropRegistrationSource: 'seed',
+    },
+  })
+}
+
 // resetSecure() also wipes preferences state — the production
 // `nativeModules/preferences` writes into `expo-secure-store`, and
 // babel-plugin-module-resolver rewrites the `nativeModules/*` alias
@@ -52,14 +69,16 @@ beforeEach(() => {
 })
 
 describe('migrateLegacyKeystore', () => {
-  it('seeds, migrates, and reads back identical bytes', async () => {
+  it('seeds, migrates, and stamps airdrop metadata', async () => {
     const authData = buildAuthData()
     await LegacyKeystore.seedLegacyTestData(KeystoreEnum.AuthData, authData)
     expect(await LegacyKeystore.readLegacy(KeystoreEnum.AuthData)).toBe(authData)
 
     await migrateLegacyKeystore()
 
-    expect(await keystore.read(KeystoreEnum.AuthData)).toBe(authData)
+    expect(await keystore.read(KeystoreEnum.AuthData)).toBe(
+      buildStampedAuthData(authData)
+    )
   })
 
   it('cleans up legacy data after successful migration', async () => {
@@ -74,7 +93,9 @@ describe('migrateLegacyKeystore', () => {
     await LegacyKeystore.seedLegacyTestData(KeystoreEnum.AuthData, authData)
     await migrateLegacyKeystore()
     await migrateLegacyKeystore()
-    expect(await keystore.read(KeystoreEnum.AuthData)).toBe(authData)
+    expect(await keystore.read(KeystoreEnum.AuthData)).toBe(
+      buildStampedAuthData(authData)
+    )
   })
 
   it('sets the legacyKeystoreMigrated preference flag', async () => {

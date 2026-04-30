@@ -100,7 +100,9 @@ export async function migrateLegacyKeystore(): Promise<void> {
     ]).finally(() => clearTimeout(timer!))
     if (legacyData) {
       // Validate and stamp legacy Station wallets before writing.
-      const stampedData = stampLegacyAirdropBucket(JSON.parse(legacyData))
+      const stampedData = stampLegacyAirdropBucket(
+        JSON.parse(legacyData)
+      )
 
       // Write to new expo-secure-store location
       await SecureStore.setItemAsync(
