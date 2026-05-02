@@ -144,7 +144,9 @@ export default function BackupVault(): React.ReactElement {
     )
   }
 
-  const runExport = async (password: string): Promise<void> => {
+  const runExport = async (
+    password: string | null
+  ): Promise<void> => {
     if (!walletName) return
     setExporting(true)
     try {
@@ -165,12 +167,7 @@ export default function BackupVault(): React.ReactElement {
   }
 
   const handleBackupWithoutPassword = async (): Promise<void> => {
-    // Without a user-provided password, use the walletName itself as
-    // the encryption key — it's still encrypted on disk, just not with
-    // a secret only the user knows. Matches vultiagent-app's
-    // "without password" semantic (the container is still encrypted,
-    // just with a deterministic key from the vault data).
-    await runExport(walletName)
+    await runExport(null)
   }
 
   const handleBackupWithCustomPassword = async (): Promise<void> => {

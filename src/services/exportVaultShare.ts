@@ -15,18 +15,21 @@ import { getStoredVault } from './migrateToVault'
 import { encryptWithPassword } from './vaultCrypto'
 
 /**
- * Exports a wallet as an encrypted .vult vault share file.
+ * Exports a wallet as a .vult vault share file.
  *
  * For DKLS fast vaults: reads the stored vault protobuf directly.
  * For legacy vaults: constructs a KeyImport vault protobuf from the raw
  * secp256k1 private key (privateKeyHex must be provided).
  *
- * Encrypts with AES-256-GCM, wraps in VaultContainer, and writes to a
- * shareable .vult file importable by any Vultisig app via "Import Vault Share".
+ * If `exportPassword` is a non-empty string, the vault is encrypted with
+ * AES-256-GCM and `isEncrypted` is set to true. If null/undefined/empty,
+ * the vault bytes are stored plain and `isEncrypted` is false — matching
+ * vultisig-windows and vultisig-ios behavior so the file imports cleanly
+ * without prompting for a password.
  */
 export async function exportVaultShare(
   walletName: string,
-  exportPassword: string,
+  exportPassword: string | null,
   privateKeyHex?: string // Only needed for legacy vaults
 ): Promise<string> {
   let vaultBytes: Uint8Array
@@ -60,15 +63,16 @@ export async function exportVaultShare(
     )
     vaultBytes = toBinary(VaultSchema, vaultProto)
   }
-  const encryptedBytes = encryptWithPassword(
-    vaultBytes,
-    exportPassword
-  )
+  const hasPassword =
+    typeof exportPassword === 'string' && exportPassword.length > 0
+  const containerVaultBytes = hasPassword
+    ? encryptWithPassword(vaultBytes, exportPassword)
+    : vaultBytes
 
   const container = create(VaultContainerSchema, {
     version: 1n,
-    isEncrypted: true,
-    vault: base64.encode(encryptedBytes),
+    isEncrypted: hasPassword,
+    vault: base64.encode(containerVaultBytes),
   })
 
   const containerBytes = toBinary(VaultContainerSchema, container)
