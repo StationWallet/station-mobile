@@ -1,10 +1,15 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
+import { create, toBinary } from '@bufbuild/protobuf'
+import { base64 } from '@scure/base'
+
 import {
   importVaultBackup,
   type ImportVaultBackupResult,
 } from 'services/importVaultBackup'
+import { encryptWithPassword } from 'services/vaultCrypto'
+import { VaultContainerSchema } from '../../src/proto/vultisig/vault/v1/vault_container_pb'
 
 type Decrypted = Extract<ImportVaultBackupResult, { needsPassword: false }>
 function assertDecrypted(r: ImportVaultBackupResult): Decrypted {
@@ -84,5 +89,70 @@ describe('importVaultBackup — .bak', () => {
     )
     expect(result.vaultName).toBeTruthy()
     expect(result.publicKeyEcdsa).toBeTruthy()
+  })
+})
+
+// Mirrors the export semantic so we can test imports of "no password"
+// containers without spinning up expo-file-system in jest.
+function buildContainerBase64(
+  vaultBytes: Uint8Array,
+  password: string | null,
+): string {
+  const hasPassword =
+    typeof password === 'string' && password.length > 0
+  const containerVaultBytes = hasPassword
+    ? encryptWithPassword(vaultBytes, password)
+    : vaultBytes
+  const container = create(VaultContainerSchema, {
+    version: 1n,
+    isEncrypted: hasPassword,
+    vault: base64.encode(containerVaultBytes),
+  })
+  return base64.encode(toBinary(VaultContainerSchema, container))
+}
+
+describe('importVaultBackup — no-password export roundtrip', () => {
+  // Recover the raw vault bytes from the encrypted fixture so we can
+  // re-pack them as a plain (no-password) container.
+  const decrypted = assertDecrypted(
+    importVaultBackup({
+      content: readFixture(vultPath),
+      fileName: 'test-vault.vult',
+      password: FIXTURE_PASSWORD,
+    }),
+  )
+  const innerVaultBytes = decrypted.vaultBytes
+
+  it('imports a no-password container without prompting', () => {
+    const content = buildContainerBase64(innerVaultBytes, null)
+    const result = assertDecrypted(
+      importVaultBackup({
+        content,
+        fileName: 'test-vault-station-mobile.vult',
+      }),
+    )
+    expect(result.vaultName).toBe(decrypted.vaultName)
+    expect(result.publicKeyEcdsa).toBe(decrypted.publicKeyEcdsa)
+  })
+
+  it('imports a password-protected container only with the password', () => {
+    const customPassword = 'custompass-456'
+    const content = buildContainerBase64(innerVaultBytes, customPassword)
+
+    expect(
+      importVaultBackup({
+        content,
+        fileName: 'test-vault-station-mobile.vult',
+      }),
+    ).toEqual({ needsPassword: true })
+
+    const result = assertDecrypted(
+      importVaultBackup({
+        content,
+        fileName: 'test-vault-station-mobile.vult',
+        password: customPassword,
+      }),
+    )
+    expect(result.vaultName).toBe(decrypted.vaultName)
   })
 })
