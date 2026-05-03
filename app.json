@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Station Wallet",
-    "slug": "vultisig",
+    "slug": "station-wallet",
     "version": "5.0.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,7 +25,7 @@
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSBluetoothAlwaysUsageDescription": "Vultisig uses Bluetooth to connect to supported hardware wallets (such as Ledger) for secure transaction signing."
+        "NSBluetoothAlwaysUsageDescription": "Station Wallet uses Bluetooth to connect to supported hardware wallets (such as Ledger) for secure transaction signing."
       },
       "entitlements": {
         "aps-environment": "production"
