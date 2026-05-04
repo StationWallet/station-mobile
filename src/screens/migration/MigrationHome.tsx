@@ -11,7 +11,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 
-import Svg, { Path } from 'react-native-svg'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
 import { DevFlags } from '../../config/env'
@@ -24,42 +23,6 @@ import {
   MigrationWallet,
 } from 'services/migrateToVault'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
-import { MIGRATION_FLOW_ENABLED } from 'config/env'
-
-function CalendarClockIcon(): React.ReactElement {
-  return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M8 2v3M16 2v3M3 8h18M5 4h14a2 2 0 012 2v4H3V6a2 2 0 012-2z"
-        stroke="#4879fd"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M3 10v8a2 2 0 002 2h6"
-        stroke="#4879fd"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M18 22a4 4 0 100-8 4 4 0 000 8z"
-        stroke="#4879fd"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M18 16.5v1.5l1 1"
-        stroke="#4879fd"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  )
-}
 
 type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
 
@@ -123,52 +86,34 @@ export default function MigrationHome(): React.ReactElement {
             entering={FadeIn.delay(1200).duration(300)}
             style={styles.cardWrapper}
           >
-            <InfoCard connectedBottom={!MIGRATION_FLOW_ENABLED} />
-            {!MIGRATION_FLOW_ENABLED && (
-              <View
-                style={styles.checkBackCard}
-                testID="check-back-soon"
-              >
-                <CalendarClockIcon />
-                <Text
-                  fontType="brockmann-medium"
-                  style={styles.checkBackText}
-                >
-                  Check back soon...
-                </Text>
-              </View>
-            )}
+            <InfoCard />
           </Animated.View>
 
           <Animated.View
             entering={FadeIn.delay(1800).duration(300)}
             style={styles.buttonGroup}
           >
-            {MIGRATION_FLOW_ENABLED && (
-              <>
-                <Button
-                  title={
-                    hasLegacyWallets
-                      ? 'Start Migration'
-                      : 'Create a Fast Vault'
-                  }
-                  theme="ctaBlue"
-                  titleFontType="brockmann-medium"
-                  onPress={handleCta}
-                  containerStyle={styles.ctaButton}
-                  testID="migration-cta"
-                />
+            <Button
+              title={
+                hasLegacyWallets
+                  ? 'Start Migration'
+                  : 'Create a Fast Vault'
+              }
+              theme="ctaBlue"
+              titleFontType="brockmann-medium"
+              onPress={handleCta}
+              containerStyle={styles.ctaButton}
+              testID="migration-cta"
+            />
 
-                <Button
-                  title="I already have a Fast Vault"
-                  theme="secondaryDark"
-                  titleFontType="brockmann-medium"
-                  onPress={() => navigation.navigate('ImportVault')}
-                  containerStyle={styles.secondaryButton}
-                  testID="import-vault-button"
-                />
-              </>
-            )}
+            <Button
+              title="I already have a Fast Vault"
+              theme="secondaryDark"
+              titleFontType="brockmann-medium"
+              onPress={() => navigation.navigate('ImportVault')}
+              containerStyle={styles.secondaryButton}
+              testID="import-vault-button"
+            />
 
             <TouchableOpacity
               style={styles.linkButton}
@@ -250,25 +195,6 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     gap: 16,
     alignItems: 'center',
-  },
-  checkBackCard: {
-    backgroundColor: MIGRATION.surface1,
-    borderBottomLeftRadius: MIGRATION.radiusCard,
-    borderBottomRightRadius: MIGRATION.radiusCard,
-    marginTop: -20,
-    paddingTop: 32,
-    paddingBottom: 14,
-    paddingHorizontal: 32,
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    gap: 8,
-    zIndex: 0,
-  },
-  checkBackText: {
-    fontSize: 12,
-    color: MIGRATION.textPrimary,
-    lineHeight: 16,
   },
   ctaButton: {
     borderRadius: MIGRATION.radiusPill,

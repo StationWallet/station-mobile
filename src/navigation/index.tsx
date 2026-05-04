@@ -20,7 +20,6 @@ import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
 import {
-  MIGRATION_FLOW_ENABLED,
   BYPASS_AUTH_FOR_TESTING,
 } from 'config/env'
 
@@ -67,9 +66,7 @@ export default function AppNavigator(): React.ReactElement | null {
         PreferencesEnum.legacyDataFound
       )
 
-      if (!MIGRATION_FLOW_ENABLED) {
-        setRootRoute('Migration')
-      } else if (
+      if (
         loaded.length > 0 &&
         !vaultsUpgraded &&
         legacyDataFound
