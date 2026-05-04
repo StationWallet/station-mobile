@@ -37,6 +37,8 @@ const useSecurity = (): {
   useEffect(() => {
     if (state) return
 
+    let resolved = false
+
     Promise.all([
       Security.deviceRooted(),
       Security.debugEnabled(),
@@ -53,6 +55,7 @@ const useSecurity = (): {
         isIncorrectFingerprint,
         isRunningEmulator,
       ]) => {
+        resolved = true
         setState({
           isDeviceRooted,
           isDebugEnabled,
@@ -61,6 +64,24 @@ const useSecurity = (): {
         })
       }
     )
+
+    // Fallback: if the native security probes never resolve (real-device
+    // keychain/JIT-detection latency we can't reproduce on sim), force the
+    // splash to hide so the user isn't stuck. App Store reviewer hit this
+    // on iPad Air 11" / iPadOS 26.4.2 ("stuck at the launch page"). __DEV__
+    // builds short-circuit via the pre-populated stub above, so the bug
+    // only manifests in production.
+    const fallbackTimer = setTimeout(() => {
+      if (resolved) return
+      setState({
+        isDeviceRooted: false,
+        isDebugEnabled: false,
+        isIncorrectFingerprint: false,
+        isRunningEmulator: false,
+      })
+    }, 5000)
+
+    return () => clearTimeout(fallbackTimer)
   }, [])
 
   const getSecurityErrorMessage = (): string => {
