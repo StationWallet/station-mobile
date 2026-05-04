@@ -76,12 +76,7 @@ export default function InfoCard(): React.ReactElement {
   return (
     <View>
       {/* Main card — zIndex 1 so it sits on top of the countdown strip */}
-      <View
-        style={[
-          styles.card,
-          styles.cardWithCountdown,
-        ]}
-      >
+      <View style={[styles.card, styles.cardWithCountdown]}>
         <View style={styles.contentRow}>
           <View
             style={{

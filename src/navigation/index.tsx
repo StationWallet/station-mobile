@@ -19,9 +19,7 @@ import { WalletNavContext } from './hooks'
 import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
-import {
-  BYPASS_AUTH_FOR_TESTING,
-} from 'config/env'
+import { BYPASS_AUTH_FOR_TESTING } from 'config/env'
 
 export { useWalletDisconnected, useWalletNav } from './hooks'
 
@@ -66,11 +64,7 @@ export default function AppNavigator(): React.ReactElement | null {
         PreferencesEnum.legacyDataFound
       )
 
-      if (
-        loaded.length > 0 &&
-        !vaultsUpgraded &&
-        legacyDataFound
-      ) {
+      if (loaded.length > 0 && !vaultsUpgraded && legacyDataFound) {
         setRootRoute('Migration')
       } else if (loaded.length === 0) {
         setRootRoute(BYPASS_AUTH_FOR_TESTING ? 'Auth' : 'Migration')
