@@ -3,10 +3,6 @@ export const env = {
   vultisigApiUrl: 'https://api.vultisig.com',
 } as const
 
-/** Set to `true` when the full migration/vault-creation flow is ready to ship. */
-export const MIGRATION_FLOW_ENABLED =
-  process.env.EXPO_PUBLIC_MIGRATION_FLOW_ENABLED === 'true'
-
 /**
  * When `true`, fresh installs boot into the dev `AuthMenu` (with seed/dev
  * buttons) instead of the production migration flow. Used by Detox E2E

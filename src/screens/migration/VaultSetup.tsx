@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Dimensions,
   PixelRatio,
+  useWindowDimensions,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
@@ -20,7 +21,6 @@ import Text from 'components/Text'
 import Button from 'components/Button'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { MIGRATION } from 'consts/migration'
-import { formStyles } from 'components/migration/migrationStyles'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 let RiveComponent: React.ComponentType<
@@ -71,13 +71,15 @@ function InfoBullet({
   icon,
   title,
   description,
+  rowStyle,
 }: {
   icon: React.ReactNode
   title: string
   description: string
+  rowStyle?: { marginBottom?: number }
 }): React.ReactElement {
   return (
-    <View style={styles.bulletRow}>
+    <View style={[styles.bulletRow, rowStyle]}>
       <View style={styles.bulletIcon}>{icon}</View>
       <View style={styles.bulletText}>
         <Text fontType="brockmann-medium" style={styles.bulletTitle}>
@@ -124,13 +126,21 @@ function LockIcon(): React.ReactElement {
   )
 }
 
-const BOTTOM_PAD_TOP = 12
-const BOTTOM_BUTTON_AREA = MIGRATION.ctaHeight + BOTTOM_PAD_TOP
-
 export default function VaultSetup(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
   const safeBottom = Math.max(insets.bottom, 16)
+  const { height: viewportHeight } = useWindowDimensions()
+  // Compact sizing for short viewports — primarily iPad-letterbox (667pt)
+  // and small iPhones. The hero animation is the biggest consumer of
+  // vertical space; halving it lets all 3 feature bullets + CTA fit
+  // without scroll on the iPad-letterbox launch flow.
+  const isShort = viewportHeight < 700
+  const riveHeight = isShort ? 140 : 240
+  const sectionGap = isShort ? 12 : 24
+  const bulletGap = isShort ? 10 : 16
+  const titleMarginTop = isShort ? 8 : 16
+  const titleMarginBottom = isShort ? 12 : 20
 
   const handleBack = (): void => {
     if (navigation.canGoBack()) navigation.goBack()
@@ -142,20 +152,35 @@ export default function VaultSetup(): React.ReactElement {
         <MigrationToolbar onBack={handleBack} />
       </View>
 
+      {/*
+       * Full-flex column layout: ScrollView fills remaining height, button
+       * sits in normal flow below it. No absolute positioning — the button
+       * is always visible without obscuring scroll content on any viewport.
+       *
+       * ScrollView keeps defensive scroll support for Dynamic Type / small
+       * screens, with contentContainerStyle flexGrow: 1 so the inner content
+       * still flexes to fill the viewport when content is short.
+       */}
       <ScrollView
         style={styles.contentScroll}
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: BOTTOM_BUTTON_AREA + safeBottom },
-        ]}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text fontType="brockmann-medium" style={styles.title}>
+        <Text
+          fontType="brockmann-medium"
+          style={[
+            styles.title,
+            {
+              marginTop: titleMarginTop,
+              marginBottom: titleMarginBottom,
+            },
+          ]}
+        >
           Your vault setup
         </Text>
 
         {/* Fast Vault chip */}
-        <View style={styles.chip}>
+        <View style={[styles.chip, { marginBottom: sectionGap }]}>
           <LightningIcon />
           <View style={styles.chipText}>
             <Text
@@ -171,7 +196,12 @@ export default function VaultSetup(): React.ReactElement {
         </View>
 
         {/* Rive animation */}
-        <View style={styles.riveContainer}>
+        <View
+          style={[
+            styles.riveContainer,
+            { height: riveHeight, marginBottom: sectionGap },
+          ]}
+        >
           {RiveComponent && riveSource ? (
             <RiveComponent
               source={riveSource}
@@ -192,29 +222,29 @@ export default function VaultSetup(): React.ReactElement {
           icon={<DeviceIcon />}
           title="1-Device Signing"
           description="Convenient one-device signing on the go. Perfect for daily transactions or trading smaller amounts."
+          rowStyle={{ marginBottom: bulletGap }}
         />
         <InfoBullet
           icon={<ShieldIcon />}
           title="Fast and Secure Setup"
           description="No long setup. Just your email and password, plus two backups."
+          rowStyle={{ marginBottom: bulletGap }}
         />
         <InfoBullet
           icon={<LockIcon />}
           title="Multisig with one device"
           description="A co-signer can never initiate transactions; only assists with signing them."
+          rowStyle={{ marginBottom: bulletGap }}
         />
       </ScrollView>
 
-      <View
-        pointerEvents="box-none"
-        style={[styles.bottom, { paddingBottom: safeBottom }]}
-      >
+      <View style={[styles.bottom, { paddingBottom: safeBottom }]}>
         <Button
           testID="vault-setup-get-started"
           title="Get started"
           theme="ctaBlue"
           titleFontType="brockmann-medium"
-          containerStyle={formStyles.ctaButton}
+          containerStyle={styles.ctaButton}
           onPress={() => navigation.navigate('VaultName')}
         />
       </View>
@@ -232,6 +262,9 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
+    // flexGrow ensures content fills the viewport even when short,
+    // so the layout never feels floaty on tall displays.
+    flexGrow: 1,
   },
   title: {
     fontSize: 28,
@@ -282,6 +315,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   riveContainer: {
+    // Use a fixed height for the animation frame. The width uses SCREEN_WIDTH
+    // so it spans edge-to-edge on both iPhone and iPad (paddingHorizontal on
+    // the parent is 24, so -12 pulls each side to the 12pt inner margin).
     height: 240,
     width: SCREEN_WIDTH - 24,
     marginLeft: -12,
@@ -303,7 +339,7 @@ const styles = StyleSheet.create({
   },
   bulletRow: {
     flexDirection: 'row',
-    marginBottom: 16,
+    // marginBottom applied via rowStyle prop (viewport-driven)
     gap: 12,
   },
   bulletIcon: {
@@ -322,13 +358,16 @@ const styles = StyleSheet.create({
     color: MIGRATION.textTertiary,
     lineHeight: 18,
   },
+  // Button sits in normal document flow below the ScrollView — no absolute
+  // positioning, so it never obscures scroll content on any screen size.
   bottom: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
     paddingHorizontal: 24,
-    paddingTop: BOTTOM_PAD_TOP,
+    paddingTop: 12,
     backgroundColor: MIGRATION.bg,
+  },
+  ctaButton: {
+    borderRadius: MIGRATION.radiusPill,
+    height: MIGRATION.ctaHeight,
+    width: '100%',
   },
 })

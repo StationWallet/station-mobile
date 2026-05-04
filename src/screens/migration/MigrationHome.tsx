@@ -5,13 +5,13 @@ import {
   TouchableOpacity,
   ScrollView,
   Linking,
+  useWindowDimensions,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 
-import Svg, { Path } from 'react-native-svg'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
 import { DevFlags } from '../../config/env'
@@ -24,48 +24,19 @@ import {
   MigrationWallet,
 } from 'services/migrateToVault'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
-import { MIGRATION_FLOW_ENABLED } from 'config/env'
-
-function CalendarClockIcon(): React.ReactElement {
-  return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M8 2v3M16 2v3M3 8h18M5 4h14a2 2 0 012 2v4H3V6a2 2 0 012-2z"
-        stroke="#4879fd"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M3 10v8a2 2 0 002 2h6"
-        stroke="#4879fd"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M18 22a4 4 0 100-8 4 4 0 000 8z"
-        stroke="#4879fd"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M18 16.5v1.5l1 1"
-        stroke="#4879fd"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  )
-}
 
 type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
 
 export default function MigrationHome(): React.ReactElement {
   const insets = useSafeAreaInsets()
   const navigation = useNavigation<Nav>()
+  const { height: viewportHeight } = useWindowDimensions()
+  // Compact sizing for short viewports — primarily iPad-letterbox (667pt)
+  // and small iPhones (SE 1st gen 568pt). Modern iPhones (≥812pt) keep the
+  // generous default sizing.
+  const isShort = viewportHeight < 700
+  const heroSize = isShort ? 140 : 200
+  const titleMargin = isShort ? 16 : 28
   const [wallets, setWallets] = useState<MigrationWallet[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setReady used to track loading state
   const [_ready, setReady] = useState(false)
@@ -92,29 +63,46 @@ export default function MigrationHome(): React.ReactElement {
   }
 
   return (
-    <View
-      style={[styles.container, { paddingBottom: insets.bottom }]}
-    >
+    <View style={styles.container}>
       <PrimaryBackground />
 
+      {/*
+       * ScrollView with flexGrow: 1 on contentContainerStyle makes the inner
+       * content flex to fill the full viewport on both iPhone and iPad.
+       * No magic number top-margin: we respect insets.top via paddingTop on
+       * the content view so the animation sits naturally below the status bar
+       * on every device.
+       */}
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: insets.top + 20,
+            paddingBottom: Math.max(insets.bottom, 24),
+          },
+        ]}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          {/* Rive animation: 200x200, top ~92px from screen top */}
           <Animated.View
             entering={FadeIn.delay(0).duration(300)}
             style={[
               styles.animationPlaceholder,
-              { marginTop: Math.max(20, 140 - insets.top) },
+              { width: heroSize, height: heroSize },
             ]}
           >
-            <RocketWithGlow size={200} />
+            <RocketWithGlow size={heroSize} />
           </Animated.View>
 
           <Animated.View entering={FadeIn.delay(600).duration(300)}>
-            <Text fontType="brockmann-medium" style={styles.title}>
+            <Text
+              fontType="brockmann-medium"
+              style={[
+                styles.title,
+                { marginTop: titleMargin, marginBottom: titleMargin },
+              ]}
+            >
               {'Your seed phrase\nbecomes a Fast Vault'}
             </Text>
           </Animated.View>
@@ -123,52 +111,39 @@ export default function MigrationHome(): React.ReactElement {
             entering={FadeIn.delay(1200).duration(300)}
             style={styles.cardWrapper}
           >
-            <InfoCard connectedBottom={!MIGRATION_FLOW_ENABLED} />
-            {!MIGRATION_FLOW_ENABLED && (
-              <View
-                style={styles.checkBackCard}
-                testID="check-back-soon"
-              >
-                <CalendarClockIcon />
-                <Text
-                  fontType="brockmann-medium"
-                  style={styles.checkBackText}
-                >
-                  Check back soon...
-                </Text>
-              </View>
-            )}
+            <InfoCard />
           </Animated.View>
 
+          {/*
+           * marginTop: 'auto' pushes the button group to the bottom of the
+           * flex column on both small (iPhone) and large (iPad) viewports —
+           * no fixed positioning needed.
+           */}
           <Animated.View
             entering={FadeIn.delay(1800).duration(300)}
             style={styles.buttonGroup}
           >
-            {MIGRATION_FLOW_ENABLED && (
-              <>
-                <Button
-                  title={
-                    hasLegacyWallets
-                      ? 'Start Migration'
-                      : 'Create a Fast Vault'
-                  }
-                  theme="ctaBlue"
-                  titleFontType="brockmann-medium"
-                  onPress={handleCta}
-                  containerStyle={styles.ctaButton}
-                  testID="migration-cta"
-                />
+            <Button
+              title={
+                hasLegacyWallets
+                  ? 'Start Migration'
+                  : 'Create a Fast Vault'
+              }
+              theme="ctaBlue"
+              titleFontType="brockmann-medium"
+              onPress={handleCta}
+              containerStyle={styles.ctaButton}
+              testID="migration-cta"
+            />
 
-                <Button
-                  title="I already have a Fast Vault"
-                  theme="secondaryDark"
-                  titleFontType="brockmann-medium"
-                  onPress={() => navigation.navigate('ImportVault')}
-                  containerStyle={styles.secondaryButton}
-                  testID="import-vault-button"
-                />
-              </>
-            )}
+            <Button
+              title="I already have a Fast Vault"
+              theme="secondaryDark"
+              titleFontType="brockmann-medium"
+              onPress={() => navigation.navigate('ImportVault')}
+              containerStyle={styles.secondaryButton}
+              testID="import-vault-button"
+            />
 
             <TouchableOpacity
               style={styles.linkButton}
@@ -229,16 +204,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: MIGRATION.screenPadding,
   },
   animationPlaceholder: {
-    width: 200,
-    height: DevFlags.SeedLegacyData ? 40 : 200,
+    // width/height applied inline so they scale with viewport; the dev-flag
+    // fallback (40pt) is preserved by the conditional below.
+    height: DevFlags.SeedLegacyData ? 40 : undefined,
     alignSelf: 'center',
   },
   title: {
     fontSize: 22,
     color: MIGRATION.textPrimary,
     textAlign: 'center',
-    marginTop: 28,
-    marginBottom: 28,
+    // marginTop/marginBottom applied inline (viewport-driven)
     lineHeight: 24,
     letterSpacing: -0.36,
   },
@@ -247,28 +222,8 @@ const styles = StyleSheet.create({
   },
   buttonGroup: {
     marginTop: 'auto',
-    paddingBottom: 24,
     gap: 16,
     alignItems: 'center',
-  },
-  checkBackCard: {
-    backgroundColor: MIGRATION.surface1,
-    borderBottomLeftRadius: MIGRATION.radiusCard,
-    borderBottomRightRadius: MIGRATION.radiusCard,
-    marginTop: -20,
-    paddingTop: 32,
-    paddingBottom: 14,
-    paddingHorizontal: 32,
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    gap: 8,
-    zIndex: 0,
-  },
-  checkBackText: {
-    fontSize: 12,
-    color: MIGRATION.textPrimary,
-    lineHeight: 16,
   },
   ctaButton: {
     borderRadius: MIGRATION.radiusPill,

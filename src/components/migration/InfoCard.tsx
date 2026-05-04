@@ -8,7 +8,6 @@ import Svg, {
 } from 'react-native-svg'
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
-import { MIGRATION_FLOW_ENABLED } from 'config/env'
 
 function LightningIcon(): React.ReactElement {
   return (
@@ -73,23 +72,11 @@ function CalendarClockIcon(): React.ReactElement {
   )
 }
 
-type Props = {
-  connectedBottom?: boolean
-}
-
-export default function InfoCard({
-  connectedBottom = false,
-}: Props): React.ReactElement {
+export default function InfoCard(): React.ReactElement {
   return (
     <View>
       {/* Main card — zIndex 1 so it sits on top of the countdown strip */}
-      <View
-        style={[
-          styles.card,
-          connectedBottom && styles.cardConnectedBottom,
-          MIGRATION_FLOW_ENABLED && styles.cardWithCountdown,
-        ]}
-      >
+      <View style={[styles.card, styles.cardWithCountdown]}>
         <View style={styles.contentRow}>
           <View
             style={{
@@ -143,14 +130,12 @@ export default function InfoCard({
       </View>
 
       {/* Bottom strip with countdown — sits behind the main card */}
-      {MIGRATION_FLOW_ENABLED && (
-        <View style={styles.countdownStrip}>
-          <CalendarClockIcon />
-          <Text fontType="brockmann-medium" style={styles.countdown}>
-            This window closes soon.
-          </Text>
-        </View>
-      )}
+      <View style={styles.countdownStrip}>
+        <CalendarClockIcon />
+        <Text fontType="brockmann-medium" style={styles.countdown}>
+          This window closes soon.
+        </Text>
+      </View>
     </View>
   )
 }
@@ -165,11 +150,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 12,
     zIndex: 1,
-  },
-  cardConnectedBottom: {
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    borderBottomWidth: 0,
   },
   cardWithCountdown: {
     // Keep full border-radius — the card sits ON TOP of the strip
