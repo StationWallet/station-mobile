@@ -81,7 +81,7 @@ const useSecurity = (): {
       })
     }, 5000)
 
-    return () => clearTimeout(fallbackTimer)
+    return (): void => clearTimeout(fallbackTimer)
   }, [])
 
   const getSecurityErrorMessage = (): string => {
