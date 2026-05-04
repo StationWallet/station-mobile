@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Linking,
+  useWindowDimensions,
 } from 'react-native'
 import Animated, { FadeIn } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -29,6 +30,13 @@ type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
 export default function MigrationHome(): React.ReactElement {
   const insets = useSafeAreaInsets()
   const navigation = useNavigation<Nav>()
+  const { height: viewportHeight } = useWindowDimensions()
+  // Compact sizing for short viewports — primarily iPad-letterbox (667pt)
+  // and small iPhones (SE 1st gen 568pt). Modern iPhones (≥812pt) keep the
+  // generous default sizing.
+  const isShort = viewportHeight < 700
+  const heroSize = isShort ? 140 : 200
+  const titleMargin = isShort ? 16 : 28
   const [wallets, setWallets] = useState<MigrationWallet[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setReady used to track loading state
   const [_ready, setReady] = useState(false)
@@ -79,13 +87,22 @@ export default function MigrationHome(): React.ReactElement {
         <View style={styles.content}>
           <Animated.View
             entering={FadeIn.delay(0).duration(300)}
-            style={styles.animationPlaceholder}
+            style={[
+              styles.animationPlaceholder,
+              { width: heroSize, height: heroSize },
+            ]}
           >
-            <RocketWithGlow size={200} />
+            <RocketWithGlow size={heroSize} />
           </Animated.View>
 
           <Animated.View entering={FadeIn.delay(600).duration(300)}>
-            <Text fontType="brockmann-medium" style={styles.title}>
+            <Text
+              fontType="brockmann-medium"
+              style={[
+                styles.title,
+                { marginTop: titleMargin, marginBottom: titleMargin },
+              ]}
+            >
               {'Your seed phrase\nbecomes a Fast Vault'}
             </Text>
           </Animated.View>
@@ -187,16 +204,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: MIGRATION.screenPadding,
   },
   animationPlaceholder: {
-    width: 200,
-    height: DevFlags.SeedLegacyData ? 40 : 200,
+    // width/height applied inline so they scale with viewport; the dev-flag
+    // fallback (40pt) is preserved by the conditional below.
+    height: DevFlags.SeedLegacyData ? 40 : undefined,
     alignSelf: 'center',
   },
   title: {
     fontSize: 22,
     color: MIGRATION.textPrimary,
     textAlign: 'center',
-    marginTop: 28,
-    marginBottom: 28,
+    // marginTop/marginBottom applied inline (viewport-driven)
     lineHeight: 24,
     letterSpacing: -0.36,
   },

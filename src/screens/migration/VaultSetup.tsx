@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Dimensions,
   PixelRatio,
+  useWindowDimensions,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
@@ -70,13 +71,15 @@ function InfoBullet({
   icon,
   title,
   description,
+  rowStyle,
 }: {
   icon: React.ReactNode
   title: string
   description: string
+  rowStyle?: { marginBottom?: number }
 }): React.ReactElement {
   return (
-    <View style={styles.bulletRow}>
+    <View style={[styles.bulletRow, rowStyle]}>
       <View style={styles.bulletIcon}>{icon}</View>
       <View style={styles.bulletText}>
         <Text fontType="brockmann-medium" style={styles.bulletTitle}>
@@ -127,6 +130,17 @@ export default function VaultSetup(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
   const safeBottom = Math.max(insets.bottom, 16)
+  const { height: viewportHeight } = useWindowDimensions()
+  // Compact sizing for short viewports — primarily iPad-letterbox (667pt)
+  // and small iPhones. The hero animation is the biggest consumer of
+  // vertical space; halving it lets all 3 feature bullets + CTA fit
+  // without scroll on the iPad-letterbox launch flow.
+  const isShort = viewportHeight < 700
+  const riveHeight = isShort ? 140 : 240
+  const sectionGap = isShort ? 12 : 24
+  const bulletGap = isShort ? 10 : 16
+  const titleMarginTop = isShort ? 8 : 16
+  const titleMarginBottom = isShort ? 12 : 20
 
   const handleBack = (): void => {
     if (navigation.canGoBack()) navigation.goBack()
@@ -152,12 +166,21 @@ export default function VaultSetup(): React.ReactElement {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text fontType="brockmann-medium" style={styles.title}>
+        <Text
+          fontType="brockmann-medium"
+          style={[
+            styles.title,
+            {
+              marginTop: titleMarginTop,
+              marginBottom: titleMarginBottom,
+            },
+          ]}
+        >
           Your vault setup
         </Text>
 
         {/* Fast Vault chip */}
-        <View style={styles.chip}>
+        <View style={[styles.chip, { marginBottom: sectionGap }]}>
           <LightningIcon />
           <View style={styles.chipText}>
             <Text
@@ -173,7 +196,12 @@ export default function VaultSetup(): React.ReactElement {
         </View>
 
         {/* Rive animation */}
-        <View style={styles.riveContainer}>
+        <View
+          style={[
+            styles.riveContainer,
+            { height: riveHeight, marginBottom: sectionGap },
+          ]}
+        >
           {RiveComponent && riveSource ? (
             <RiveComponent
               source={riveSource}
@@ -194,16 +222,19 @@ export default function VaultSetup(): React.ReactElement {
           icon={<DeviceIcon />}
           title="1-Device Signing"
           description="Convenient one-device signing on the go. Perfect for daily transactions or trading smaller amounts."
+          rowStyle={{ marginBottom: bulletGap }}
         />
         <InfoBullet
           icon={<ShieldIcon />}
           title="Fast and Secure Setup"
           description="No long setup. Just your email and password, plus two backups."
+          rowStyle={{ marginBottom: bulletGap }}
         />
         <InfoBullet
           icon={<LockIcon />}
           title="Multisig with one device"
           description="A co-signer can never initiate transactions; only assists with signing them."
+          rowStyle={{ marginBottom: bulletGap }}
         />
       </ScrollView>
 
@@ -308,7 +339,7 @@ const styles = StyleSheet.create({
   },
   bulletRow: {
     flexDirection: 'row',
-    marginBottom: 16,
+    // marginBottom applied via rowStyle prop (viewport-driven)
     gap: 12,
   },
   bulletIcon: {
