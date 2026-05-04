@@ -55,23 +55,31 @@ export default function MigrationHome(): React.ReactElement {
   }
 
   return (
-    <View
-      style={[styles.container, { paddingBottom: insets.bottom }]}
-    >
+    <View style={styles.container}>
       <PrimaryBackground />
 
+      {/*
+       * ScrollView with flexGrow: 1 on contentContainerStyle makes the inner
+       * content flex to fill the full viewport on both iPhone and iPad.
+       * No magic number top-margin: we respect insets.top via paddingTop on
+       * the content view so the animation sits naturally below the status bar
+       * on every device.
+       */}
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: insets.top + 20,
+            paddingBottom: Math.max(insets.bottom, 24),
+          },
+        ]}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          {/* Rive animation: 200x200, top ~92px from screen top */}
           <Animated.View
             entering={FadeIn.delay(0).duration(300)}
-            style={[
-              styles.animationPlaceholder,
-              { marginTop: Math.max(20, 140 - insets.top) },
-            ]}
+            style={styles.animationPlaceholder}
           >
             <RocketWithGlow size={200} />
           </Animated.View>
@@ -89,6 +97,11 @@ export default function MigrationHome(): React.ReactElement {
             <InfoCard />
           </Animated.View>
 
+          {/*
+           * marginTop: 'auto' pushes the button group to the bottom of the
+           * flex column on both small (iPhone) and large (iPad) viewports —
+           * no fixed positioning needed.
+           */}
           <Animated.View
             entering={FadeIn.delay(1800).duration(300)}
             style={styles.buttonGroup}
@@ -192,7 +205,6 @@ const styles = StyleSheet.create({
   },
   buttonGroup: {
     marginTop: 'auto',
-    paddingBottom: 24,
     gap: 16,
     alignItems: 'center',
   },

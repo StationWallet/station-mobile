@@ -20,7 +20,6 @@ import Text from 'components/Text'
 import Button from 'components/Button'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { MIGRATION } from 'consts/migration'
-import { formStyles } from 'components/migration/migrationStyles'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 
 let RiveComponent: React.ComponentType<
@@ -124,9 +123,6 @@ function LockIcon(): React.ReactElement {
   )
 }
 
-const BOTTOM_PAD_TOP = 12
-const BOTTOM_BUTTON_AREA = MIGRATION.ctaHeight + BOTTOM_PAD_TOP
-
 export default function VaultSetup(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
@@ -142,12 +138,18 @@ export default function VaultSetup(): React.ReactElement {
         <MigrationToolbar onBack={handleBack} />
       </View>
 
+      {/*
+       * Full-flex column layout: ScrollView fills remaining height, button
+       * sits in normal flow below it. No absolute positioning — the button
+       * is always visible without obscuring scroll content on any viewport.
+       *
+       * ScrollView keeps defensive scroll support for Dynamic Type / small
+       * screens, with contentContainerStyle flexGrow: 1 so the inner content
+       * still flexes to fill the viewport when content is short.
+       */}
       <ScrollView
         style={styles.contentScroll}
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: BOTTOM_BUTTON_AREA + safeBottom },
-        ]}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
         <Text fontType="brockmann-medium" style={styles.title}>
@@ -205,16 +207,13 @@ export default function VaultSetup(): React.ReactElement {
         />
       </ScrollView>
 
-      <View
-        pointerEvents="box-none"
-        style={[styles.bottom, { paddingBottom: safeBottom }]}
-      >
+      <View style={[styles.bottom, { paddingBottom: safeBottom }]}>
         <Button
           testID="vault-setup-get-started"
           title="Get started"
           theme="ctaBlue"
           titleFontType="brockmann-medium"
-          containerStyle={formStyles.ctaButton}
+          containerStyle={styles.ctaButton}
           onPress={() => navigation.navigate('VaultName')}
         />
       </View>
@@ -232,6 +231,9 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
+    // flexGrow ensures content fills the viewport even when short,
+    // so the layout never feels floaty on tall displays.
+    flexGrow: 1,
   },
   title: {
     fontSize: 28,
@@ -282,6 +284,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   riveContainer: {
+    // Use a fixed height for the animation frame. The width uses SCREEN_WIDTH
+    // so it spans edge-to-edge on both iPhone and iPad (paddingHorizontal on
+    // the parent is 24, so -12 pulls each side to the 12pt inner margin).
     height: 240,
     width: SCREEN_WIDTH - 24,
     marginLeft: -12,
@@ -322,13 +327,16 @@ const styles = StyleSheet.create({
     color: MIGRATION.textTertiary,
     lineHeight: 18,
   },
+  // Button sits in normal document flow below the ScrollView — no absolute
+  // positioning, so it never obscures scroll content on any screen size.
   bottom: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
     paddingHorizontal: 24,
-    paddingTop: BOTTOM_PAD_TOP,
+    paddingTop: 12,
     backgroundColor: MIGRATION.bg,
+  },
+  ctaButton: {
+    borderRadius: MIGRATION.radiusPill,
+    height: MIGRATION.ctaHeight,
+    width: '100%',
   },
 })
