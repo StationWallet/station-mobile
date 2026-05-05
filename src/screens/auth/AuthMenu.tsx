@@ -44,7 +44,7 @@ const AuthMenu = ({
             <Text style={styles.logoText}>S</Text>
           </View>
           <Text style={[authStyles.title, { fontSize: 28 }]}>
-            Station Wallet
+            Station
           </Text>
           <Text
             style={[
