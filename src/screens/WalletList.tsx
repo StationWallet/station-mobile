@@ -222,17 +222,18 @@ export default function WalletList(): React.ReactElement {
         // the helpers still work the way they always have.
         onCreate={
           inMigrationNav
-            ? () => migrationNav.navigate('VaultName', { mode: 'create' })
+            ? (): void =>
+                migrationNav.navigate('VaultName', { mode: 'create' })
             : startCreateVault
         }
         onRecover={
           inMigrationNav
-            ? () => migrationNav.navigate('RecoverSeed')
+            ? (): void => migrationNav.navigate('RecoverSeed')
             : startSeedRecoveryInput
         }
         onImport={
           inMigrationNav
-            ? () => migrationNav.navigate('ImportVault')
+            ? (): void => migrationNav.navigate('ImportVault')
             : startImportVault
         }
       />
