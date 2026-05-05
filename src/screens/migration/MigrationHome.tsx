@@ -24,6 +24,8 @@ import {
   MigrationWallet,
 } from 'services/migrateToVault'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
+import AddWalletSheet from 'components/AddWalletSheet'
+import { useWalletNav } from 'navigation'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
 
@@ -40,6 +42,12 @@ export default function MigrationHome(): React.ReactElement {
   const [wallets, setWallets] = useState<MigrationWallet[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setReady used to track loading state
   const [_ready, setReady] = useState(false)
+  const [importSheetVisible, setImportSheetVisible] = useState(false)
+  const {
+    startCreateVault,
+    startSeedRecoveryInput,
+    startImportVault,
+  } = useWalletNav()
 
   useEffect(() => {
     discoverLegacyWallets()
@@ -137,10 +145,10 @@ export default function MigrationHome(): React.ReactElement {
             />
 
             <Button
-              title="I already have a Fast Vault"
+              title="Import wallet"
               theme="secondaryDark"
               titleFontType="brockmann-medium"
-              onPress={() => navigation.navigate('ImportVault')}
+              onPress={() => setImportSheetVisible(true)}
               containerStyle={styles.secondaryButton}
               testID="import-vault-button"
             />
@@ -187,6 +195,18 @@ export default function MigrationHome(): React.ReactElement {
           )}
         </View>
       </ScrollView>
+
+      <AddWalletSheet
+        visible={importSheetVisible}
+        onDismiss={() => setImportSheetVisible(false)}
+        onCreate={startCreateVault}
+        onRecover={startSeedRecoveryInput}
+        onImport={startImportVault}
+        // MigrationHome's "Import wallet" entry is for users who already
+        // have a wallet — Create would just be a misroute. The shared sheet
+        // still defaults to showing it for the WalletList entry.
+        showCreate={false}
+      />
     </View>
   )
 }
