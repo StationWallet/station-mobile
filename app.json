@@ -25,7 +25,7 @@
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSBluetoothAlwaysUsageDescription": "Station Wallet uses Bluetooth to connect to supported hardware wallets (such as Ledger) for secure transaction signing."
+        "NSBluetoothAlwaysUsageDescription": "Station uses Bluetooth to connect to supported hardware wallets (such as Ledger) for secure transaction signing."
       },
       "entitlements": {
         "aps-environment": "production"
