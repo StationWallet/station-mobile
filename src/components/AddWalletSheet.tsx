@@ -80,6 +80,10 @@ type Props = {
   onCreate: () => void
   onRecover: () => void
   onImport: () => void
+  // When false, the "Create new wallet" card is hidden. Used by the
+  // import-wallet entry on MigrationHome where the user already declared
+  // they have an existing wallet — Create would just be a misroute.
+  showCreate?: boolean
 }
 
 export default function AddWalletSheet({
@@ -88,6 +92,7 @@ export default function AddWalletSheet({
   onCreate,
   onRecover,
   onImport,
+  showCreate = true,
 }: Props): React.ReactElement {
   const insets = useSafeAreaInsets()
   const [mounted, setMounted] = useState(false)
@@ -166,29 +171,31 @@ export default function AddWalletSheet({
           </Text>
 
           {/* Create new wallet card */}
-          <Pressable
-            testID="add-wallet-create"
-            accessibilityRole="button"
-            accessibilityLabel="Create new wallet"
-            style={styles.card}
-            onPress={dismissAnd(onCreate)}
-          >
-            <View style={styles.cardTitleRow}>
-              <PlusCircleIcon />
+          {showCreate && (
+            <Pressable
+              testID="add-wallet-create"
+              accessibilityRole="button"
+              accessibilityLabel="Create new wallet"
+              style={styles.card}
+              onPress={dismissAnd(onCreate)}
+            >
+              <View style={styles.cardTitleRow}>
+                <PlusCircleIcon />
+                <Text
+                  fontType="brockmann-medium"
+                  style={styles.cardTitle}
+                >
+                  Create new wallet
+                </Text>
+              </View>
               <Text
                 fontType="brockmann-medium"
-                style={styles.cardTitle}
+                style={styles.cardSubtitle}
               >
-                Create new wallet
+                Start fresh with a brand-new vault.
               </Text>
-            </View>
-            <Text
-              fontType="brockmann-medium"
-              style={styles.cardSubtitle}
-            >
-              Start fresh with a brand-new vault.
-            </Text>
-          </Pressable>
+            </Pressable>
+          )}
 
           {/* Recover / convert seedphrase card */}
           <Pressable

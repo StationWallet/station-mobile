@@ -213,9 +213,29 @@ export default function WalletList(): React.ReactElement {
       <AddWalletSheet
         visible={addSheetVisible}
         onDismiss={() => setAddSheetVisible(false)}
-        onCreate={startCreateVault}
-        onRecover={startSeedRecoveryInput}
-        onImport={startImportVault}
+        // When this screen renders inside MigrationNavigator (route name
+        // `WalletsFound`), the wallet-nav helpers' setRootRoute('Migration')
+        // is a no-op (we're already on Migration root) so the navigator
+        // doesn't remount and `initialRouteName` is never re-read — sheet
+        // taps would silently no-op. Push the right Migration screen
+        // directly via the local stack nav in that case. From `Main` root
+        // the helpers still work the way they always have.
+        onCreate={
+          inMigrationNav
+            ? (): void =>
+                migrationNav.navigate('VaultName', { mode: 'create' })
+            : startCreateVault
+        }
+        onRecover={
+          inMigrationNav
+            ? (): void => migrationNav.navigate('RecoverSeed')
+            : startSeedRecoveryInput
+        }
+        onImport={
+          inMigrationNav
+            ? (): void => migrationNav.navigate('ImportVault')
+            : startImportVault
+        }
       />
     </View>
   )
