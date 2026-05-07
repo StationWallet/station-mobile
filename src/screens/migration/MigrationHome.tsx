@@ -21,6 +21,7 @@ import RocketWithGlow from 'components/migration/RocketWithGlow'
 import PrimaryBackground from 'components/PrimaryBackground'
 import {
   discoverLegacyWallets,
+  getVaultKind,
   MigrationWallet,
 } from 'services/migrateToVault'
 import { getWallets } from 'utils/wallet'
@@ -63,9 +64,17 @@ export default function MigrationHome(): React.ReactElement {
 
   useEffect(() => {
     Promise.all([discoverLegacyWallets(), getWallets()])
-      .then(([found, all]) => {
+      .then(async ([found, all]) => {
         setWallets(found)
-        setTotalWalletCount(all.length)
+        // `all` includes legacy AD-only entries that haven't been migrated to
+        // a fast vault yet — those are NOT "vaults" from the user's POV, only
+        // legacy seeds awaiting migration. Count only entries with a stored
+        // DKLS vault proto (i.e. getVaultKind returns 'fast' or 'multi-share').
+        const kinds = await Promise.all(
+          all.map((w) => getVaultKind(w.name))
+        )
+        const realVaultCount = kinds.filter((k) => k !== 'none').length
+        setTotalWalletCount(realVaultCount)
         setReady(true)
       })
       .catch(() => {
