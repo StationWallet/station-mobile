@@ -1,11 +1,14 @@
 import { create, toBinary, fromBinary } from '@bufbuild/protobuf'
 import { base64 } from '@scure/base'
 
-import { __reset as resetSecure } from '../__mocks__/expo-secure-store'
 import { persistImportedVault } from 'services/importVaultBackup'
 import { getStoredVault } from 'services/migrateToVault'
 import { VaultSchema } from '../../src/proto/vultisig/vault/v1/vault_pb'
 import { LibType } from '../../src/proto/vultisig/keygen/v1/lib_type_message_pb'
+
+const { __reset: resetSecure } = jest.requireMock(
+  'expo-secure-store'
+) as typeof import('../__mocks__/expo-secure-store')
 
 beforeEach(() => {
   resetSecure()

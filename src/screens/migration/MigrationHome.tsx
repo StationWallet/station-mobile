@@ -24,7 +24,6 @@ import {
   MigrationWallet,
 } from 'services/migrateToVault'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
-import AddWalletSheet from 'components/AddWalletSheet'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
 
@@ -41,19 +40,12 @@ export default function MigrationHome(): React.ReactElement {
   const [wallets, setWallets] = useState<MigrationWallet[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setReady used to track loading state
   const [_ready, setReady] = useState(false)
-  const [importSheetVisible, setImportSheetVisible] = useState(false)
   // We're already inside the Migration navigator here, so the root-route
   // dance in `useWalletNav` is a no-op (setRootRoute('Migration') doesn't
   // re-mount the navigator, and `initialRouteName` is only read once at
   // mount). Push the right screen directly via the local stack nav.
   const startSeedRecoveryFromHere = (): void => {
     navigation.navigate('RecoverSeed')
-  }
-  const startImportVaultFromHere = (): void => {
-    navigation.navigate('ImportVault')
-  }
-  const startCreateVaultFromHere = (): void => {
-    navigation.navigate('VaultName', { mode: 'create' })
   }
 
   useEffect(() => {
@@ -152,12 +144,12 @@ export default function MigrationHome(): React.ReactElement {
             />
 
             <Button
-              title="Import wallet"
+              title="Recover Wallet"
               theme="secondaryDark"
               titleFontType="brockmann-medium"
-              onPress={() => setImportSheetVisible(true)}
+              onPress={startSeedRecoveryFromHere}
               containerStyle={styles.secondaryButton}
-              testID="import-vault-button"
+              testID="recover-seed-button"
             />
 
             <TouchableOpacity
@@ -202,18 +194,6 @@ export default function MigrationHome(): React.ReactElement {
           )}
         </View>
       </ScrollView>
-
-      <AddWalletSheet
-        visible={importSheetVisible}
-        onDismiss={() => setImportSheetVisible(false)}
-        onCreate={startCreateVaultFromHere}
-        onRecover={startSeedRecoveryFromHere}
-        onImport={startImportVaultFromHere}
-        // MigrationHome's "Import wallet" entry is for users who already
-        // have a wallet — Create would just be a misroute. The shared sheet
-        // still defaults to showing it for the WalletList entry.
-        showCreate={false}
-      />
     </View>
   )
 }

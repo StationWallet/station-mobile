@@ -1,6 +1,9 @@
 import { encrypt } from 'utils/crypto'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
-import { __reset as resetSecure } from '../__mocks__/expo-secure-store'
+
+const { __reset: resetSecure } = jest.requireMock(
+  'expo-secure-store'
+) as typeof import('../__mocks__/expo-secure-store')
 
 const PK =
   '0000000000000000000000000000000000000000000000000000000000000001'

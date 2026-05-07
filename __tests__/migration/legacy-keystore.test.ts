@@ -4,7 +4,6 @@ import { hex } from '@scure/base'
 import LegacyKeystore, {
   __reset as resetLegacy,
 } from '../__mocks__/legacy-keystore'
-import { __reset as resetSecure } from '../__mocks__/expo-secure-store'
 import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
@@ -12,6 +11,10 @@ import preferences, {
 import { migrateLegacyKeystore } from 'utils/legacyMigration'
 import { encrypt, decrypt } from 'utils/crypto'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
+
+const { __reset: resetSecure } = jest.requireMock(
+  'expo-secure-store'
+) as typeof import('../__mocks__/expo-secure-store')
 
 const PK1 =
   '0000000000000000000000000000000000000000000000000000000000000001'
@@ -46,9 +49,11 @@ function buildAuthData(): string {
 // `nativeModules/preferences` writes into `expo-secure-store`, and
 // babel-plugin-module-resolver rewrites the `nativeModules/*` alias
 // before jest moduleNameMapper runs, so the preferences mock is unused.
-beforeEach(() => {
+beforeEach(async () => {
   resetLegacy()
   resetSecure()
+  await keystore.remove(KeystoreEnum.AuthData)
+  await preferences.clear()
 })
 
 describe('migrateLegacyKeystore', () => {
