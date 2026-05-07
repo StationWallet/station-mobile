@@ -73,7 +73,9 @@ export default function MigrationHome(): React.ReactElement {
         const kinds = await Promise.all(
           all.map((w) => getVaultKind(w.name))
         )
-        const realVaultCount = kinds.filter((k) => k !== 'none').length
+        const realVaultCount = kinds.filter(
+          (k) => k !== 'none'
+        ).length
         setTotalWalletCount(realVaultCount)
         setReady(true)
       })
