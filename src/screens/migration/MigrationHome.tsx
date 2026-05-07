@@ -94,7 +94,19 @@ export default function MigrationHome(): React.ReactElement {
     if (hasUnmigratedLegacy) {
       navigation.navigate('WalletsFound')
     } else if (hasAnyVaults) {
-      goHome()
+      // MigrationHome can be mounted at two depths:
+      //  1. Root → Migration → MigrationHome (post-init when legacyDataFound)
+      //  2. Root → Main → Migration → MigrationHome (when user back-navs from
+      //     WalletList into the nested Migration stack)
+      // In case 2 the root is already 'Main', so goHome's setRootRoute('Main')
+      // is a no-op and the screen looks frozen. Pop the parent stack to
+      // WalletList directly when nested; otherwise fall back to the root swap.
+      const parent = navigation.getParent()
+      if (parent) {
+        parent.navigate('WalletList' as never)
+      } else {
+        goHome()
+      }
     } else {
       navigation.navigate('VaultSetup')
     }
