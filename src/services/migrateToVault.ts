@@ -42,7 +42,19 @@ export interface MigrationResult {
 }
 
 /**
- * Reads legacy auth data and returns the list of wallets available for migration.
+ * Reads legacy auth data and returns only wallets that still have key
+ * material to migrate (i.e. have not yet been migrated / imported / created
+ * as a vault).
+ *
+ * After migration or vault creation, `storeFastVault` / `persistImportedVault`
+ * zero out `encryptedKey` in the authData entry but leave the entry in place
+ * so that `getWallets()` can still find the wallet. We must filter those
+ * already-migrated stubs out here so that they do not drive the "Start
+ * Migration" CTA after the user has finished migrating.
+ *
+ * An entry is considered unmigrated when:
+ *   - it is a Ledger wallet (`ledger === true`), OR
+ *   - it still has a non-empty `encryptedKey`
  */
 export async function discoverLegacyWallets(): Promise<
   MigrationWallet[]
@@ -50,15 +62,20 @@ export async function discoverLegacyWallets(): Promise<
   const authData = await getAuthData()
   if (!authData) return []
 
-  return Object.entries(authData).map(([name, data]) => ({
-    name,
-    address: data.address,
-    ledger: data.ledger === true,
-    path:
-      data.ledger === true
-        ? (data as LedgerDataValueType).path
-        : undefined,
-  }))
+  return Object.entries(authData)
+    .filter(([, data]) => {
+      if (data.ledger === true) return true
+      return (data as AuthDataValueType).encryptedKey?.length > 0
+    })
+    .map(([name, data]) => ({
+      name,
+      address: data.address,
+      ledger: data.ledger === true,
+      path:
+        data.ledger === true
+          ? (data as LedgerDataValueType).path
+          : undefined,
+    }))
 }
 
 /**
@@ -157,19 +174,51 @@ export async function storeFastVault(
 }
 
 /**
- * Check if a stored vault is a DKLS fast vault (vs legacy KEYIMPORT).
+ * Canonical vault classifier — mirrors iOS `Vault.swift:172` and
+ * vultiagent-app `vaultUtils.ts:6`.
+ *
+ * - 'none'        → no stored vault proto for this wallet
+ * - 'fast'        → DKLS vault, has a `server-`-prefixed signer, and the
+ *                   user's own localPartyId is NOT server-prefixed (i.e. a
+ *                   2-of-2 device + VultiServer vault)
+ * - 'multi-share' → DKLS vault with no server signer (multi-device, or the
+ *                   device is itself the server party — shouldn't self-classify
+ *                   as fast)
+ */
+export async function getVaultKind(
+  walletName: string
+): Promise<'none' | 'fast' | 'multi-share'> {
+  const stored = await getStoredVault(walletName)
+  if (!stored) return 'none'
+  try {
+    const decoded = fromBinary(VaultSchema, base64.decode(stored))
+    if (decoded.libType !== LibType.DKLS) return 'multi-share'
+    // localPartyId is server-side → not a fast vault from user perspective
+    if (decoded.localPartyId?.toLowerCase().startsWith('server-')) {
+      return 'multi-share'
+    }
+    const hasServerSigner = decoded.signers.some((s) =>
+      s.toLowerCase().startsWith('server-')
+    )
+    return hasServerSigner ? 'fast' : 'multi-share'
+  } catch {
+    return 'none'
+  }
+}
+
+/**
+ * Check if a stored vault is a DKLS fast vault (vs legacy KEYIMPORT or
+ * multi-share).  Uses the canonical server-prefix discriminator from iOS
+ * `Vault.swift:172` and vultiagent-app `vaultUtils.ts:6`: a fast vault has at
+ * least one `server-`-prefixed signer AND the user's own localPartyId is NOT
+ * server-prefixed.
+ *
+ * Note: still called by ExportPrivateKey.tsx — see open follow-up ticket.
  */
 export async function isVaultFastVault(
   walletName: string
 ): Promise<boolean> {
-  const stored = await getStoredVault(walletName)
-  if (!stored) return false
-  try {
-    const decoded = fromBinary(VaultSchema, base64.decode(stored))
-    return decoded.libType === LibType.DKLS
-  } catch {
-    return false
-  }
+  return (await getVaultKind(walletName)) === 'fast'
 }
 
 /**
