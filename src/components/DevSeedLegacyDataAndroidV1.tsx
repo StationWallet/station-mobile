@@ -76,22 +76,26 @@ export default function DevSeedLegacyDataAndroidV1(): React.ReactElement {
       const encKey2 = encrypt(TEST_PRIVATE_KEY_2, PASSWORD_2)
       if (!encKey1 || !encKey2) throw new Error('Encryption failed')
 
+      // Wallet names and address placeholders are DISTINCT from the modern
+      // V1 cohort (DevSeedLegacyData) so testers can visually confirm that
+      // the StorageCipher18 RSA+AES decryption path ran rather than the
+      // EncryptedSharedPreferences fallback.
       const authData = JSON.stringify({
-        TestWallet1: {
+        StorageCipher18Wallet1: {
           ledger: false,
-          address: 'terra1test000e2e000wallet001',
+          address: 'terra1cipher18000wallet001',
           password: PASSWORD_1,
           encryptedKey: encKey1,
         },
-        TestWallet2: {
+        StorageCipher18Wallet2: {
           ledger: false,
-          address: 'terra1test000e2e000wallet002',
+          address: 'terra1cipher18000wallet002',
           password: PASSWORD_2,
           encryptedKey: encKey2,
         },
-        TestLedgerWallet: {
+        StorageCipher18LedgerWallet: {
           ledger: true,
-          address: 'terra1test000e2e000ledger001',
+          address: 'terra1cipher18000ledger001',
           path: 0,
         },
       })
