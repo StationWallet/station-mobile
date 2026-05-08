@@ -468,13 +468,19 @@ export async function createFastVault(options: {
     // doubles vs the parallel attempt, but each ceremony gets the full JS
     // thread + relay attention, which is the only way to get reliable
     // finalization on slower physical devices.
+    // Do NOT pass setupMessageId to runMpcProtocol (see runKeyImport for the
+    // full diagnosis). The setup message goes on the per-ceremony channel
+    // ('p-ecdsa' / 'p-eddsa'), but actual MPC round messages flow on the
+    // default (no message_id header) channel, regardless of which ceremony
+    // is running. Filtering getRelayMessages by 'p-ecdsa' would make the
+    // client miss every server reply and time out.
     await runMpcProtocol(
       ecdsaHandle,
       sessionId,
       localPartyId,
       cipherKey,
       'ecdsa',
-      'p-ecdsa',
+      undefined,
       (mpcProgress) => {
         report({
           step: 'ecdsa',
@@ -498,7 +504,7 @@ export async function createFastVault(options: {
       localPartyId,
       cipherKey,
       'eddsa',
-      'p-eddsa',
+      undefined,
       (mpcProgress) => {
         report({
           step: 'eddsa',
@@ -882,14 +888,21 @@ export async function importKeyToFastVault(options: {
       progress: 48,
     })
 
-    // Batch endpoint uses messageId "p-ecdsa" for the ECDSA protocol
+    // Do NOT pass 'p-ecdsa' as the messageId to runMpcProtocol. The setup
+    // message goes on the 'p-ecdsa' channel (server uses it to distinguish
+    // which key ceremony the setup belongs to), but actual MPC round
+    // messages flow on the default (no message_id header) channel —
+    // filtering getRelayMessages by 'p-ecdsa' makes the client miss every
+    // server reply and time out at "MPC protocol did not complete". This
+    // is the same fix runKeyImport adopted; the same bug existed here in
+    // the legacy AD private-key migrate path.
     await runMpcProtocol(
       sessionHandle,
       sessionId,
       localPartyId,
       cipherKey,
       'ecdsa',
-      'p-ecdsa',
+      undefined,
       (mpcProgress) => {
         const stepProgress = 48 + mpcProgress * 38
         report({
