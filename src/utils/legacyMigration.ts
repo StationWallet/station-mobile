@@ -49,15 +49,18 @@ export async function migrateLegacyKeystore(): Promise<void> {
       return
     }
 
-    // Native module unavailable (e.g. running in Expo Go) — skip migration.
+    // Native module unavailable. Possible causes: running in Expo Go, an
+    // OTA bundle referring to a module not in the underlying binary, or a
+    // transient load failure. Do NOT set V2 here — leaving it false means
+    // the migration retries on next launch once the module becomes
+    // reachable. Setting V2=true here would silently lock affected users
+    // out forever (this is one of the "missing vault" failure modes
+    // surfaced in `.spikes/station-mobile-old-storage-paths-2026-05-08.md`).
     if (!LegacyKeystore) {
-      await preferences.setBool(
-        PreferencesEnum.legacyKeystoreMigrated,
-        true
-      )
-      await preferences.setBool(
-        PreferencesEnum.legacyKeystoreMigratedV2,
-        true
+      // eslint-disable-next-line no-console -- diagnostic for missing module
+      console.warn(
+        '[legacyMigration] LegacyKeystore native module unavailable; ' +
+          'leaving V2 flag false to retry on next launch'
       )
       return
     }
