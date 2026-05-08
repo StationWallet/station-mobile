@@ -298,7 +298,18 @@ export async function getVaultKind(
   if (!stored) return 'none'
   try {
     const decoded = fromBinary(VaultSchema, base64.decode(stored))
-    if (decoded.libType !== LibType.DKLS) return 'multi-share'
+    // "Fast vault" is a structural property of the signers, not the
+    // crypto protocol: a 2-of-2 vault where one party is VultiServer and
+    // the other is the user's device. This holds regardless of whether
+    // the keyshares are DKLS-keygen'd or KEY-IMPORTed — both protocols
+    // produce fast vaults when the signer set is (device, Server-XXX).
+    //
+    // We previously gated on `libType === DKLS`, which incorrectly
+    // classified post-#93 seed-imported fast vaults (stored as KEYIMPORT
+    // because that's what `setupKeyImport` registers them as on the
+    // server) as multi-share, surfacing the wrong "Vault" chip in
+    // WalletList instead of "Fast Vault".
+    //
     // localPartyId is server-side → not a fast vault from user perspective
     if (decoded.localPartyId?.toLowerCase().startsWith('server-')) {
       return 'multi-share'

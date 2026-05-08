@@ -79,4 +79,19 @@ describe('getVaultKind', () => {
     await storeVault('SoloVault', ['OnlyDevice'], 'OnlyDevice')
     expect(await getVaultKind('SoloVault')).toBe('multi-share')
   })
+
+  it("returns 'fast' for a KEYIMPORT vault with a server signer (post-#93 seed-import shape)", async () => {
+    // PR #93 stores seed-imported vaults as libType=KEYIMPORT (because that
+    // is what setupKeyImport registers them as on the server). The signer
+    // set is still (device, Server-XXX) — i.e. a fast vault. A previous
+    // version of getVaultKind early-returned 'multi-share' on any non-DKLS
+    // libType, which mis-classified these vaults; this test pins the fix.
+    await storeVault(
+      'KeyImportFastVault',
+      ['sdk-deadbe', 'Server-12345'],
+      'sdk-deadbe',
+      LibType.KEYIMPORT,
+    )
+    expect(await getVaultKind('KeyImportFastVault')).toBe('fast')
+  })
 })
