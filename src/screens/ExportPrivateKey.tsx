@@ -17,12 +17,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { getDecyrptedKey } from 'utils/wallet'
 import { exportVaultShare } from 'services/exportVaultShare'
 import VaultSharing from '../../modules/vault-sharing'
-import { isVaultFastVault } from 'services/migrateToVault'
+import { getVaultKind } from 'services/migrateToVault'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { formStyles } from 'components/migration/migrationStyles'
 import { COLORS, MONO_FONT } from 'consts/theme'
+import { getExportWarning } from 'utils/exportWarning'
 
 import type { MainStackParams } from 'navigation/MainNavigator'
 
@@ -43,14 +44,22 @@ export default function ExportPrivateKey(): React.ReactElement {
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState('')
 
-  const [isFastVault, setIsFastVault] = useState(false)
+  const [vaultKind, setVaultKind] = useState<Awaited<
+    ReturnType<typeof getVaultKind>
+  > | null>(null)
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   )
 
   useEffect(() => {
-    isVaultFastVault(wallet.name).then(setIsFastVault)
+    let cancelled = false
+    getVaultKind(wallet.name).then((kind) => {
+      if (!cancelled) setVaultKind(kind)
+    })
+    return (): void => {
+      cancelled = true
+    }
   }, [wallet.name])
 
   useEffect(() => {
@@ -84,17 +93,27 @@ export default function ExportPrivateKey(): React.ReactElement {
     timerRef.current = setTimeout(() => setCopied(false), 2000)
   }, [privateKey])
 
+  const isVaultKindLoaded = vaultKind !== null
+  const isVaultShareExport =
+    vaultKind === 'fast' || vaultKind === 'multi-share'
+  const shouldShowVaultShareCopy =
+    !isVaultKindLoaded || isVaultShareExport
+  const title = shouldShowVaultShareCopy
+    ? 'Export Vault Share'
+    : 'Export Private Key'
+  const warning = getExportWarning(vaultKind)
+
   const handleExportVaultShare =
     useCallback(async (): Promise<void> => {
       if (exportPassword.length === 0) return
-      if (!isFastVault && !privateKey) return
+      if (!isVaultShareExport && !privateKey) return
       setExporting(true)
       setExportError('')
       try {
         const fileUri = await exportVaultShare(
           wallet.name,
           exportPassword,
-          isFastVault ? undefined : privateKey ?? undefined
+          isVaultShareExport ? undefined : privateKey ?? undefined
         )
         await VaultSharing.shareAsync(fileUri)
         setShowExportForm(false)
@@ -107,7 +126,7 @@ export default function ExportPrivateKey(): React.ReactElement {
       } finally {
         setExporting(false)
       }
-    }, [isFastVault, privateKey, wallet.name, exportPassword])
+    }, [isVaultShareExport, privateKey, wallet.name, exportPassword])
 
   // Pick the primary CTA for the current state. The footer only ever
   // shows one primary button at a time, sticky to the bottom of the
@@ -119,18 +138,20 @@ export default function ExportPrivateKey(): React.ReactElement {
     testID?: string
   }
   let primary: Cta | null = null
-  if (!isFastVault && !privateKey) {
+  if (!isVaultKindLoaded) {
+    primary = null
+  } else if (!isVaultShareExport && !privateKey) {
     primary = {
       title: 'Reveal Private Key',
       onPress: handleReveal,
       disabled: password.length === 0,
     }
-  } else if (!isFastVault && privateKey && !showExportForm) {
+  } else if (!isVaultShareExport && privateKey && !showExportForm) {
     primary = {
       title: copied ? 'Copied!' : 'Copy to Clipboard',
       onPress: handleCopy,
     }
-  } else if ((isFastVault || privateKey) && !showExportForm) {
+  } else if ((isVaultShareExport || privateKey) && !showExportForm) {
     primary = {
       title: 'Export as Vault Share',
       onPress: (): void => setShowExportForm(true),
@@ -156,18 +177,15 @@ export default function ExportPrivateKey(): React.ReactElement {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Export Private Key</Text>
+        <Text style={styles.title}>{title}</Text>
         <Text style={styles.walletName}>{wallet.name}</Text>
         <Text style={styles.address}>{wallet.address}</Text>
 
         <View style={styles.warningCard}>
-          <Text style={styles.warningText}>
-            Anyone with this key can access your funds. Never share
-            it.
-          </Text>
+          <Text style={styles.warningText}>{warning}</Text>
         </View>
 
-        {!isFastVault && !privateKey && (
+        {isVaultKindLoaded && !isVaultShareExport && !privateKey && (
           <>
             <TextInput
               style={styles.input}
@@ -184,7 +202,7 @@ export default function ExportPrivateKey(): React.ReactElement {
           </>
         )}
 
-        {!isFastVault && privateKey && (
+        {!isVaultShareExport && privateKey && (
           <>
             <View style={styles.qrContainer}>
               <QRCode
