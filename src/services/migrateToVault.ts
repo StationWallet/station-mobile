@@ -307,6 +307,55 @@ export async function getVaultKind(
 }
 
 /**
+ * Returns true if the stored vault for `walletName` cannot derive multi-chain
+ * addresses correctly when imported into Vultisig.
+ *
+ * Discriminator: DKLS && empty publicKeyEddsa && all-zeros hexChainCode.
+ *
+ * This shape is shared by two distinct flows:
+ *
+ * - Pre-#93 fresh-create / seed-recover: registered the m/330 child (or a
+ *   random secp256k1 privkey) as the MPC root with a placeholder zero chain
+ *   code. Non-Terra addresses derived from this root are phantom — they don't
+ *   match what the same seed produces in Metamask/Phantom/Keplr/etc.
+ *
+ * - Legacy private-key migrate: the pre-#93 storage path was shared with
+ *   fresh-create, so legacy migrates also land in this shape. Those vaults
+ *   are Terra-only by design (the user never had a master seed — only the
+ *   Terra-derived AES-encrypted private key), so the same warning copy
+ *   ("may show incorrect addresses on non-Terra chains") applies honestly.
+ *
+ * On disk, these two flows are indistinguishable by protobuf alone (both
+ * lack a master pubkey + chain code, both register one Terra chainPublicKey,
+ * etc.). The auth data also doesn't preserve provenance reliably across
+ * upgrade paths. We therefore over-flag conservatively: any DKLS vault with
+ * the broken shape gets the warning. Legacy private-key users can't act on
+ * the warning (no seed to re-import), but the warning copy is still true
+ * for them — their non-Terra addresses in Vultisig are not usable.
+ *
+ * Returns false for:
+ * - Missing vaults (no stored proto)
+ * - Post-#93 DKLS vaults (have non-empty publicKeyEddsa and non-zero hexChainCode)
+ * - KEYIMPORT seed-recover vaults (post-#93, have eddsa + chain code + 36 chainPublicKeys)
+ */
+export async function hasBrokenDerivation(
+  walletName: string
+): Promise<boolean> {
+  const stored = await getStoredVault(walletName)
+  if (!stored) return false
+  try {
+    const decoded = fromBinary(VaultSchema, base64.decode(stored))
+    return (
+      decoded.libType === LibType.DKLS &&
+      decoded.publicKeyEddsa === '' &&
+      decoded.hexChainCode === '0'.repeat(64)
+    )
+  } catch {
+    return false
+  }
+}
+
+/**
  * Check if a stored vault is a DKLS fast vault (vs legacy KEYIMPORT or
  * multi-share).  Uses the canonical server-prefix discriminator from iOS
  * `Vault.swift:172` and vultiagent-app `vaultUtils.ts:6`: a fast vault has at

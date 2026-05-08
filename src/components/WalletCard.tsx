@@ -135,6 +135,7 @@ export default function WalletCard({
         </View>
         {onDelete && (
           <TouchableOpacity
+            style={styles.deleteButton}
             onPress={confirmDelete}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             testID={testID ? `${testID}-delete` : undefined}
@@ -261,7 +262,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    justifyContent: 'space-between',
+    gap: 6,
+  },
+  deleteButton: {
+    marginLeft: 12,
   },
   name: {
     color: MIGRATION.textPrimary,
