@@ -25,6 +25,17 @@ interface LegacyKeystoreMigrationModule {
   seedLegacyTestData(key: string, value: string): Promise<boolean>
 
   /**
+   * TEST ONLY (Android): Write a value into the deprecated StorageCipher18
+   * RSA+AES format — the pre-2021-07-22 cohort whose data the V1 migration
+   * could not decrypt. Mirrors the OLD `StorageCipher18Implementation.encrypt`.
+   * Returns false on iOS (no equivalent format).
+   */
+  seedLegacyTestDataStorageCipher18(
+    key: string,
+    value: string
+  ): Promise<boolean>
+
+  /**
    * TEST ONLY: Remove all legacy keystore data including the AES encryption key.
    */
   clearAllLegacyData(): Promise<boolean>

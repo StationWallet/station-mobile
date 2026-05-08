@@ -56,6 +56,10 @@ const DevSeedLegacyData = DevFlags.SeedLegacyData
   ? require('../components/DevSeedLegacyData').default
   : null
 
+const DevSeedLegacyDataAndroidV1 = DevFlags.SeedLegacyDataAndroidV1
+  ? require('../components/DevSeedLegacyDataAndroidV1').default
+  : null
+
 const DevSeedCorruptData = DevFlags.SeedCorruptData
   ? require('../components/DevSeedCorruptData').default
   : null
@@ -122,6 +126,7 @@ export type MigrationStackParams = {
   RecoverSeed: undefined
   // Dev-only screens for E2E test data seeding
   SeedLegacyData: undefined
+  SeedLegacyDataAndroidV1: undefined
   SeedCorruptData: undefined
 }
 
@@ -201,6 +206,12 @@ export default function MigrationNavigator({
         <Stack.Screen
           name="SeedLegacyData"
           component={DevSeedLegacyData}
+        />
+      )}
+      {DevSeedLegacyDataAndroidV1 && (
+        <Stack.Screen
+          name="SeedLegacyDataAndroidV1"
+          component={DevSeedLegacyDataAndroidV1}
         />
       )}
       {DevSeedCorruptData && (

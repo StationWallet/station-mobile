@@ -16,6 +16,7 @@ const showDevFeatures =
 
 export const DevFlags = {
   SeedLegacyData: showDevFeatures,
+  SeedLegacyDataAndroidV1: showDevFeatures,
   SeedCorruptData: showDevFeatures,
   VerifyVault: showDevFeatures,
   StateReset: showDevFeatures,

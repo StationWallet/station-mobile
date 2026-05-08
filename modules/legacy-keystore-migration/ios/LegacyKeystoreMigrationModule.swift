@@ -58,6 +58,12 @@ public final class LegacyKeystoreMigrationModule: Module {
       return self.writeKeychainRaw(account: key, data: encrypted)
     }
 
+    AsyncFunction("seedLegacyTestDataStorageCipher18") { (_: String, _: String) -> Bool in
+      // No-op on iOS — the StorageCipher18 RSA+AES format is Android-only.
+      // The function exists so the JS interface stays uniform across platforms.
+      return false
+    }
+
     AsyncFunction("clearAllLegacyData") { () -> Bool in
       let _ = self.deleteKeychain(account: self.aesKeyAccount)
       let _ = self.deleteKeychain(account: "AD")

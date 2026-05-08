@@ -14,6 +14,10 @@ const DevSeedLegacyData = DevFlags.SeedLegacyData
   ? require('../components/DevSeedLegacyData').default
   : null
 
+const DevSeedLegacyDataAndroidV1 = DevFlags.SeedLegacyDataAndroidV1
+  ? require('../components/DevSeedLegacyDataAndroidV1').default
+  : null
+
 const DevSeedCorruptData = DevFlags.SeedCorruptData
   ? require('../components/DevSeedCorruptData').default
   : null
@@ -30,6 +34,7 @@ export type MainStackParams = {
   WalletList: undefined
   ExportPrivateKey: { wallet: { name: string; address: string } }
   SeedLegacyData: undefined
+  SeedLegacyDataAndroidV1: undefined
   SeedCorruptData: undefined
   VerifyVault: undefined
   StateReset: undefined
@@ -71,6 +76,12 @@ export default function MainNavigator(): React.ReactElement {
         <Stack.Screen
           name="SeedLegacyData"
           component={DevSeedLegacyData}
+        />
+      )}
+      {DevSeedLegacyDataAndroidV1 && (
+        <Stack.Screen
+          name="SeedLegacyDataAndroidV1"
+          component={DevSeedLegacyDataAndroidV1}
         />
       )}
       {DevSeedCorruptData && (
