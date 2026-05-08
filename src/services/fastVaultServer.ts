@@ -3,15 +3,47 @@ import * as stub from './fastVaultServer.stub'
 
 export type MpcProtocol = 'ecdsa' | 'eddsa'
 
-/** Register a batch import with vultiserver — ECDSA only, no EdDSA required. */
+type BatchVaultBaseInput = {
+  name: string
+  session_id: string
+  hex_encryption_key: string
+  local_party_id: string
+  encryption_password: string
+  email: string
+  protocols: MpcProtocol[]
+}
+
+/** Register a batch keygen with vultiserver. */
+export async function setupBatchKeygen(
+  input: BatchVaultBaseInput & {
+    hex_chain_code: string
+    lib_type: number
+  }
+): Promise<void> {
+  if (STUB_VULTISERVER) return stub.setupBatchKeygen(input)
+
+  const url = `${env.vultisigApiUrl}/vault/batch/keygen`
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`setupBatchKeygen failed: ${res.status} ${text}`)
+  }
+}
+
+/** Register a batch import with vultiserver. */
 export async function setupBatchImport(input: {
   name: string
   session_id: string
   hex_encryption_key: string
-  hex_chain_code: string
   local_party_id: string
   encryption_password: string
   email: string
+  lib_type?: number
   protocols: MpcProtocol[]
   chains?: string[]
 }): Promise<void> {
@@ -27,6 +59,33 @@ export async function setupBatchImport(input: {
   if (!res.ok) {
     const text = await res.text()
     throw new Error(`setupBatchImport failed: ${res.status} ${text}`)
+  }
+}
+
+/** Register a sequential key import with vultiserver. */
+export async function setupKeyImport(input: {
+  name: string
+  session_id: string
+  hex_encryption_key: string
+  hex_chain_code: string
+  local_party_id: string
+  encryption_password: string
+  email: string
+  lib_type: number
+  chains: string[]
+}): Promise<void> {
+  if (STUB_VULTISERVER) return stub.setupKeyImport(input)
+
+  const url = `${env.vultisigApiUrl}/vault/import`
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`setupKeyImport failed: ${res.status} ${text}`)
   }
 }
 

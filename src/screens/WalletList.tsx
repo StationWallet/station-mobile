@@ -42,6 +42,7 @@ export default function WalletList(): React.ReactElement {
     startCreateVault,
     startSeedRecoveryInput,
     startImportVault,
+    startImportPrivateKey,
   } = useWalletNav()
 
   // Refresh the list of wallets on focus so returning from the
@@ -242,6 +243,14 @@ export default function WalletList(): React.ReactElement {
           inMigrationNav
             ? (): void => migrationNav.navigate('ImportVault')
             : startImportVault
+        }
+        onImportPrivateKey={
+          inMigrationNav
+            ? (): void =>
+                migrationNav.navigate('VaultName', {
+                  mode: 'import-private-key',
+                })
+            : startImportPrivateKey
         }
       />
     </View>

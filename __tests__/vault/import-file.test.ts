@@ -1,7 +1,4 @@
-import * as fs from 'fs'
-import * as path from 'path'
-
-import { create, toBinary } from '@bufbuild/protobuf'
+import { create, fromBinary, toBinary } from '@bufbuild/protobuf'
 import { base64 } from '@scure/base'
 
 import {
@@ -9,7 +6,9 @@ import {
   type ImportVaultBackupResult,
 } from 'services/importVaultBackup'
 import { encryptWithPassword } from 'services/vaultCrypto'
+import { VaultSchema } from '../../src/proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../../src/proto/vultisig/vault/v1/vault_container_pb'
+import { LibType } from '../../src/proto/vultisig/keygen/v1/lib_type_message_pb'
 
 type Decrypted = Extract<ImportVaultBackupResult, { needsPassword: false }>
 function assertDecrypted(r: ImportVaultBackupResult): Decrypted {
@@ -20,30 +19,11 @@ function assertDecrypted(r: ImportVaultBackupResult): Decrypted {
 const FIXTURE_PASSWORD = 'testpassword123'
 const WRONG_PASSWORD = 'wrongpassword999'
 
-const vultPath = path.resolve(
-  __dirname,
-  '..',
-  '..',
-  'e2e',
-  'fixtures',
-  'test-vault.vult',
-)
-const bakPath = path.resolve(
-  __dirname,
-  '..',
-  '..',
-  'e2e',
-  'fixtures',
-  'test-vault.bak',
-)
-
-function readFixture(p: string): string {
-  return fs.readFileSync(p, 'utf8')
-}
-
 describe('importVaultBackup — .vult', () => {
   it('returns needsPassword when encrypted and no password provided', () => {
-    const content = readFixture(vultPath)
+    const content = buildVaultContainer({
+      password: FIXTURE_PASSWORD,
+    })
     const result = importVaultBackup({
       content,
       fileName: 'test-vault.vult',
@@ -52,7 +32,9 @@ describe('importVaultBackup — .vult', () => {
   })
 
   it('decrypts and parses with the correct password', () => {
-    const content = readFixture(vultPath)
+    const content = buildVaultContainer({
+      password: FIXTURE_PASSWORD,
+    })
     const result = assertDecrypted(
       importVaultBackup({
         content,
@@ -60,13 +42,15 @@ describe('importVaultBackup — .vult', () => {
         password: FIXTURE_PASSWORD,
       }),
     )
-    expect(result.vaultName).toBe('Test Import Vault')
+    expect(result.vaultName).toBe('Import Candidate')
     expect(result.publicKeyEcdsa).toBeTruthy()
     expect(result.vaultBytes.length).toBeGreaterThan(0)
   })
 
   it('throws on wrong password', () => {
-    const content = readFixture(vultPath)
+    const content = buildVaultContainer({
+      password: FIXTURE_PASSWORD,
+    })
     expect(() =>
       importVaultBackup({
         content,
@@ -79,7 +63,9 @@ describe('importVaultBackup — .vult', () => {
 
 describe('importVaultBackup — .bak', () => {
   it('decrypts and parses .bak files the same as .vult', () => {
-    const content = readFixture(bakPath)
+    const content = buildVaultContainer({
+      password: FIXTURE_PASSWORD,
+    })
     const result = assertDecrypted(
       importVaultBackup({
         content,
@@ -111,12 +97,43 @@ function buildContainerBase64(
   return base64.encode(toBinary(VaultContainerSchema, container))
 }
 
+function buildVaultContainer(input: {
+  libType?: LibType
+  signers?: string[]
+  localPartyId?: string
+  password?: string | null
+}): string {
+  const publicKey = '02fast'
+  const vault = create(VaultSchema, {
+    name: 'Import Candidate',
+    publicKeyEcdsa: publicKey,
+    publicKeyEddsa: '',
+    signers: input.signers ?? ['Device-1', 'Server-1'],
+    localPartyId: input.localPartyId ?? 'Device-1',
+    hexChainCode: '0'.repeat(64),
+    resharePrefix: '',
+    libType: input.libType ?? LibType.DKLS,
+    keyShares: [
+      {
+        publicKey,
+        keyshare: 'device-share',
+      },
+    ],
+  })
+  return buildContainerBase64(
+    toBinary(VaultSchema, vault),
+    input.password ?? null,
+  )
+}
+
 describe('importVaultBackup — no-password export roundtrip', () => {
   // Recover the raw vault bytes from the encrypted fixture so we can
   // re-pack them as a plain (no-password) container.
   const decrypted = assertDecrypted(
     importVaultBackup({
-      content: readFixture(vultPath),
+      content: buildVaultContainer({
+        password: FIXTURE_PASSWORD,
+      }),
       fileName: 'test-vault.vult',
       password: FIXTURE_PASSWORD,
     }),
@@ -154,5 +171,68 @@ describe('importVaultBackup — no-password export roundtrip', () => {
       }),
     )
     expect(result.vaultName).toBe(decrypted.vaultName)
+  })
+})
+
+describe('importVaultBackup — eligibility', () => {
+  it('imports a device-side fast vault with a server signer', () => {
+    const content = buildVaultContainer({
+      signers: ['Device-1', 'Server-1'],
+      localPartyId: 'Device-1',
+    })
+
+    const result = assertDecrypted(
+      importVaultBackup({
+        content,
+        fileName: 'fast-vault.vult',
+      }),
+    )
+
+    const restored = fromBinary(VaultSchema, result.vaultBytes)
+    expect(restored.libType).toBe(LibType.DKLS)
+    expect(restored.signers).toEqual(['Device-1', 'Server-1'])
+  })
+
+  it('rejects multi-share DKLS vaults with no server signer', () => {
+    const content = buildVaultContainer({
+      signers: ['iPhone', 'MacBook', 'iPad'],
+      localPartyId: 'iPhone',
+    })
+
+    expect(() =>
+      importVaultBackup({
+        content,
+        fileName: 'multi-share.vult',
+      }),
+    ).toThrow(/no server-side Vultisig share/i)
+  })
+
+  it('rejects server-side vault shares', () => {
+    const content = buildVaultContainer({
+      signers: ['Device-1', 'Server-1'],
+      localPartyId: 'Server-1',
+    })
+
+    expect(() =>
+      importVaultBackup({
+        content,
+        fileName: 'server-share.vult',
+      }),
+    ).toThrow(/server-side vault share/i)
+  })
+
+  it('rejects KeyImport vault files; seed phrase import is a separate flow', () => {
+    const content = buildVaultContainer({
+      libType: LibType.KEYIMPORT,
+      signers: ['Device-1', 'Server-1'],
+      localPartyId: 'Device-1',
+    })
+
+    expect(() =>
+      importVaultBackup({
+        content,
+        fileName: 'seed-key-import.vult',
+      }),
+    ).toThrow(/Only Fast Vault backups/i)
   })
 })
