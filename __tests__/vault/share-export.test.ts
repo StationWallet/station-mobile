@@ -4,11 +4,18 @@ import { base64 } from '@scure/base'
 import { VaultSchema } from '../../src/proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../../src/proto/vultisig/vault/v1/vault_container_pb'
 import { LibType } from '../../src/proto/vultisig/keygen/v1/lib_type_message_pb'
-import { buildVaultProto, derivePublicKeyHex } from 'services/vaultProto'
-import { encryptWithPassword, decryptVaultBytes } from 'services/vaultCrypto'
+import {
+  buildVaultProto,
+  derivePublicKeyHex,
+} from 'services/vaultProto'
+import {
+  encryptWithPassword,
+  decryptVaultBytes,
+} from 'services/vaultCrypto'
 import { getExportWarning } from 'utils/exportWarning'
 
-const PK = '0000000000000000000000000000000000000000000000000000000000000001'
+const PK =
+  '0000000000000000000000000000000000000000000000000000000000000001'
 const EXPECTED_PUB =
   '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798'
 const DETERMINISTIC_NONCE = new Uint8Array(12).fill(7)
@@ -28,13 +35,17 @@ describe('vault share export — .vult round-trip', () => {
   })
 
   it('serializes + encrypts + decrypts + parses back to identical fields', () => {
-    const vaultProto = buildVaultProto('TestWallet1', EXPECTED_PUB, PK)
+    const vaultProto = buildVaultProto(
+      'TestWallet1',
+      EXPECTED_PUB,
+      PK
+    )
     const vaultBytes = toBinary(VaultSchema, vaultProto)
 
     const encrypted = encryptWithPassword(
       vaultBytes,
       'exportpass',
-      DETERMINISTIC_NONCE,
+      DETERMINISTIC_NONCE
     )
     const container = create(VaultContainerSchema, {
       version: 1n,
@@ -43,13 +54,16 @@ describe('vault share export — .vult round-trip', () => {
     })
     const containerBytes = toBinary(VaultContainerSchema, container)
 
-    const parsedContainer = fromBinary(VaultContainerSchema, containerBytes)
+    const parsedContainer = fromBinary(
+      VaultContainerSchema,
+      containerBytes
+    )
     expect(parsedContainer.isEncrypted).toBe(true)
     expect(parsedContainer.version).toBe(1n)
 
     const decryptedVault = decryptVaultBytes(
       base64.decode(parsedContainer.vault),
-      'exportpass',
+      'exportpass'
     )
     const roundTripped = fromBinary(VaultSchema, decryptedVault)
     expect(roundTripped.name).toBe('TestWallet1')
@@ -60,23 +74,25 @@ describe('vault share export — .vult round-trip', () => {
 })
 
 describe('getExportWarning — 3-branch copy', () => {
-  it("fast vault: warns that share + password is enough to drain funds", () => {
+  it('fast vault: warns that the share alone gives funds access (mirrors private-key copy)', () => {
     const w = getExportWarning('fast')
-    expect(w).toContain('your password')
-    expect(w).toContain('drain your funds')
+    expect(w).toContain(
+      'Anyone with this key share can access your funds'
+    )
+    expect(w).toContain('Never share it')
   })
 
-  it("multi-share vault: reassures that a single share cannot access the vault alone", () => {
+  it('multi-share vault: reassures that a single share cannot access the vault alone', () => {
     const w = getExportWarning('multi-share')
     expect(w).toContain('cannot access a Secure Vault by itself')
   })
 
-  it("none (legacy private key): warns that anyone with the key has full access", () => {
+  it('none (legacy private key): warns that anyone with the key has full access', () => {
     const w = getExportWarning('none')
     expect(w).toContain('Anyone with this key can access your funds')
   })
 
-  it("loading state (null): defaults to the optimistic share-safe copy", () => {
+  it('loading state (null): defaults to the optimistic share-safe copy', () => {
     const w = getExportWarning(null)
     expect(w).toContain('cannot access a Secure Vault by itself')
   })
