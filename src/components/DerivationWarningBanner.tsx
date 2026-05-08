@@ -43,13 +43,11 @@ export default function DerivationWarningBanner({
         </Text>
       </View>
       <Text fontType="brockmann" style={styles.body}>
-        If you imported a seed phrase or created a new vault on this
-        device before our latest update, those vaults may show
-        incorrect addresses on chains other than Terra when used in
-        Vultisig. Re-create the vault or re-import your seed phrase
-        here to get the correct addresses on all chains. Vaults
-        migrated from your original Terra Station wallet are not
-        affected.
+        Vaults you imported from a seed phrase or created on this
+        device before our latest update may show incorrect addresses
+        on chains other than Terra when used in Vultisig. Re-create
+        the vault or re-import your seed phrase here to get the
+        correct addresses on all chains.
       </Text>
     </View>
   )
