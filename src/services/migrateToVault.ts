@@ -307,6 +307,38 @@ export async function getVaultKind(
 }
 
 /**
+ * Returns true if the stored vault for `walletName` was registered under the
+ * pre-#93 broken derivation path: DKLS lib type, ECDSA-only (empty
+ * publicKeyEddsa), and the all-zeros chain code placeholder.
+ *
+ * Vaults in this state derive correct Terra addresses but phantom addresses on
+ * every other chain when imported into Vultisig or any other Vultisig wallet.
+ * The only fix is to re-create or re-import the seed with current code.
+ *
+ * Returns false for:
+ * - Missing vaults (no stored proto)
+ * - Post-#93 DKLS vaults (have non-empty publicKeyEddsa and non-zero hexChainCode)
+ * - KEYIMPORT seed-recover vaults (chainPublicKeys.length >= 36)
+ * - KEYIMPORT legacy migrate vaults (Terra-only by design, not affected)
+ */
+export async function hasBrokenDerivation(
+  walletName: string
+): Promise<boolean> {
+  const stored = await getStoredVault(walletName)
+  if (!stored) return false
+  try {
+    const decoded = fromBinary(VaultSchema, base64.decode(stored))
+    return (
+      decoded.libType === LibType.DKLS &&
+      decoded.publicKeyEddsa === '' &&
+      decoded.hexChainCode === '0'.repeat(64)
+    )
+  } catch {
+    return false
+  }
+}
+
+/**
  * Check if a stored vault is a DKLS fast vault (vs legacy KEYIMPORT or
  * multi-share).  Uses the canonical server-prefix discriminator from iOS
  * `Vault.swift:172` and vultiagent-app `vaultUtils.ts:6`: a fast vault has at

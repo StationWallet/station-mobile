@@ -13,12 +13,16 @@ import { useQueries } from 'react-query'
 import { useWalletNav } from 'navigation/hooks'
 import { settings } from 'utils/storage'
 import { deleteWallet } from 'utils/wallet'
-import { getVaultKind } from 'services/migrateToVault'
+import {
+  getVaultKind,
+  hasBrokenDerivation,
+} from 'services/migrateToVault'
 import { MIGRATION } from 'consts/migration'
 import { DevFlags } from 'config/env'
 import Text from 'components/Text'
 import Button from 'components/Button'
 import WalletCard from 'components/WalletCard'
+import DerivationWarningBanner from 'components/DerivationWarningBanner'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
 import AddWalletSheet from 'components/AddWalletSheet'
 
@@ -79,6 +83,19 @@ export default function WalletList(): React.ReactElement {
   // "never-resolved-yet" signal; isFetching would fire on every refetch.
   const loading =
     wallets.length > 0 && vaultKindQueries.some((q) => q.isLoading)
+
+  // Screen-level banner: show when ANY wallet was created under the pre-#93
+  // broken derivation path (DKLS, ECDSA-only, all-zeros chain code).
+  const brokenDerivationQueries = useQueries(
+    wallets.map((w) => ({
+      queryKey: ['brokenDerivation', w.name],
+      queryFn: (): Promise<boolean> => hasBrokenDerivation(w.name),
+      staleTime: 30_000,
+    }))
+  )
+  const hasAnyBrokenVault = brokenDerivationQueries.some(
+    (q) => q.data === true
+  )
 
   const [addSheetVisible, setAddSheetVisible] = useState(false)
 
@@ -171,6 +188,8 @@ export default function WalletList(): React.ReactElement {
         {wallets.length} wallet{wallets.length !== 1 ? 's' : ''} on
         this device
       </Text>
+
+      {hasAnyBrokenVault && <DerivationWarningBanner />}
 
       <ScrollView
         style={styles.scrollView}
