@@ -22,7 +22,6 @@ const AuthMenu = ({
     goToMigration,
     startCreateVault,
     startImportVault,
-    startImportPrivateKey,
     startSeedRecoveryInput,
   } = useWalletNav()
   const insets = useSafeAreaInsets()
@@ -83,16 +82,6 @@ const AuthMenu = ({
           >
             <Text style={styles.secondaryButtonText}>
               Import Fast Vault
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            testID="auth-import-private-key"
-            style={styles.secondaryButton}
-            onPress={startImportPrivateKey}
-          >
-            <Text style={styles.secondaryButtonText}>
-              Import Private Key
             </Text>
           </TouchableOpacity>
 

@@ -62,7 +62,6 @@ export default function KeygenProgress(): React.ReactElement {
     email,
     password,
     mode,
-    privateKeyHex,
   } = route.params
 
   const [progress, setProgress] = useState(0)
@@ -207,18 +206,6 @@ export default function KeygenProgress(): React.ReactElement {
           onProgress: updateProgress,
           signal: controller.signal,
         })
-      } else if (mode === 'import-private-key') {
-        if (!privateKeyHex) {
-          throw new Error('No private key available for import')
-        }
-        result = await importKeyToFastVault({
-          name: walletName,
-          email,
-          password,
-          privateKeyHex,
-          onProgress: updateProgress,
-          signal: controller.signal,
-        })
       } else {
         const authEntry = await getAuthDataValue(walletName)
         if (!authEntry || authEntry.ledger) {
@@ -269,7 +256,6 @@ export default function KeygenProgress(): React.ReactElement {
     walletIndex,
     updateProgress,
     recoverSeed,
-    privateKeyHex,
   ])
 
   useEffect(() => {

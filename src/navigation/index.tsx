@@ -30,7 +30,6 @@ export type MigrationEntry =
   | 'create-vault'
   | 'recover-seed-input'
   | 'import-vault'
-  | 'import-private-key'
 
 export default function AppNavigator(): React.ReactElement | null {
   const [wallets, setWallets] = useState<LocalWallet[] | null>(null)
@@ -128,12 +127,6 @@ export default function AppNavigator(): React.ReactElement | null {
     setRootRoute('Migration')
   }, [])
 
-  const startImportPrivateKey = useCallback(() => {
-    preMigrationRootRef.current = rootRouteRef.current
-    setMigrationEntry('import-private-key')
-    setRootRoute('Migration')
-  }, [])
-
   const goToAuth = useCallback(() => {
     setMigrationEntry('default')
     setRootRoute('Auth')
@@ -180,7 +173,6 @@ export default function AppNavigator(): React.ReactElement | null {
       startCreateVault,
       startSeedRecoveryInput,
       startImportVault,
-      startImportPrivateKey,
       wallets,
       refreshWallets,
     }),
@@ -192,7 +184,6 @@ export default function AppNavigator(): React.ReactElement | null {
       startCreateVault,
       startSeedRecoveryInput,
       startImportVault,
-      startImportPrivateKey,
       wallets,
       refreshWallets,
     ]
