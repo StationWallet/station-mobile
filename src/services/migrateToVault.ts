@@ -254,12 +254,15 @@ export async function storeFastVault(
           encryptedKey: '',
           password: '',
           ledger: false,
-          terraOnly: !isCreatedVault && !isSeedImportVault,
+          ...(!isCreatedVault && !isSeedImportVault
+            ? { terraOnly: true }
+            : {}),
         },
       },
     })
   } else if (!existing) {
-    // New vault creation: register in authData so getWallets() can find it
+    // New vault creation/import: register in authData so getWallets() can find it.
+    // Single-key imports are Terra-only, matching migrated legacy private-key vaults.
     await upsertAuthData({
       authData: {
         [walletName]: {
@@ -267,6 +270,9 @@ export async function storeFastVault(
           encryptedKey: '',
           password: '',
           ledger: false,
+          ...(!isCreatedVault && !isSeedImportVault
+            ? { terraOnly: true }
+            : {}),
         },
       },
     })

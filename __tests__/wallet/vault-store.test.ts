@@ -4,6 +4,7 @@ import { base64 } from '@scure/base'
 import { __reset as resetSecure } from '../__mocks__/expo-secure-store'
 import { persistImportedVault } from 'services/importVaultBackup'
 import { getStoredVault, storeFastVault } from 'services/migrateToVault'
+import { getAuthData } from 'utils/authData'
 import { VaultSchema } from '../../src/proto/vultisig/vault/v1/vault_pb'
 import { LibType } from '../../src/proto/vultisig/keygen/v1/lib_type_message_pb'
 
@@ -97,6 +98,12 @@ describe('storeFastVault', () => {
     ).toEqual([
       { chain: 'Terra', publicKey: '02terra', isEddsa: false },
     ])
+
+    const authData = await getAuthData()
+    expect(authData?.TerraOnly).toMatchObject({
+      ledger: false,
+      terraOnly: true,
+    })
   })
 
   it('stores newly created fast vaults as DKLS root ECDSA plus EdDSA vaults', async () => {
