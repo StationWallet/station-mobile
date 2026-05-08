@@ -322,6 +322,7 @@ async function runKeyImport(options: {
     setupMessageId
   )
 
+  let keygenResult: NativeKeygenResult | undefined
   try {
     await runMpcProtocol(
       sessionHandle,
@@ -333,12 +334,19 @@ async function runKeyImport(options: {
       onProgress,
       signal
     )
-    return finishNativeKeygen(keyType, sessionHandle)
+    // Await finishNativeKeygen fully before the finally block fires.
+    // If we return the promise directly, the finally block's freeNativeKeygen
+    // runs while finishKeygen is still pending (before the Promise resolves),
+    // which invalidates the handle and causes "invalid DKLS handle" errors.
+    keygenResult = await finishNativeKeygen(keyType, sessionHandle)
   } finally {
     try {
       freeNativeKeygen(keyType, sessionHandle)
     } catch {}
   }
+  if (!keygenResult)
+    throw new Error('finishNativeKeygen did not return a result')
+  return keygenResult
 }
 
 /**
