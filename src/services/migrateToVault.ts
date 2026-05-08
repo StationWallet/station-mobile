@@ -308,18 +308,28 @@ export async function getVaultKind(
 
 /**
  * Returns true if the stored vault for `walletName` was registered under the
- * pre-#93 broken derivation path: DKLS lib type, ECDSA-only (empty
- * publicKeyEddsa), and the all-zeros chain code placeholder.
+ * pre-#93 broken FRESH-CREATE / SEED-RECOVER path. Vaults in this state derive
+ * correct Terra addresses but phantom addresses on every other chain when
+ * imported into Vultisig or any other Vultisig wallet. The only fix is to
+ * re-create or re-import the seed with current code.
  *
- * Vaults in this state derive correct Terra addresses but phantom addresses on
- * every other chain when imported into Vultisig or any other Vultisig wallet.
- * The only fix is to re-create or re-import the seed with current code.
+ * Discriminator: DKLS && empty publicKeyEddsa && all-zeros hexChainCode &&
+ * NO chainPublicKeys.
+ *
+ * The chainPublicKeys check is what distinguishes broken fresh-create vaults
+ * (no chainPublicKeys registered) from legacy private-key migrate vaults
+ * (one Terra chainPublicKey registered). Legacy private-key migrates are
+ * stored under the same DKLS+empty-eddsa+zero-chainCode shape because the
+ * pre-#93 storeFastVault code path was shared, but they're TERRA-ONLY BY
+ * DESIGN — the user only ever had a Terra privkey, no master to recover —
+ * so they shouldn't be flagged as broken-derivation. Their single Terra
+ * chainPublicKey lets us tell them apart from broken fresh-creates.
  *
  * Returns false for:
  * - Missing vaults (no stored proto)
  * - Post-#93 DKLS vaults (have non-empty publicKeyEddsa and non-zero hexChainCode)
  * - KEYIMPORT seed-recover vaults (chainPublicKeys.length >= 36)
- * - KEYIMPORT legacy migrate vaults (Terra-only by design, not affected)
+ * - Legacy private-key migrate vaults (have one Terra chainPublicKey)
  */
 export async function hasBrokenDerivation(
   walletName: string
@@ -331,7 +341,8 @@ export async function hasBrokenDerivation(
     return (
       decoded.libType === LibType.DKLS &&
       decoded.publicKeyEddsa === '' &&
-      decoded.hexChainCode === '0'.repeat(64)
+      decoded.hexChainCode === '0'.repeat(64) &&
+      decoded.chainPublicKeys.length === 0
     )
   } catch {
     return false

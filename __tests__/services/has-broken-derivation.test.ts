@@ -104,6 +104,34 @@ describe('hasBrokenDerivation', () => {
     expect(await hasBrokenDerivation('SeedRecoverWallet')).toBe(false)
   })
 
+  it('returns false for a pre-#93 DKLS legacy private-key migrate vault (one Terra chainPublicKey)', async () => {
+    // Pre-#93 storeFastVault stored legacy private-key migrations under the
+    // SAME DKLS+empty-eddsa+zero-chainCode shape as broken fresh-creates,
+    // because the storage path was shared. The discriminator is the single
+    // Terra chainPublicKey: legacy migrates have one, broken fresh-creates
+    // have zero. These vaults are Terra-only by design (no master to recover
+    // from a private key) and must NOT be flagged.
+    const vault = create(VaultSchema, {
+      name: 'LegacyDklsWallet',
+      publicKeyEcdsa: 'aabbcc',
+      publicKeyEddsa: '',
+      hexChainCode: '0'.repeat(64),
+      libType: LibType.DKLS,
+      signers: ['device-1', 'server-1'],
+      localPartyId: 'device-1',
+      resharePrefix: '',
+      keyShares: [],
+      chainPublicKeys: [
+        { chain: 'Terra', publicKey: 'aabbcc', isEddsa: false },
+      ],
+      createdAt: { seconds: 0n, nanos: 0 },
+      publicKeyMldsa44: '',
+    })
+    await storeVaultProto('LegacyDklsWallet', vault)
+
+    expect(await hasBrokenDerivation('LegacyDklsWallet')).toBe(false)
+  })
+
   it('returns false for a KEYIMPORT legacy migrate vault (Terra-only)', async () => {
     const vault = create(VaultSchema, {
       name: 'LegacyWallet',
