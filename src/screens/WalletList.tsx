@@ -93,8 +93,14 @@ export default function WalletList(): React.ReactElement {
       staleTime: 30_000,
     }))
   )
-  const hasAnyBrokenVault = brokenDerivationQueries.some(
-    (q) => q.data === true
+  const brokenDerivationMap: Record<string, boolean> = {}
+  wallets.forEach((w, i) => {
+    const result = brokenDerivationQueries[i]
+    if (result?.data !== undefined)
+      brokenDerivationMap[w.name] = result.data
+  })
+  const hasAnyBrokenVault = Object.values(brokenDerivationMap).some(
+    Boolean
   )
 
   const [addSheetVisible, setAddSheetVisible] = useState(false)
@@ -203,6 +209,9 @@ export default function WalletList(): React.ReactElement {
             address={wallet.address}
             terraOnly={wallet.terraOnly === true}
             vaultKind={vaultKindMap[wallet.name] ?? 'none'}
+            hasBrokenDerivation={
+              brokenDerivationMap[wallet.name] ?? false
+            }
             onPress={() => handlePress(wallet)}
             onExport={() => handleExport(wallet)}
             onDelete={() => handleDelete(wallet)}

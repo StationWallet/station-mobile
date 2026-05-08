@@ -80,12 +80,41 @@ function TrashIcon(): React.ReactElement {
   )
 }
 
+function BrokenDerivationIcon(): React.ReactElement {
+  return (
+    <Svg
+      width={16}
+      height={16}
+      viewBox="0 0 24 24"
+      fill="none"
+      accessibilityLabel="Vault may have incorrect addresses on non-Terra chains"
+    >
+      <Path
+        d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+        stroke={MIGRATION.errorRed}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M12 9v4M12 17h.01"
+        stroke={MIGRATION.errorRed}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  )
+}
+
 type Props = {
   name: string
   address: string
   terraOnly: boolean
   /** Canonical vault classifier: 'fast' = device+VultiServer, 'multi-share' = multi-device, 'none' = legacy (no stored vault) */
   vaultKind: 'none' | 'fast' | 'multi-share'
+  /** True when the stored vault matches the pre-#93 broken derivation shape */
+  hasBrokenDerivation?: boolean
   onPress: () => void
   onExport?: () => void
   onDelete?: () => void
@@ -97,6 +126,7 @@ export default function WalletCard({
   address,
   terraOnly,
   vaultKind,
+  hasBrokenDerivation = false,
   onPress,
   onExport,
   onDelete,
@@ -125,6 +155,7 @@ export default function WalletCard({
           <Text fontType="brockmann-medium" style={styles.name}>
             {name}
           </Text>
+          {hasBrokenDerivation && <BrokenDerivationIcon />}
           {terraOnly && (
             <View style={styles.terraOnlyBadge}>
               <Text fontType="brockmann" style={styles.terraOnlyText}>

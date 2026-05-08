@@ -39,13 +39,14 @@ export default function DerivationWarningBanner({
       <View style={styles.iconRow}>
         <WarningIcon />
         <Text fontType="brockmann-medium" style={styles.title}>
-          Update needed for Vultisig support
+          Some vaults need to be re-created
         </Text>
       </View>
       <Text fontType="brockmann" style={styles.body}>
-        Vaults from before this update may have wrong addresses on
-        non-Terra chains in Vultisig. Re-create or re-import your seed
-        to fix.
+        Vaults marked with a warning icon were created before our
+        latest update and may show incorrect addresses on non-Terra
+        chains in Vultisig. Re-create or re-import your seed phrase to
+        fix.
       </Text>
     </View>
   )
