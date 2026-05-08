@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { View, StyleSheet, TextInput } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -15,31 +15,35 @@ import StepProgressBar from 'components/migration/StepProgressBar'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { formStyles } from 'components/migration/migrationStyles'
 import { MIGRATION } from 'consts/migration'
-import { isValidEmail } from 'utils/isValidEmail'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
+import {
+  validatePrivateKey,
+  type ValidatedPrivateKey,
+} from 'services/privateKeyImport'
 
-type Nav = StackNavigationProp<MigrationStackParams, 'VaultEmail'>
-type Route = RouteProp<MigrationStackParams, 'VaultEmail'>
+type Nav = StackNavigationProp<
+  MigrationStackParams,
+  'ImportPrivateKey'
+>
+type Route = RouteProp<MigrationStackParams, 'ImportPrivateKey'>
 
-export default function VaultEmail(): React.ReactElement {
+export default function ImportPrivateKey(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
-  const {
-    walletName,
-    mode,
-    wallets,
-    email: prefillEmail,
-    privateKeyHex,
-  } = route.params
-
-  const [email, setEmail] = useState(prefillEmail ?? '')
-
-  const valid = isValidEmail(email)
-  const showError = email.length > 0 && !valid
-
-  const stepBarCurrentStep = mode === 'create' ? 2 : 1
-
+  const { walletName } = route.params
   const insets = useSafeAreaInsets()
+  const [value, setValue] = useState('')
+
+  const validated = useMemo<ValidatedPrivateKey | null>(() => {
+    if (!value.trim()) return null
+    try {
+      return validatePrivateKey(value)
+    } catch {
+      return null
+    }
+  }, [value])
+
+  const showError = value.trim().length > 0 && !validated
 
   return (
     <View style={formStyles.container}>
@@ -48,7 +52,7 @@ export default function VaultEmail(): React.ReactElement {
           <MigrationToolbar onBack={() => navigation.goBack()} />
         </View>
 
-        <StepProgressBar currentStep={stepBarCurrentStep} />
+        <StepProgressBar currentStep={2} />
 
         <Animated.View
           entering={FadeInRight.duration(250)}
@@ -56,32 +60,48 @@ export default function VaultEmail(): React.ReactElement {
           style={formStyles.content}
         >
           <Text style={formStyles.title} fontType="brockmann-medium">
-            Enter your email
+            Import private key
           </Text>
-
           <Text style={formStyles.subtitle} fontType="brockmann">
-            This will only be used once to send your backup file.
-            Vultisig doesn&apos;t store any data.
+            This imports a Terra private key only. Use seed phrase
+            recovery for a multichain wallet.
           </Text>
 
           <TextInput
-            testID="vault-email-input"
+            testID="private-key-input"
             style={[styles.input, showError && styles.inputError]}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="you@example.com"
-            placeholderTextColor={MIGRATION.textTertiary}
-            keyboardType="email-address"
+            value={value}
+            onChangeText={setValue}
+            placeholder="Paste private key"
+            placeholderTextColor={MIGRATION.textInputPlaceholder}
             autoCapitalize="none"
             autoCorrect={false}
-            autoComplete="email"
+            secureTextEntry
           />
 
-          {showError && (
+          {showError ? (
             <Text style={styles.errorText} fontType="brockmann">
-              Incorrect e-mail, please check
+              Enter a valid 64-character hex private key.
             </Text>
-          )}
+          ) : null}
+
+          {validated ? (
+            <View style={styles.preview}>
+              <Text
+                fontType="brockmann-medium"
+                style={styles.previewLabel}
+              >
+                Terra address
+              </Text>
+              <Text
+                fontType="brockmann"
+                style={styles.previewAddress}
+                numberOfLines={2}
+              >
+                {validated.terraAddress}
+              </Text>
+            </View>
+          ) : null}
         </Animated.View>
 
         <View
@@ -91,18 +111,17 @@ export default function VaultEmail(): React.ReactElement {
           ]}
         >
           <Button
-            testID="vault-email-next"
-            title="Next"
+            testID="private-key-next"
+            title="Continue"
             theme="ctaBlue"
             titleFontType="brockmann-medium"
-            disabled={!valid}
+            disabled={!validated}
             onPress={() => {
-              navigation.navigate('VaultPassword', {
+              if (!validated) return
+              navigation.navigate('VaultEmail', {
                 walletName,
-                mode,
-                wallets,
-                email,
-                privateKeyHex,
+                mode: 'import-private-key',
+                privateKeyHex: validated.privateKeyHex,
               })
             }}
             containerStyle={formStyles.ctaButton}
@@ -132,5 +151,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: MIGRATION.errorRed,
     marginTop: 6,
+  },
+  preview: {
+    marginTop: 18,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: MIGRATION.surface1,
+    borderWidth: 1,
+    borderColor: MIGRATION.strokeInput,
+  },
+  previewLabel: {
+    fontSize: 12,
+    color: MIGRATION.textTertiary,
+    marginBottom: 8,
+  },
+  previewAddress: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: MIGRATION.textPrimary,
   },
 })

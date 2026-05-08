@@ -14,6 +14,7 @@ import BackupVault from '../screens/migration/BackupScreen'
 import ImportVault from '../screens/migration/ImportVault'
 import MigrationSuccess from '../screens/migration/MigrationSuccess'
 import RecoverSeed from '../screens/migration/RecoverSeed'
+import ImportPrivateKey from '../screens/migration/ImportPrivateKey'
 
 // Lazy-load KeygenProgress — it statically imports rive-react-native which
 // initialises its native runtime on import, keeping the iOS main run loop busy
@@ -43,7 +44,11 @@ import type {
   KeyImportResult,
 } from 'services/dklsKeyImport'
 
-export type MigrationMode = 'migrate' | 'create' | 'recover-seed'
+export type MigrationMode =
+  | 'migrate'
+  | 'create'
+  | 'recover-seed'
+  | 'import-private-key'
 
 import { DevFlags } from '../config/env'
 
@@ -61,17 +66,22 @@ export type MigrationStackParams = {
   VaultSetup: undefined
   WalletsFound: undefined
   VaultName: { mode?: MigrationMode } | undefined
+  ImportPrivateKey: {
+    walletName: string
+  }
   VaultEmail: {
     walletName: string
     wallets?: MigrationWallet[]
     mode: MigrationMode
     email?: string
+    privateKeyHex?: string
   }
   VaultPassword: {
     walletName: string
     wallets?: MigrationWallet[]
     mode: MigrationMode
     email: string
+    privateKeyHex?: string
   }
   KeygenProgress: {
     walletName: string
@@ -81,6 +91,7 @@ export type MigrationStackParams = {
     mode: MigrationMode
     email: string
     password: string
+    privateKeyHex?: string
   }
   VerifyEmail: {
     walletName: string
@@ -121,6 +132,7 @@ type MigrationEntry =
   | 'create-vault'
   | 'recover-seed-input'
   | 'import-vault'
+  | 'import-private-key'
 
 export default function MigrationNavigator({
   initialEntry = 'default',
@@ -132,12 +144,16 @@ export default function MigrationNavigator({
       ? 'VaultName'
       : initialEntry === 'import-vault'
       ? 'ImportVault'
+      : initialEntry === 'import-private-key'
+      ? 'VaultName'
       : initialEntry === 'recover-seed-input'
       ? 'RecoverSeed'
       : 'RiveIntro'
   const vaultNameInitialParams =
     initialEntry === 'create-vault'
       ? { mode: 'create' as const }
+      : initialEntry === 'import-private-key'
+      ? { mode: 'import-private-key' as const }
       : undefined
 
   return (
@@ -164,6 +180,10 @@ export default function MigrationNavigator({
         initialParams={vaultNameInitialParams}
       />
       <Stack.Screen name="VaultEmail" component={VaultEmail} />
+      <Stack.Screen
+        name="ImportPrivateKey"
+        component={ImportPrivateKey}
+      />
       <Stack.Screen name="VaultPassword" component={VaultPassword} />
       <Stack.Screen
         name="KeygenProgress"
