@@ -23,8 +23,7 @@ type Route = RouteProp<MigrationStackParams, 'VaultPassword'>
 export default function VaultPassword(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
-  const { walletName, mode, wallets, email, privateKeyHex } =
-    route.params
+  const { walletName, mode, wallets, email } = route.params
 
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -133,7 +132,6 @@ export default function VaultPassword(): React.ReactElement {
                 wallets,
                 email,
                 password,
-                privateKeyHex,
               })
             }}
             containerStyle={formStyles.ctaButton}
