@@ -104,7 +104,7 @@ export function useImportFlow() {
       } catch (err) {
         setLoading(false)
         Alert.alert('Import failed', getErrorMessage(err))
-        return false
+        return true
       }
     }
 

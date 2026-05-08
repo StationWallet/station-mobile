@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store'
 import { upsertAuthData } from 'utils/authData'
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { VaultContainerSchema } from '../proto/vultisig/vault/v1/vault_container_pb'
+import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
 import { VAULT_STORE_OPTS, vaultStoreKey } from './migrateToVault'
 import { decryptVaultBytes } from './vaultCrypto'
 
@@ -40,6 +41,34 @@ function inferSigners(fileName: string, signers: string[]): string[] {
     return ['Device', 'Server']
   }
   return ['Device']
+}
+
+function isServerPartyId(partyId: string): boolean {
+  return partyId.toLowerCase().startsWith('server-')
+}
+
+function assertImportableFastVault(vault: {
+  libType: LibType
+  localPartyId: string
+  signers: string[]
+}): void {
+  if (vault.libType !== LibType.DKLS) {
+    throw new Error(
+      'Only Fast Vault backups can be imported. Use seed phrase import for seed wallets.'
+    )
+  }
+
+  if (isServerPartyId(vault.localPartyId)) {
+    throw new Error(
+      'This is a server-side vault share and cannot be imported on this device.'
+    )
+  }
+
+  if (!vault.signers.some(isServerPartyId)) {
+    throw new Error(
+      'This vault has no server-side Vultisig share. Multi-share vaults cannot be used in Station.'
+    )
+  }
 }
 
 /**
@@ -84,6 +113,8 @@ export function importVaultBackup({
       'This backup is missing the device keyshare required for import.'
     )
   }
+
+  assertImportableFastVault(vault)
 
   const signers = inferSigners(fileName, vault.signers)
   vault.signers = signers
