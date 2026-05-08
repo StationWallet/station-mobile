@@ -6,6 +6,7 @@ import { VaultContainerSchema } from '../../src/proto/vultisig/vault/v1/vault_co
 import { LibType } from '../../src/proto/vultisig/keygen/v1/lib_type_message_pb'
 import { buildVaultProto, derivePublicKeyHex } from 'services/vaultProto'
 import { encryptWithPassword, decryptVaultBytes } from 'services/vaultCrypto'
+import { getExportWarning } from 'utils/exportWarning'
 
 const PK = '0000000000000000000000000000000000000000000000000000000000000001'
 const EXPECTED_PUB =
@@ -55,5 +56,28 @@ describe('vault share export — .vult round-trip', () => {
     expect(roundTripped.publicKeyEcdsa).toBe(EXPECTED_PUB)
     expect(roundTripped.libType).toBe(LibType.KEYIMPORT)
     expect(roundTripped.keyShares[0].keyshare).toBe(PK)
+  })
+})
+
+describe('getExportWarning — 3-branch copy', () => {
+  it("fast vault: warns that share + password is enough to drain funds", () => {
+    const w = getExportWarning('fast')
+    expect(w).toContain('your password')
+    expect(w).toContain('drain your funds')
+  })
+
+  it("multi-share vault: reassures that a single share cannot access the vault alone", () => {
+    const w = getExportWarning('multi-share')
+    expect(w).toContain('cannot access a Secure Vault by itself')
+  })
+
+  it("none (legacy private key): warns that anyone with the key has full access", () => {
+    const w = getExportWarning('none')
+    expect(w).toContain('Anyone with this key can access your funds')
+  })
+
+  it("loading state (null): defaults to the optimistic share-safe copy", () => {
+    const w = getExportWarning(null)
+    expect(w).toContain('cannot access a Secure Vault by itself')
   })
 })

@@ -23,6 +23,7 @@ import Button from 'components/Button'
 import MigrationToolbar from 'components/migration/MigrationToolbar'
 import { formStyles } from 'components/migration/migrationStyles'
 import { COLORS, MONO_FONT } from 'consts/theme'
+import { getExportWarning } from 'utils/exportWarning'
 
 import type { MainStackParams } from 'navigation/MainNavigator'
 
@@ -100,9 +101,7 @@ export default function ExportPrivateKey(): React.ReactElement {
   const title = shouldShowVaultShareCopy
     ? 'Export Vault Share'
     : 'Export Private Key'
-  const warning = shouldShowVaultShareCopy
-    ? 'A single encrypted vault share cannot access a Secure Vault by itself. Keep it private and share it only with people you trust.'
-    : 'Anyone with this key can access your funds. Never share it.'
+  const warning = getExportWarning(vaultKind)
 
   const handleExportVaultShare =
     useCallback(async (): Promise<void> => {
