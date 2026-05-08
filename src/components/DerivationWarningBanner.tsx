@@ -39,14 +39,17 @@ export default function DerivationWarningBanner({
       <View style={styles.iconRow}>
         <WarningIcon />
         <Text fontType="brockmann-medium" style={styles.title}>
-          Some vaults need to be re-created
+          Heads up before importing into Vultisig
         </Text>
       </View>
       <Text fontType="brockmann" style={styles.body}>
-        Vaults marked with a warning icon were created before our
-        latest update and may show incorrect addresses on non-Terra
-        chains in Vultisig. Re-create or re-import your seed phrase to
-        fix.
+        If you imported a seed phrase or created a new vault on this
+        device before our latest update, those vaults may show
+        incorrect addresses on chains other than Terra when used in
+        Vultisig. Re-create the vault or re-import your seed phrase
+        here to get the correct addresses on all chains. Vaults
+        migrated from your original Terra Station wallet are not
+        affected.
       </Text>
     </View>
   )

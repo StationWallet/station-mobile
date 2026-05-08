@@ -84,8 +84,12 @@ export default function WalletList(): React.ReactElement {
   const loading =
     wallets.length > 0 && vaultKindQueries.some((q) => q.isLoading)
 
-  // Screen-level banner: show when ANY wallet was created under the pre-#93
-  // broken derivation path (DKLS, ECDSA-only, all-zeros chain code).
+  // Screen-level banner: show when ANY stored vault matches the pre-#93
+  // broken derivation shape (DKLS, ECDSA-only, all-zeros chain code).
+  // Per-card discrimination isn't possible — already-migrated legacy AD
+  // entries land in the same on-disk shape as broken seed-recover / fresh
+  // vaults, with no remaining provenance signal — so we only surface this
+  // at the screen level with self-identification copy.
   const brokenDerivationQueries = useQueries(
     wallets.map((w) => ({
       queryKey: ['brokenDerivation', w.name],
@@ -93,14 +97,8 @@ export default function WalletList(): React.ReactElement {
       staleTime: 30_000,
     }))
   )
-  const brokenDerivationMap: Record<string, boolean> = {}
-  wallets.forEach((w, i) => {
-    const result = brokenDerivationQueries[i]
-    if (result?.data !== undefined)
-      brokenDerivationMap[w.name] = result.data
-  })
-  const hasAnyBrokenVault = Object.values(brokenDerivationMap).some(
-    Boolean
+  const hasAnyBrokenVault = brokenDerivationQueries.some(
+    (q) => q.data === true
   )
 
   const [addSheetVisible, setAddSheetVisible] = useState(false)
@@ -209,9 +207,6 @@ export default function WalletList(): React.ReactElement {
             address={wallet.address}
             terraOnly={wallet.terraOnly === true}
             vaultKind={vaultKindMap[wallet.name] ?? 'none'}
-            hasBrokenDerivation={
-              brokenDerivationMap[wallet.name] ?? false
-            }
             onPress={() => handlePress(wallet)}
             onExport={() => handleExport(wallet)}
             onDelete={() => handleDelete(wallet)}

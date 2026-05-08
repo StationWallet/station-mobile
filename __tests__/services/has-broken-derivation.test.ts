@@ -104,13 +104,21 @@ describe('hasBrokenDerivation', () => {
     expect(await hasBrokenDerivation('SeedRecoverWallet')).toBe(false)
   })
 
-  it('returns false for a pre-#93 DKLS legacy private-key migrate vault (one Terra chainPublicKey)', async () => {
+  it('returns true for a pre-#93 DKLS legacy private-key migrate vault (over-flag is intentional)', async () => {
     // Pre-#93 storeFastVault stored legacy private-key migrations under the
     // SAME DKLS+empty-eddsa+zero-chainCode shape as broken fresh-creates,
-    // because the storage path was shared. The discriminator is the single
-    // Terra chainPublicKey: legacy migrates have one, broken fresh-creates
-    // have zero. These vaults are Terra-only by design (no master to recover
-    // from a private key) and must NOT be flagged.
+    // because the storage path was shared. We tried to use the chainPublicKeys
+    // array as a discriminator (legacy has [Terra], broken fresh-create has [])
+    // but on real devices the storage code paths produced both shapes for
+    // both flows depending on entry point and timing, so the discriminator
+    // wasn't reliable.
+    //
+    // We therefore over-flag conservatively: any DKLS vault with the broken
+    // shape gets the warning, including legacy private-key migrates. The
+    // warning copy ("may show incorrect addresses on non-Terra chains") is
+    // still true for them — their non-Terra addresses in Vultisig are not
+    // usable. Legacy users can't act on the warning (no seed to re-import),
+    // but they're not worse off than before.
     const vault = create(VaultSchema, {
       name: 'LegacyDklsWallet',
       publicKeyEcdsa: 'aabbcc',
@@ -129,7 +137,7 @@ describe('hasBrokenDerivation', () => {
     })
     await storeVaultProto('LegacyDklsWallet', vault)
 
-    expect(await hasBrokenDerivation('LegacyDklsWallet')).toBe(false)
+    expect(await hasBrokenDerivation('LegacyDklsWallet')).toBe(true)
   })
 
   it('returns false for a KEYIMPORT legacy migrate vault (Terra-only)', async () => {
