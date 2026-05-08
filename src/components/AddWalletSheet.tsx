@@ -74,12 +74,33 @@ function VaultShareIcon(): React.ReactElement {
   )
 }
 
+function KeyIcon(): React.ReactElement {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
+      <Circle
+        cx={7}
+        cy={10}
+        r={3}
+        stroke={ICON_BLUE}
+        strokeWidth={1.5}
+      />
+      <Path
+        d="M10 10h7M14 10v3M17 10v2"
+        stroke={ICON_BLUE}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+      />
+    </Svg>
+  )
+}
+
 type Props = {
   visible: boolean
   onDismiss: () => void
   onCreate: () => void
   onRecover: () => void
   onImport: () => void
+  onImportPrivateKey: () => void
   // When false, the "Create new wallet" card is hidden. Used by the
   // import-wallet entry on MigrationHome where the user already declared
   // they have an existing wallet — Create would just be a misroute.
@@ -92,6 +113,7 @@ export default function AddWalletSheet({
   onCreate,
   onRecover,
   onImport,
+  onImportPrivateKey,
   showCreate = true,
 }: Props): React.ReactElement {
   const insets = useSafeAreaInsets()
@@ -220,6 +242,31 @@ export default function AddWalletSheet({
             >
               Enter your seed phrase to recover or convert a legacy
               wallet into a vault.
+            </Text>
+          </Pressable>
+
+          {/* Import private key card */}
+          <Pressable
+            testID="add-wallet-import-private-key"
+            accessibilityRole="button"
+            accessibilityLabel="Import private key"
+            style={styles.card}
+            onPress={dismissAnd(onImportPrivateKey)}
+          >
+            <View style={styles.cardTitleRow}>
+              <KeyIcon />
+              <Text
+                fontType="brockmann-medium"
+                style={styles.cardTitle}
+              >
+                Import private key
+              </Text>
+            </View>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.cardSubtitle}
+            >
+              Convert a Terra private key into a Terra-only vault.
             </Text>
           </Pressable>
 
