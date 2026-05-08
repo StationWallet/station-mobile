@@ -13,7 +13,7 @@ import { useQueries } from 'react-query'
 import { useWalletNav } from 'navigation/hooks'
 import { settings } from 'utils/storage'
 import { deleteWallet } from 'utils/wallet'
-import { isVaultFastVault } from 'services/migrateToVault'
+import { getVaultKind } from 'services/migrateToVault'
 import { MIGRATION } from 'consts/migration'
 import { DevFlags } from 'config/env'
 import Text from 'components/Text'
@@ -53,27 +53,31 @@ export default function WalletList(): React.ReactElement {
     }, [refreshWallets])
   )
 
-  // Per-wallet fast-vault status, cached by wallet name. react-query
-  // keeps data across renders, so navigating back to this screen
-  // doesn't blink the loading overlay — existing cards stay up while
-  // stale data revalidates in the background.
-  const fastVaultQueries = useQueries(
+  // Per-wallet vault-kind, cached by wallet name. react-query keeps data
+  // across renders, so navigating back to this screen doesn't blink the
+  // loading overlay — existing cards stay up while stale data revalidates
+  // in the background.
+  const vaultKindQueries = useQueries(
     wallets.map((w) => ({
-      queryKey: ['isFastVault', w.name],
-      queryFn: (): Promise<boolean> => isVaultFastVault(w.name),
+      queryKey: ['vaultKind', w.name],
+      queryFn: (): Promise<'none' | 'fast' | 'multi-share'> =>
+        getVaultKind(w.name),
       staleTime: 30_000,
     }))
   )
-  const fastVaultMap: Record<string, boolean> = {}
+  const vaultKindMap: Record<
+    string,
+    'none' | 'fast' | 'multi-share'
+  > = {}
   wallets.forEach((w, i) => {
-    const result = fastVaultQueries[i]
-    if (result?.data !== undefined) fastVaultMap[w.name] = result.data
+    const result = vaultKindQueries[i]
+    if (result?.data !== undefined) vaultKindMap[w.name] = result.data
   })
   // Only show the blocking overlay on the very first resolve, not on
   // revalidations triggered by focus. isLoading is react-query's
   // "never-resolved-yet" signal; isFetching would fire on every refetch.
   const loading =
-    wallets.length > 0 && fastVaultQueries.some((q) => q.isLoading)
+    wallets.length > 0 && vaultKindQueries.some((q) => q.isLoading)
 
   const [addSheetVisible, setAddSheetVisible] = useState(false)
 
@@ -86,7 +90,10 @@ export default function WalletList(): React.ReactElement {
   const handlePress = async (wallet: LocalWallet): Promise<void> => {
     await settings.set({ walletName: wallet.name })
 
-    if (fastVaultMap[wallet.name]) {
+    if (
+      vaultKindMap[wallet.name] === 'fast' ||
+      vaultKindMap[wallet.name] === 'multi-share'
+    ) {
       if (inMigrationNav) {
         migrationNav.navigate('MigrationSuccess', {
           migratedWalletName: wallet.name,
@@ -175,7 +182,7 @@ export default function WalletList(): React.ReactElement {
             name={wallet.name}
             address={wallet.address}
             terraOnly={wallet.terraOnly === true}
-            isFastVault={fastVaultMap[wallet.name] === true}
+            vaultKind={vaultKindMap[wallet.name] ?? 'none'}
             onPress={() => handlePress(wallet)}
             onExport={() => handleExport(wallet)}
             onDelete={() => handleDelete(wallet)}

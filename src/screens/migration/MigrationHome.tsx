@@ -21,8 +21,11 @@ import RocketWithGlow from 'components/migration/RocketWithGlow'
 import PrimaryBackground from 'components/PrimaryBackground'
 import {
   discoverLegacyWallets,
+  getVaultKind,
   MigrationWallet,
 } from 'services/migrateToVault'
+import { getWallets } from 'utils/wallet'
+import { useWalletNav } from 'navigation/hooks'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 import AddWalletSheet from 'components/AddWalletSheet'
 
@@ -39,6 +42,7 @@ export default function MigrationHome(): React.ReactElement {
   const heroSize = isShort ? 140 : 200
   const titleMargin = isShort ? 16 : 28
   const [wallets, setWallets] = useState<MigrationWallet[]>([])
+  const [totalWalletCount, setTotalWalletCount] = useState(0)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setReady used to track loading state
   const [_ready, setReady] = useState(false)
   const [importSheetVisible, setImportSheetVisible] = useState(false)
@@ -56,10 +60,23 @@ export default function MigrationHome(): React.ReactElement {
     navigation.navigate('VaultName', { mode: 'create' })
   }
 
+  const { goHome } = useWalletNav()
+
   useEffect(() => {
-    discoverLegacyWallets()
-      .then((found) => {
+    Promise.all([discoverLegacyWallets(), getWallets()])
+      .then(async ([found, all]) => {
         setWallets(found)
+        // `all` includes legacy AD-only entries that haven't been migrated to
+        // a fast vault yet — those are NOT "vaults" from the user's POV, only
+        // legacy seeds awaiting migration. Count only entries with a stored
+        // DKLS vault proto (i.e. getVaultKind returns 'fast' or 'multi-share').
+        const kinds = await Promise.all(
+          all.map((w) => getVaultKind(w.name))
+        )
+        const realVaultCount = kinds.filter(
+          (k) => k !== 'none'
+        ).length
+        setTotalWalletCount(realVaultCount)
         setReady(true)
       })
       .catch(() => {
@@ -67,11 +84,40 @@ export default function MigrationHome(): React.ReactElement {
       })
   }, [])
 
-  const hasLegacyWallets = wallets.length > 0
+  const hasUnmigratedLegacy = wallets.length > 0
+  const hasAnyVaults = totalWalletCount > 0
+
+  // CTA copy:
+  // - has unmigrated legacy AND has vaults → "Continue migration"
+  // - has unmigrated legacy, no vaults yet → "Start Migration"
+  // - no unmigrated legacy, has vaults → "See my vaults"
+  // - nothing → "Create a Fast Vault"
+  const ctaTitle =
+    hasUnmigratedLegacy && hasAnyVaults
+      ? 'Continue migration'
+      : hasUnmigratedLegacy
+      ? 'Start Migration'
+      : hasAnyVaults
+      ? 'See my vaults'
+      : 'Create a Fast Vault'
 
   const handleCta = (): void => {
-    if (hasLegacyWallets) {
+    if (hasUnmigratedLegacy) {
       navigation.navigate('WalletsFound')
+    } else if (hasAnyVaults) {
+      // MigrationHome can be mounted at two depths:
+      //  1. Root → Migration → MigrationHome (post-init when legacyDataFound)
+      //  2. Root → Main → Migration → MigrationHome (when user back-navs from
+      //     WalletList into the nested Migration stack)
+      // In case 2 the root is already 'Main', so goHome's setRootRoute('Main')
+      // is a no-op and the screen looks frozen. Pop the parent stack to
+      // WalletList directly when nested; otherwise fall back to the root swap.
+      const parent = navigation.getParent()
+      if (parent) {
+        parent.navigate('WalletList' as never)
+      } else {
+        goHome()
+      }
     } else {
       navigation.navigate('VaultSetup')
     }
@@ -139,11 +185,7 @@ export default function MigrationHome(): React.ReactElement {
             style={styles.buttonGroup}
           >
             <Button
-              title={
-                hasLegacyWallets
-                  ? 'Start Migration'
-                  : 'Create a Fast Vault'
-              }
+              title={ctaTitle}
               theme="ctaBlue"
               titleFontType="brockmann-medium"
               onPress={handleCta}
