@@ -442,51 +442,67 @@ export async function createFastVault(options: {
   )
 
   try {
-    await Promise.all([
-      runMpcProtocol(
-        ecdsaHandle,
-        sessionId,
-        localPartyId,
-        cipherKey,
-        'ecdsa',
-        'p-ecdsa',
-        (mpcProgress) => {
-          report({
-            step: 'ecdsa',
-            message: 'Running ECDSA MPC protocol...',
-            progress: Math.round(35 + mpcProgress * 30),
-          })
-        },
-        signal
-      ),
-      runMpcProtocol(
-        eddsaHandle,
-        sessionId,
-        localPartyId,
-        cipherKey,
-        'eddsa',
-        'p-eddsa',
-        (mpcProgress) => {
-          report({
-            step: 'eddsa',
-            message: 'Running EdDSA MPC protocol...',
-            progress: Math.round(35 + mpcProgress * 30),
-          })
-        },
-        signal
-      ),
-    ])
+    // Run ECDSA and EdDSA ceremonies SERIALLY, not in parallel.
+    //
+    // mpc-native exposes a single global state for the ECDSA / Schnorr session
+    // queues, and running two MPC protocols concurrently overloads the JS
+    // thread (each ceremony has its own outbound/inbound polling loops + native
+    // crypto), causing ANR-class hangs and "Invalid DKLS handle" finalize
+    // errors when relay messages get reordered between sessions.
+    //
+    // Vultiagent-app's importFastVault ran into the same constraint and
+    // resolved it by running per-chain imports sequentially; we follow the
+    // same pattern here for the two root keys. Total ceremony time roughly
+    // doubles vs the parallel attempt, but each ceremony gets the full JS
+    // thread + relay attention, which is the only way to get reliable
+    // finalization on slower physical devices.
+    await runMpcProtocol(
+      ecdsaHandle,
+      sessionId,
+      localPartyId,
+      cipherKey,
+      'ecdsa',
+      'p-ecdsa',
+      (mpcProgress) => {
+        report({
+          step: 'ecdsa',
+          message: 'Running ECDSA MPC protocol...',
+          progress: Math.round(35 + mpcProgress * 15),
+        })
+      },
+      signal
+    )
+    const ecdsaResult = await finishNativeKeygen('ecdsa', ecdsaHandle)
+
+    report({
+      step: 'eddsa',
+      message: 'Running EdDSA MPC protocol...',
+      progress: 50,
+    })
+
+    await runMpcProtocol(
+      eddsaHandle,
+      sessionId,
+      localPartyId,
+      cipherKey,
+      'eddsa',
+      'p-eddsa',
+      (mpcProgress) => {
+        report({
+          step: 'eddsa',
+          message: 'Running EdDSA MPC protocol...',
+          progress: Math.round(50 + mpcProgress * 30),
+        })
+      },
+      signal
+    )
+    const eddsaResult = await finishNativeKeygen('eddsa', eddsaHandle)
 
     report({
       step: 'finalizing',
       message: 'Extracting keyshares...',
       progress: 82,
     })
-
-    const [ecdsaResult, eddsaResult] = await Promise.all([
-      finishNativeKeygen('ecdsa', ecdsaHandle),
-      finishNativeKeygen('eddsa', eddsaHandle),
-    ])
 
     await signalComplete(sessionId, localPartyId)
     await waitForComplete(sessionId, parties, 60, 1000, signal)
