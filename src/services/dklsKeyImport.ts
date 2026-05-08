@@ -264,24 +264,41 @@ function freeNativeKeygen(
   }
 }
 
-async function prepareKeyImportSession(options: {
+/**
+ * Run one complete key import cycle: create native session → upload setup
+ * message → run MPC protocol → finishKeygen → free handle.
+ *
+ * Each call is fully self-contained. The native session handle is created,
+ * used, and freed within a single awaited call, so no two sessions are ever
+ * alive at the same time. This matches vultiagent-app's importSingleKey
+ * pattern and avoids the ANR-class hang that occurred when all three handles
+ * (rootEcdsa, rootEddsa, terra) were pre-created before any MPC round ran.
+ */
+async function runKeyImport(options: {
   privateKeyHex: string
   chainCodeHex: string
   keyType: MpcKeyType
   parties: string[]
   sessionId: string
+  localPartyId: string
   cipherKey: Uint8Array
   setupMessageId?: string
-}): Promise<number> {
+  signal?: AbortSignal
+  onProgress?: (progressPercent: number) => void
+}): Promise<NativeKeygenResult> {
   const {
     privateKeyHex,
     chainCodeHex,
     keyType,
     parties,
     sessionId,
+    localPartyId,
     cipherKey,
     setupMessageId,
+    signal,
+    onProgress,
   } = options
+
   const importResult =
     keyType === 'ecdsa'
       ? (ExpoDkls.createDklsKeyImportInitiator(
@@ -297,35 +314,13 @@ async function prepareKeyImportSession(options: {
           parties
         ) as { setupMessage: string; sessionHandle: number })
 
+  const { sessionHandle } = importResult
+
   await uploadSetupMessage(
     sessionId,
     encryptAesGcm(importResult.setupMessage, cipherKey),
     setupMessageId
   )
-
-  return importResult.sessionHandle
-}
-
-async function runPreparedImport(options: {
-  sessionHandle: number
-  sessionId: string
-  localPartyId: string
-  cipherKey: Uint8Array
-  keyType: MpcKeyType
-  messageId?: string
-  signal?: AbortSignal
-  onProgress?: (progressPercent: number) => void
-}): Promise<NativeKeygenResult> {
-  const {
-    sessionHandle,
-    sessionId,
-    localPartyId,
-    cipherKey,
-    keyType,
-    messageId,
-    signal,
-    onProgress,
-  } = options
 
   try {
     await runMpcProtocol(
@@ -334,7 +329,7 @@ async function runPreparedImport(options: {
       localPartyId,
       cipherKey,
       keyType,
-      messageId,
+      setupMessageId,
       onProgress,
       signal
     )
@@ -604,118 +599,98 @@ export async function importSeedPhraseToFastVault(options: {
 
   const cipherKey = deriveCipherKey(hexEncryptionKey)
 
+  // Run each key import as a fully self-contained cycle: create native handle →
+  // upload setup → MPC → finish → free.  No two handles are alive at once.
+  // This matches vultiagent-app's importSingleKey pattern and prevents the
+  // ANR-class hang that occurred when all three handles were pre-created before
+  // any MPC round ran (the old prepareKeyImportSession + runPreparedImport split).
+
   report({
-    step: 'setup',
-    message: 'Preparing key imports...',
-    progress: 20,
+    step: 'ecdsa',
+    message: 'Importing ECDSA root key...',
+    progress: 25,
   })
 
-  const rootEcdsaHandle = await prepareKeyImportSession({
-    privateKeyHex: masterKeys.ecdsaPrivateKey,
-    chainCodeHex: importChainCode,
-    keyType: 'ecdsa',
-    parties,
-    sessionId,
-    cipherKey,
-  })
-  const rootEddsaHandle = await prepareKeyImportSession({
-    privateKeyHex: masterKeys.eddsaPrivateKey,
-    chainCodeHex: importChainCode,
-    keyType: 'eddsa',
-    parties,
-    sessionId,
-    cipherKey,
-    setupMessageId: 'eddsa_key_import',
-  })
-  const terraKey = await deriveChainKeyForImport(mnemonic, 'Terra')
-  const terraChainCode = deriveChainKey(mnemonic, 'Terra').chainCode
-  const terraHandle = await prepareKeyImportSession({
-    privateKeyHex: terraKey.privateKey,
-    chainCodeHex: terraChainCode,
-    keyType: 'ecdsa',
-    parties,
-    sessionId,
-    cipherKey,
-    setupMessageId: 'Terra',
-  })
-
-  const runRootEcdsa = async (): Promise<NativeKeygenResult> => {
-    report({
-      step: 'ecdsa',
-      message: 'Importing ECDSA root key...',
-      progress: 30,
-    })
-    return runPreparedImport({
-      sessionHandle: rootEcdsaHandle,
+  let rootEcdsa: NativeKeygenResult
+  try {
+    rootEcdsa = await runKeyImport({
+      privateKeyHex: masterKeys.ecdsaPrivateKey,
+      chainCodeHex: importChainCode,
+      keyType: 'ecdsa',
+      parties,
       sessionId,
       localPartyId,
       cipherKey,
-      keyType: 'ecdsa',
       signal,
       onProgress: (mpcProgress) => {
         report({
           step: 'ecdsa',
           message: 'Importing ECDSA root key...',
-          progress: Math.round(30 + mpcProgress * 20),
+          progress: Math.round(25 + mpcProgress * 20),
         })
       },
     })
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : String(error)
+    throw new Error(`root ecdsa import failed: ${message}`)
   }
 
-  const runRootEddsa = async (): Promise<NativeKeygenResult> => {
-    report({
-      step: 'eddsa',
-      message: 'Importing EdDSA root key...',
-      progress: 30,
+  report({
+    step: 'eddsa',
+    message: 'Importing EdDSA root key...',
+    progress: 47,
+  })
+
+  let rootEddsa: NativeKeygenResult
+  try {
+    rootEddsa = await runKeyImport({
+      privateKeyHex: masterKeys.eddsaPrivateKey,
+      chainCodeHex: importChainCode,
+      keyType: 'eddsa',
+      parties,
+      sessionId,
+      localPartyId,
+      cipherKey,
+      setupMessageId: 'eddsa_key_import',
+      signal,
+      onProgress: (mpcProgress) => {
+        report({
+          step: 'eddsa',
+          message: 'Importing EdDSA root key...',
+          progress: Math.round(47 + mpcProgress * 18),
+        })
+      },
     })
-    try {
-      return await runPreparedImport({
-        sessionHandle: rootEddsaHandle,
-        sessionId,
-        localPartyId,
-        cipherKey,
-        keyType: 'eddsa',
-        signal,
-        onProgress: (mpcProgress) => {
-          report({
-            step: 'eddsa',
-            message: 'Importing EdDSA root key...',
-            progress: Math.round(30 + mpcProgress * 20),
-          })
-        },
-      })
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : String(error)
-      throw new Error(`root eddsa import failed: ${message}`)
-    }
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : String(error)
+    throw new Error(`root eddsa import failed: ${message}`)
   }
 
-  const runRootEcdsaWrapped =
-    async (): Promise<NativeKeygenResult> => {
-      try {
-        return await runRootEcdsa()
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : String(error)
-        throw new Error(`root ecdsa import failed: ${message}`)
-      }
-    }
+  report({
+    step: 'ecdsa',
+    message: 'Importing Terra key...',
+    progress: 67,
+  })
 
-  const rootEcdsa = await runRootEcdsaWrapped()
-  const rootEddsa = await runRootEddsa()
-  const terraResult = await runPreparedImport({
-    sessionHandle: terraHandle,
+  const terraKey = await deriveChainKeyForImport(mnemonic, 'Terra')
+  const terraChainCode = deriveChainKey(mnemonic, 'Terra').chainCode
+  const terraResult = await runKeyImport({
+    privateKeyHex: terraKey.privateKey,
+    chainCodeHex: terraChainCode,
+    keyType: 'ecdsa',
+    parties,
     sessionId,
     localPartyId,
     cipherKey,
-    keyType: 'ecdsa',
+    setupMessageId: 'Terra',
     signal,
     onProgress: (mpcProgress) => {
       report({
         step: 'ecdsa',
         message: 'Importing Terra key...',
-        progress: Math.round(55 + mpcProgress * 30),
+        progress: Math.round(67 + mpcProgress * 22),
       })
     },
   })
