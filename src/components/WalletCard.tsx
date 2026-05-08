@@ -91,14 +91,14 @@ function BrokenDerivationIcon(): React.ReactElement {
     >
       <Path
         d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
-        stroke={MIGRATION.errorRed}
+        stroke={MIGRATION.warningYellow}
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <Path
         d="M12 9v4M12 17h.01"
-        stroke={MIGRATION.errorRed}
+        stroke={MIGRATION.warningYellow}
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -166,6 +166,7 @@ export default function WalletCard({
         </View>
         {onDelete && (
           <TouchableOpacity
+            style={styles.deleteButton}
             onPress={confirmDelete}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             testID={testID ? `${testID}-delete` : undefined}
@@ -292,7 +293,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    justifyContent: 'space-between',
+    gap: 6,
+  },
+  deleteButton: {
+    marginLeft: 12,
   },
   name: {
     color: MIGRATION.textPrimary,

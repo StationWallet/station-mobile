@@ -23,6 +23,7 @@ export const MIGRATION = {
   // Status
   errorRed: '#ff5c5c',
   successGreen: '#13c89d',
+  warningYellow: '#f5b200',
 
   // Buttons
   ctaBlue: '#0b4eff',
