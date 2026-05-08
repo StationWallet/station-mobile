@@ -105,11 +105,11 @@ export default function VerifyEmail(): React.ReactElement {
       // earlier point leaves the legacy wallet recoverable.
       try {
         await storeFastVault(walletName, keyImportResult)
-        // The isFastVault status for this wallet just flipped from
-        // false -> true. Invalidate the cached query so WalletList
-        // re-renders the migrated wallet with the correct CTA instead
-        // of still offering "Migrate to a vault".
-        queryClient.invalidateQueries(['isFastVault', walletName])
+        // The vault kind for this wallet just flipped from "none" to
+        // "fast". Invalidate the cached query so WalletList re-renders
+        // the migrated wallet with the correct CTA instead of still
+        // offering "Migrate to a vault".
+        queryClient.invalidateQueries(['vaultKind', walletName])
       } catch (err) {
         // Vault activation succeeded on the server but local persistence
         // failed. The legacy key is still on-device, so the user isn't
