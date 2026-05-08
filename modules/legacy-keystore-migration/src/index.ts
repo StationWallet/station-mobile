@@ -36,6 +36,18 @@ interface LegacyKeystoreMigrationModule {
   ): Promise<boolean>
 
   /**
+   * Remove the RSA+AES material left behind by the StorageCipher18 path after
+   * a confirmed V2 migration. Wipes the Android Keystore alias, the wrapped AES
+   * key in SecureKeyStorage, and the ciphertext entries in SecureStorage.
+   *
+   * Idempotent — safe to call multiple times (no-op if already cleaned).
+   * Android only; no-op (returns true) on iOS since the format never existed there.
+   *
+   * MUST only be called after legacyKeystoreMigratedV2 has been confirmed true.
+   */
+  cleanupStorageCipher18(): Promise<boolean>
+
+  /**
    * TEST ONLY: Remove all legacy keystore data including the AES encryption key.
    */
   clearAllLegacyData(): Promise<boolean>

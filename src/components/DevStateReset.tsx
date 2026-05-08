@@ -41,6 +41,7 @@ export default function DevStateReset(): React.ReactElement {
       await Promise.all(
         [
           PreferencesEnum.legacyKeystoreMigrated,
+          PreferencesEnum.legacyKeystoreMigratedV2,
           PreferencesEnum.legacyDataFound,
           PreferencesEnum.vaultsUpgraded,
           PreferencesEnum.firstRun,

@@ -5,6 +5,11 @@ import preferences, {
 } from 'nativeModules/preferences'
 import { LEGACY_ACCOUNT, keychainOpts } from 'nativeModules/keystore'
 
+export type LegacyMigrationResult =
+  | { status: 'skipped' }
+  | { status: 'migrated'; hadData: boolean }
+  | { status: 'failed'; reason: string }
+
 /**
  * Migrate wallet data from the old native Keystore module to expo-secure-store.
  *
@@ -23,12 +28,14 @@ import { LEGACY_ACCOUNT, keychainOpts } from 'nativeModules/keystore'
  * the post-fix build retry on devices that previously ran v5.0.x and got the
  * detect-only-then-give-up branch on Android (and the missing-entitlement
  * branch on iOS). See `.spikes/station-mobile-old-storage-paths-2026-05-08.md`.
+ *
+ * Returns a LegacyMigrationResult so callers can surface failure UI (L1).
  */
-export async function migrateLegacyKeystore(): Promise<void> {
+export async function migrateLegacyKeystore(): Promise<LegacyMigrationResult> {
   const v2Done = await preferences.getBool(
     PreferencesEnum.legacyKeystoreMigratedV2
   )
-  if (v2Done) return
+  if (v2Done) return { status: 'skipped' }
 
   try {
     // Check if new-format data already exists (user already on new app).
@@ -46,7 +53,8 @@ export async function migrateLegacyKeystore(): Promise<void> {
         PreferencesEnum.legacyKeystoreMigratedV2,
         true
       )
-      return
+      await tryCleanupStorageCipher18()
+      return { status: 'migrated', hadData: true }
     }
 
     // Native module unavailable. Possible causes: running in Expo Go, an
@@ -62,7 +70,10 @@ export async function migrateLegacyKeystore(): Promise<void> {
         '[legacyMigration] LegacyKeystore native module unavailable; ' +
           'leaving V2 flag false to retry on next launch'
       )
-      return
+      return {
+        status: 'failed',
+        reason: 'LegacyKeystore native module unavailable',
+      }
     }
 
     // Attempt to read from old native keystore.
@@ -101,7 +112,10 @@ export async function migrateLegacyKeystore(): Promise<void> {
     // Importantly: do NOT set the V2 flag, so we retry on next launch.
     // eslint-disable-next-line no-console -- migration failure must be logged for debugging
     console.error('Legacy keystore migration error:', error)
-    return
+    return {
+      status: 'failed',
+      reason: error instanceof Error ? error.message : String(error),
+    }
   }
 
   // Both flags now true — migration completed (with or without finding data).
@@ -113,4 +127,28 @@ export async function migrateLegacyKeystore(): Promise<void> {
     PreferencesEnum.legacyKeystoreMigratedV2,
     true
   )
+
+  // M2: clean up the redundant RSA+AES material left by StorageCipher18 now
+  // that V2 is confirmed. Non-fatal — if cleanup fails we log and move on.
+  await tryCleanupStorageCipher18()
+
+  return { status: 'migrated', hadData: false }
+}
+
+/**
+ * Best-effort cleanup of StorageCipher18 RSA+AES remnants. Called only after
+ * V2 is confirmed true. Swallows all errors — cleanup failure must never block
+ * the user from opening the app.
+ */
+async function tryCleanupStorageCipher18(): Promise<void> {
+  if (!LegacyKeystore) return
+  try {
+    await LegacyKeystore.cleanupStorageCipher18()
+  } catch (e) {
+    // eslint-disable-next-line no-console -- cleanup failure is non-fatal but worth logging
+    console.warn(
+      '[legacyMigration] cleanupStorageCipher18 failed (non-fatal):',
+      e
+    )
+  }
 }

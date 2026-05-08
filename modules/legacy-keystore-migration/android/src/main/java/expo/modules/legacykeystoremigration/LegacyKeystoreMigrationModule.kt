@@ -141,6 +141,33 @@ open class LegacyKeystoreMigrationModule : Module() {
       }
     }
 
+    AsyncFunction("cleanupStorageCipher18") Coroutine { ->
+      // Remove the redundant RSA+AES material left behind after a successful V2
+      // migration. These are protected by Android's per-app sandbox, so cross-app
+      // exfiltration is impossible, but on a stolen unlocked device they represent
+      // a redundant attack surface.
+      //
+      // MUST only be called after V2 migration is confirmed true (JS side checks
+      // legacyKeystoreMigratedV2 before invoking this). Idempotent — no-op if
+      // already cleaned.
+      try {
+        // 1. Clear the StorageCipher18 ciphertext entries from SecureStorage.
+        reactContext.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+          .edit().clear().commit()
+        // 2. Clear the RSA-wrapped AES key from SecureKeyStorage.
+        reactContext.getSharedPreferences(secureKeyPrefsName, Context.MODE_PRIVATE)
+          .edit().clear().commit()
+        // 3. Delete the Android Keystore RSA alias.
+        val ks = KeyStore.getInstance(androidKeyStore).apply { load(null) }
+        if (ks.containsAlias(rsaKeyAlias)) ks.deleteEntry(rsaKeyAlias)
+        Log.i(tag, "StorageCipher18 RSA+AES material cleaned up after V2 migration")
+        return@Coroutine true
+      } catch (e: Exception) {
+        Log.w(tag, "cleanupStorageCipher18 failed (non-fatal, will retry on next launch)", e)
+        return@Coroutine false
+      }
+    }
+
     AsyncFunction("clearAllLegacyData") Coroutine { ->
       // Clear modern EncryptedSharedPreferences.
       val prefs = openLegacyPrefs()

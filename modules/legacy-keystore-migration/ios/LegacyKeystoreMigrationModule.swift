@@ -64,6 +64,12 @@ public final class LegacyKeystoreMigrationModule: Module {
       return false
     }
 
+    AsyncFunction("cleanupStorageCipher18") { () -> Bool in
+      // No-op on iOS — the StorageCipher18 RSA+AES format never existed here.
+      // Returns true so the JS caller can treat success uniformly across platforms.
+      return true
+    }
+
     AsyncFunction("clearAllLegacyData") { () -> Bool in
       let _ = self.deleteKeychain(account: self.aesKeyAccount)
       let _ = self.deleteKeychain(account: "AD")

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Text, StyleSheet, View } from 'react-native'
+import { Alert, Text, StyleSheet, View } from 'react-native'
 import LegacyKeystore from '../../modules/legacy-keystore-migration/src'
 import { encrypt } from 'utils/crypto'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
@@ -30,19 +30,23 @@ export default function DevSeedLegacyData(): React.ReactElement {
     seed()
   }, [])
 
-  const seed = async (): Promise<void> => {
-    try {
-      if (!LegacyKeystore) {
-        setStatus('error: native module unavailable')
-        setDone(true)
-        return
-      }
+  const doSeed = async (): Promise<void> => {
+    if (!LegacyKeystore) {
+      setStatus('error: native module unavailable')
+      setDone(true)
+      return
+    }
 
+    try {
       // 1. Clear everything — old keystore, new keystore, all migration flags
       await LegacyKeystore.clearAllLegacyData()
       await keystore.remove(KeystoreEnum.AuthData)
       await preferences.setBool(
         PreferencesEnum.legacyKeystoreMigrated,
+        false
+      )
+      await preferences.setBool(
+        PreferencesEnum.legacyKeystoreMigratedV2,
         false
       )
       await preferences.setBool(
@@ -105,6 +109,33 @@ export default function DevSeedLegacyData(): React.ReactElement {
       )
       setDone(true)
     }
+  }
+
+  const seed = (): void => {
+    if (!__DEV__) {
+      throw new Error('DevSeedLegacyData cannot run in production')
+    }
+    Alert.alert(
+      'Seed Legacy Dev Data',
+      'This will wipe all wallet and migration state. Continue?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+          onPress: (): void => {
+            setStatus('cancelled')
+            setDone(true)
+          },
+        },
+        {
+          text: 'Seed',
+          style: 'destructive',
+          onPress: (): void => {
+            void doSeed()
+          },
+        },
+      ]
+    )
   }
 
   return (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, ReactElement } from 'react'
-import { Platform, BackHandler } from 'react-native'
+import { Alert, Platform, BackHandler } from 'react-native'
 import {
   LogBox,
   View,
@@ -207,7 +207,19 @@ export default (): ReactElement => {
     const startup = async (): Promise<void> => {
       const [, loaded] = await Promise.all([
         clearKeystoreWhenFirstRun()
-          .then(() => migrateLegacyKeystore())
+          .then(async () => {
+            const result = await migrateLegacyKeystore()
+            // L1: surface recovery failure so users know wallets couldn't be
+            // recovered (e.g. Android Keystore rotated after backup/restore).
+            if (result.status === 'failed') {
+              Alert.alert(
+                'Legacy Wallet Recovery',
+                'Some wallets from a previous version could not be recovered. ' +
+                  'If you expected to see wallets, please contact support.',
+                [{ text: 'OK' }]
+              )
+            }
+          })
           .then(() => backfillTerraOnlyFlag()),
         settings.get(),
       ])

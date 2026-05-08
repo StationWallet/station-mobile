@@ -38,6 +38,11 @@ const LegacyKeystore = {
     v1Store.clear()
     return true
   },
+  cleanupStorageCipher18: async (): Promise<boolean> => {
+    // In tests, cleanup is a no-op — stores are already in-memory and get
+    // reset by __reset() between tests.
+    return true
+  },
 }
 
 export default LegacyKeystore

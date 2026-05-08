@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Text, StyleSheet, View, Platform } from 'react-native'
+import { Alert, Text, StyleSheet, View, Platform } from 'react-native'
 import LegacyKeystore from '../../modules/legacy-keystore-migration/src'
 import { encrypt } from 'utils/crypto'
 import keystore, { KeystoreEnum } from 'nativeModules/keystore'
@@ -36,7 +36,7 @@ export default function DevSeedLegacyDataAndroidV1(): React.ReactElement {
     seed()
   }, [])
 
-  const seed = async (): Promise<void> => {
+  const doSeed = async (): Promise<void> => {
     try {
       if (!LegacyKeystore) {
         setStatus('error: native module unavailable')
@@ -136,6 +136,35 @@ export default function DevSeedLegacyDataAndroidV1(): React.ReactElement {
       )
       setDone(true)
     }
+  }
+
+  const seed = (): void => {
+    if (!__DEV__) {
+      throw new Error(
+        'DevSeedLegacyDataAndroidV1 cannot run in production'
+      )
+    }
+    Alert.alert(
+      'Seed StorageCipher18 Dev Data',
+      'This will wipe all wallet and migration state. Continue?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+          onPress: (): void => {
+            setStatus('cancelled')
+            setDone(true)
+          },
+        },
+        {
+          text: 'Seed',
+          style: 'destructive',
+          onPress: (): void => {
+            void doSeed()
+          },
+        },
+      ]
+    )
   }
 
   return (

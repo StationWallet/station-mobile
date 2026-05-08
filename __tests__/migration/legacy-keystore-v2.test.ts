@@ -148,44 +148,11 @@ describe('migrateLegacyKeystore — V2 retry flag', () => {
     ).toBe(false)
   })
 
-  it('does NOT set V2 to true when LegacyKeystore native module is null — retry on next launch', async () => {
-    // Reproduces the iOS / OTA failure mode where
-    // `requireOptionalNativeModule('LegacyKeystoreMigration')` returns
-    // null at runtime (Pods not installed, OTA bundle ahead of binary,
-    // transient load failure). The previous behavior was to silently
-    // set V2=true and lock the user out forever — surfaced in the spike
-    // at `.spikes/station-mobile-old-storage-paths-2026-05-08.md` as one
-    // of the "missing vault" failure modes.
-    jest.isolateModules(() => {
-      jest.doMock(
-        '../../modules/legacy-keystore-migration/src',
-        () => ({
-          __esModule: true,
-          default: null,
-        })
-      )
-      // eslint-disable-next-line @typescript-eslint/no-require-imports -- intentional dynamic import inside isolateModules
-      const {
-        migrateLegacyKeystore: m,
-      } = require('utils/legacyMigration')
-      const consoleSpy = jest
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {})
-      return m().then(async () => {
-        expect(
-          await preferences.getBool(
-            PreferencesEnum.legacyKeystoreMigratedV2
-          )
-        ).toBe(false)
-        expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining(
-            'LegacyKeystore native module unavailable'
-          )
-        )
-        consoleSpy.mockRestore()
-      })
-    })
-  })
+  // NOTE: The "null module" case (iOS/OTA failure mode) is tested in
+  // legacy-keystore-null-module.test.ts using a file-level jest.mock so
+  // the module registry stays coherent with the preferences store.
+  // A per-test jest.resetModules() approach loses shared module state and
+  // makes assertions on the wrong store instance — see B1 fix notes in PR.
 
   it('marks V2 done immediately if new-format data already exists', async () => {
     // User who already finished migration in a previous (working) flow:
