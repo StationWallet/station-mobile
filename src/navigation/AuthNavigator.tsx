@@ -7,6 +7,10 @@ const DevSeedLegacyData = DevFlags.SeedLegacyData
   ? require('../components/DevSeedLegacyData').default
   : null
 
+const DevSeedLegacyDataAndroidV1 = DevFlags.SeedLegacyDataAndroidV1
+  ? require('../components/DevSeedLegacyDataAndroidV1').default
+  : null
+
 const DevSeedCorruptData = DevFlags.SeedCorruptData
   ? require('../components/DevSeedCorruptData').default
   : null
@@ -34,6 +38,12 @@ export default function AuthNavigator(): React.ReactElement {
         <Stack.Screen
           name="SeedLegacyData"
           component={DevSeedLegacyData}
+        />
+      )}
+      {DevSeedLegacyDataAndroidV1 && (
+        <Stack.Screen
+          name="SeedLegacyDataAndroidV1"
+          component={DevSeedLegacyDataAndroidV1}
         />
       )}
       {DevSeedCorruptData && (

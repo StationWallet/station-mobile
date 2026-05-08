@@ -107,6 +107,19 @@ const AuthMenu = ({
                   Seed Legacy Data (dev)
                 </Text>
               </TouchableOpacity>
+              {DevFlags.SeedLegacyDataAndroidV1 && (
+                <TouchableOpacity
+                  testID="dev-seed-legacy-android-v1"
+                  style={styles.secondaryButton}
+                  onPress={() =>
+                    navigation.navigate('SeedLegacyDataAndroidV1')
+                  }
+                >
+                  <Text style={styles.secondaryButtonText}>
+                    Seed StorageCipher18 (Android, dev)
+                  </Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 testID="dev-seed-corrupt"
                 style={styles.secondaryButton}
