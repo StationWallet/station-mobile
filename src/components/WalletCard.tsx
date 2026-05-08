@@ -55,6 +55,17 @@ function CloudUploadIcon(): React.ReactElement {
   )
 }
 
+function ShieldIcon(): React.ReactElement {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.5C16.5 22.15 20 17.25 20 12V6L12 2z"
+        fill="#0B4EFF"
+      />
+    </Svg>
+  )
+}
+
 function TrashIcon(): React.ReactElement {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
@@ -73,7 +84,8 @@ type Props = {
   name: string
   address: string
   terraOnly: boolean
-  isFastVault: boolean
+  /** Canonical vault classifier: 'fast' = device+VultiServer, 'multi-share' = multi-device, 'none' = legacy (no stored vault) */
+  vaultKind: 'none' | 'fast' | 'multi-share'
   onPress: () => void
   onExport?: () => void
   onDelete?: () => void
@@ -84,7 +96,7 @@ export default function WalletCard({
   name,
   address,
   terraOnly,
-  isFastVault,
+  vaultKind,
   onPress,
   onExport,
   onDelete,
@@ -161,7 +173,7 @@ export default function WalletCard({
           />
         )}
 
-        {isFastVault ? (
+        {vaultKind === 'fast' ? (
           <View style={styles.fastVaultChip}>
             <View style={styles.fastVaultIconCircle}>
               <Svg
@@ -194,6 +206,18 @@ export default function WalletCard({
               style={styles.fastVaultChipText}
             >
               Fast Vault
+            </Text>
+          </View>
+        ) : vaultKind === 'multi-share' ? (
+          <View style={styles.multiShareChip}>
+            <View style={styles.fastVaultIconCircle}>
+              <ShieldIcon />
+            </View>
+            <Text
+              fontType="brockmann-medium"
+              style={styles.fastVaultChipText}
+            >
+              Vault
             </Text>
           </View>
         ) : (
@@ -275,6 +299,18 @@ const styles = StyleSheet.create({
     borderRadius: MIGRATION.radiusSmallButton,
   },
   fastVaultChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: MIGRATION.smallButtonHeight,
+    backgroundColor: MIGRATION.buttonSecondary,
+    borderRadius: MIGRATION.radiusPill,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 12,
+    gap: 8,
+    marginLeft: 'auto',
+  },
+  multiShareChip: {
     flexDirection: 'row',
     alignItems: 'center',
     height: MIGRATION.smallButtonHeight,
