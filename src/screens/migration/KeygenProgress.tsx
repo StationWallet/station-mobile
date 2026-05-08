@@ -28,14 +28,16 @@ import Text from 'components/Text'
 import Button from 'components/Button'
 import { MIGRATION } from 'consts/migration'
 import {
+  createFastVault,
+  importSeedPhraseToFastVault,
   importKeyToFastVault,
+  CreatedFastVaultResult,
+  ImportedSeedFastVaultResult,
   KeyImportResult,
   KeyImportProgress,
 } from 'services/dklsKeyImport'
 import { getAuthDataValue, AuthDataValueType } from 'utils/authData'
 import { decrypt } from 'utils/crypto'
-import { randomHex } from 'utils/mpcCrypto'
-import { generateAddresses } from 'utils/wallet'
 import RecoverWalletStore from 'stores/RecoverWalletStore'
 import type { MigrationResult } from 'services/migrateToVault'
 import { advanceToNextWallet } from 'utils/migrationNav'
@@ -179,15 +181,16 @@ export default function KeygenProgress(): React.ReactElement {
     abortRef.current = controller
 
     try {
-      let result: KeyImportResult
+      let result:
+        | KeyImportResult
+        | CreatedFastVaultResult
+        | ImportedSeedFastVaultResult
 
       if (mode === 'create') {
-        const privateKeyHex = randomHex(32)
-        result = await importKeyToFastVault({
+        result = await createFastVault({
           name: walletName,
           email,
           password,
-          privateKeyHex,
           onProgress: updateProgress,
           signal: controller.signal,
         })
@@ -195,13 +198,11 @@ export default function KeygenProgress(): React.ReactElement {
         if (recoverSeed.length === 0) {
           throw new Error('No seed phrase available for recovery')
         }
-        const { mk330 } = generateAddresses(recoverSeed.join(' '))
-        const privateKeyHex = mk330.privateKey.toString('hex')
-        result = await importKeyToFastVault({
+        result = await importSeedPhraseToFastVault({
           name: walletName,
           email,
           password,
-          privateKeyHex,
+          mnemonic: recoverSeed.join(' '),
           onProgress: updateProgress,
           signal: controller.signal,
         })

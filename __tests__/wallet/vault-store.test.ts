@@ -3,7 +3,7 @@ import { base64 } from '@scure/base'
 
 import { __reset as resetSecure } from '../__mocks__/expo-secure-store'
 import { persistImportedVault } from 'services/importVaultBackup'
-import { getStoredVault } from 'services/migrateToVault'
+import { getStoredVault, storeFastVault } from 'services/migrateToVault'
 import { VaultSchema } from '../../src/proto/vultisig/vault/v1/vault_pb'
 import { LibType } from '../../src/proto/vultisig/keygen/v1/lib_type_message_pb'
 
@@ -59,5 +59,143 @@ describe('persistImportedVault → getStoredVault', () => {
     expect(stored).toBeTruthy()
     const restored = fromBinary(VaultSchema, base64.decode(stored!))
     expect(restored.name).toBe('My Weird/Vault!')
+  })
+})
+
+describe('storeFastVault', () => {
+  it('stores legacy/private-key migrations as Terra KEYIMPORT vaults', async () => {
+    await storeFastVault('TerraOnly', {
+      publicKey: '02terra',
+      keyshare: 'opaque-terra-share',
+      chainCode: '0'.repeat(64),
+      localPartyId: 'Device',
+      serverPartyId: 'Server',
+    })
+
+    const stored = await getStoredVault('TerraOnly')
+    expect(stored).toBeTruthy()
+
+    const restored = fromBinary(VaultSchema, base64.decode(stored!))
+    expect(restored.libType).toBe(LibType.KEYIMPORT)
+    expect(restored.publicKeyEcdsa).toBe('02terra')
+    expect(restored.publicKeyEddsa).toBe('')
+    expect(restored.hexChainCode).toBe('')
+    expect(
+      restored.keyShares.map(({ publicKey, keyshare }) => ({
+        publicKey,
+        keyshare,
+      }))
+    ).toEqual([
+      { publicKey: '02terra', keyshare: 'opaque-terra-share' },
+    ])
+    expect(
+      restored.chainPublicKeys.map(({ chain, publicKey, isEddsa }) => ({
+        chain,
+        publicKey,
+        isEddsa,
+      }))
+    ).toEqual([
+      { chain: 'Terra', publicKey: '02terra', isEddsa: false },
+    ])
+  })
+
+  it('stores newly created fast vaults as DKLS root ECDSA plus EdDSA vaults', async () => {
+    await storeFastVault('CreatedFastVault', {
+      publicKey: '02root',
+      publicKeyEcdsa: '02root',
+      publicKeyEddsa: 'edroot',
+      keyshareEcdsa: 'ecdsa-share',
+      keyshareEddsa: 'eddsa-share',
+      chainCode: '1'.repeat(64),
+      localPartyId: 'Device',
+      serverPartyId: 'Server',
+    })
+
+    const stored = await getStoredVault('CreatedFastVault')
+    expect(stored).toBeTruthy()
+
+    const restored = fromBinary(VaultSchema, base64.decode(stored!))
+    expect(restored.libType).toBe(LibType.DKLS)
+    expect(restored.publicKeyEcdsa).toBe('02root')
+    expect(restored.publicKeyEddsa).toBe('edroot')
+    expect(restored.hexChainCode).toBe('1'.repeat(64))
+    expect(restored.chainPublicKeys).toEqual([])
+    expect(
+      restored.keyShares.map(({ publicKey, keyshare }) => ({
+        publicKey,
+        keyshare,
+      }))
+    ).toEqual([
+      { publicKey: '02root', keyshare: 'ecdsa-share' },
+      { publicKey: 'edroot', keyshare: 'eddsa-share' },
+    ])
+  })
+
+  it('stores seed phrase imports as KeyImport root keys plus per-chain keys', async () => {
+    await storeFastVault('SeedImport', {
+      publicKey: '02root',
+      publicKeyEcdsa: '02root',
+      publicKeyEddsa: 'edroot',
+      keyshareEcdsa: 'root-ecdsa-share',
+      keyshareEddsa: 'root-eddsa-share',
+      chainCode: '2'.repeat(64),
+      localPartyId: 'Device',
+      serverPartyId: 'Server',
+      importedChains: [
+        {
+          chain: 'Ethereum',
+          publicKey: '02eth',
+          keyshare: 'eth-share',
+          isEddsa: false,
+        },
+        {
+          chain: 'Terra',
+          publicKey: '02terra',
+          keyshare: 'terra-share',
+          isEddsa: false,
+        },
+        {
+          chain: 'TerraClassic',
+          publicKey: '02terra',
+          keyshare: 'terra-share',
+          isEddsa: false,
+        },
+      ],
+    })
+
+    const stored = await getStoredVault('SeedImport')
+    expect(stored).toBeTruthy()
+
+    const restored = fromBinary(VaultSchema, base64.decode(stored!))
+    expect(restored.libType).toBe(LibType.KEYIMPORT)
+    expect(restored.publicKeyEcdsa).toBe('02root')
+    expect(restored.publicKeyEddsa).toBe('edroot')
+    expect(restored.hexChainCode).toBe('2'.repeat(64))
+    expect(
+      restored.chainPublicKeys.map(({ chain, publicKey, isEddsa }) => ({
+        chain,
+        publicKey,
+        isEddsa,
+      }))
+    ).toEqual([
+      { chain: 'Ethereum', publicKey: '02eth', isEddsa: false },
+      { chain: 'Terra', publicKey: '02terra', isEddsa: false },
+      {
+        chain: 'TerraClassic',
+        publicKey: '02terra',
+        isEddsa: false,
+      },
+    ])
+    expect(
+      restored.keyShares.map(({ publicKey, keyshare }) => ({
+        publicKey,
+        keyshare,
+      }))
+    ).toEqual([
+      { publicKey: '02root', keyshare: 'root-ecdsa-share' },
+      { publicKey: 'edroot', keyshare: 'root-eddsa-share' },
+      { publicKey: '02eth', keyshare: 'eth-share' },
+      { publicKey: '02terra', keyshare: 'terra-share' },
+    ])
   })
 })
