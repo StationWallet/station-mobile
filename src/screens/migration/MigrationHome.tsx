@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import {
+  Platform,
   View,
   StyleSheet,
   TouchableOpacity,
@@ -243,6 +244,20 @@ export default function MigrationHome(): React.ReactElement {
                   Seed Corrupt Data (dev)
                 </Text>
               </TouchableOpacity>
+              {DevFlags.SeedLegacyDataAndroidV1 &&
+                Platform.OS === 'android' && (
+                  <TouchableOpacity
+                    testID="dev-seed-legacy-android-v1"
+                    style={styles.devButton}
+                    onPress={() =>
+                      navigation.navigate('SeedLegacyDataAndroidV1')
+                    }
+                  >
+                    <Text style={styles.devButtonText}>
+                      Seed StorageCipher18 (Android, dev)
+                    </Text>
+                  </TouchableOpacity>
+                )}
             </View>
           )}
         </View>
