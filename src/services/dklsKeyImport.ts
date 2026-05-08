@@ -324,13 +324,22 @@ async function runKeyImport(options: {
 
   let keygenResult: NativeKeygenResult | undefined
   try {
+    // Do NOT pass setupMessageId to runMpcProtocol. The setupMessageId is only
+    // used to route the setup message upload so the server can distinguish which
+    // key ceremony it belongs to. The actual MPC relay messages (round messages)
+    // are always exchanged on the default (no message_id header) channel — the
+    // same channel the server writes to regardless of which key ceremony is
+    // running. Filtering getRelayMessages by the setupMessageId causes the
+    // client to miss all server messages and time out with "MPC protocol did not
+    // complete".  This matches vultiagent-app's importSingleKey which passes
+    // messageId only to uploadSetupMessage, not to runMpcProtocol.
     await runMpcProtocol(
       sessionHandle,
       sessionId,
       localPartyId,
       cipherKey,
       keyType,
-      setupMessageId,
+      undefined,
       onProgress,
       signal
     )
