@@ -9,6 +9,8 @@ module.exports = {
     '^expo/virtual/env$': '<rootDir>/__mocks__/expo-virtual-env.js',
     '^expo-secure-store$':
       '<rootDir>/__tests__/__mocks__/expo-secure-store.ts',
+    '^expo-file-system/legacy$':
+      '<rootDir>/__tests__/__mocks__/expo-file-system-legacy.ts',
     '^.*/modules/legacy-keystore-migration/src$':
       '<rootDir>/__tests__/__mocks__/legacy-keystore.ts',
     '^expo-crypto$': '<rootDir>/__tests__/__mocks__/expo-crypto.ts',
@@ -16,6 +18,14 @@ module.exports = {
   testMatch: [
     '**/__tests__/**/*.test.{js,ts,tsx}',
     '**/__test__/**/*.test.{js,ts,tsx}',
+  ],
+  testPathIgnorePatterns: [
+    '<rootDir>/.claude/worktrees/',
+    '<rootDir>/.worktrees/',
+  ],
+  modulePathIgnorePatterns: [
+    '<rootDir>/.claude/worktrees/',
+    '<rootDir>/.worktrees/',
   ],
   transformIgnorePatterns: [
     'node_modules/(?!(@noble|@scure|react-native|react-native-url-polyfill)/)',

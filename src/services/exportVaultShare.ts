@@ -36,9 +36,14 @@ export async function exportVaultShare(
 
   const stored = await getStoredVault(walletName)
   if (stored) {
-    // Check if the stored vault is a DKLS fast vault — read directly
+    // Stored vaults are already safe to export directly. That includes
+    // created DKLS vaults and migrated Terra-only KEYIMPORT vaults whose
+    // keyshare is an MPC share, not the old raw Station private key.
     const decoded = fromBinary(VaultSchema, base64.decode(stored))
-    if (decoded.libType === LibType.DKLS) {
+    if (
+      decoded.libType === LibType.DKLS ||
+      decoded.libType === LibType.KEYIMPORT
+    ) {
       vaultBytes = base64.decode(stored)
     } else if (privateKeyHex) {
       const publicKeyHex = derivePublicKeyHex(privateKeyHex)

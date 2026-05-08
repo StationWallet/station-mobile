@@ -29,7 +29,6 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import type { RouteProp } from '@react-navigation/native'
 import Svg, { Path } from 'react-native-svg'
-import RiveComponent, { Fit as RiveFitEnum } from 'rive-react-native'
 
 import Text from 'components/Text'
 import Button from 'components/Button'
@@ -49,6 +48,23 @@ type Route = RouteProp<MigrationStackParams, 'BackupVault'>
 type BackupStep = 'options' | 'password' | 'done'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
+
+let RiveComponent: React.ComponentType<
+  Record<string, unknown>
+> | null = null
+let RiveFitEnum: { FitWidth?: unknown } | null = null
+try {
+  const Rive = require('rive-react-native')
+  RiveComponent = Rive.default
+  RiveFitEnum = Rive.Fit
+} catch {
+  /* rive not available */
+}
+
+const riveSource =
+  RiveComponent && !__DEV__
+    ? require('../../../assets/animations/backupvault_splash.riv')
+    : null
 
 function InfoBox({
   icon,
@@ -333,12 +349,49 @@ export default function BackupVault(): React.ReactElement {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.rivePlaceholder}>
-          <RiveComponent
-            source={require('../../../assets/animations/backupvault_splash.riv')}
-            autoplay
-            fit={RiveFitEnum.FitWidth}
-            style={{ width: SCREEN_WIDTH, height: 220 }}
-          />
+          {RiveComponent && riveSource ? (
+            <RiveComponent
+              source={riveSource}
+              autoplay
+              fit={RiveFitEnum?.FitWidth}
+              style={{ width: SCREEN_WIDTH, height: 220 }}
+              onError={() => {}}
+            />
+          ) : (
+            <View style={styles.backupFallback}>
+              <Svg
+                width={72}
+                height={72}
+                viewBox="0 0 72 72"
+                fill="none"
+              >
+                <Path
+                  d="M18 28h36a4 4 0 014 4v22a4 4 0 01-4 4H18a4 4 0 01-4-4V32a4 4 0 014-4z"
+                  stroke={MIGRATION.ctaBlue}
+                  strokeWidth={2.4}
+                />
+                <Path
+                  d="M24 28v-6a12 12 0 0124 0v6"
+                  stroke={MIGRATION.ctaBlue}
+                  strokeWidth={2.4}
+                  strokeLinecap="round"
+                />
+                <Path
+                  d="M36 39v9"
+                  stroke={MIGRATION.textPrimary}
+                  strokeWidth={2.4}
+                  strokeLinecap="round"
+                />
+                <Path
+                  d="M32 43.5l4 4 4-4"
+                  stroke={MIGRATION.textPrimary}
+                  strokeWidth={2.4}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            </View>
+          )}
         </View>
         <Text fontType="brockmann-medium" style={styles.title}>
           Protect your backup
@@ -446,6 +499,12 @@ const styles = StyleSheet.create({
   rivePlaceholder: {
     alignItems: 'center',
     marginTop: 8,
+  },
+  backupFallback: {
+    width: SCREEN_WIDTH,
+    height: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 22,

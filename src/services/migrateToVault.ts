@@ -13,7 +13,11 @@ import {
 import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
-import type { KeyImportResult } from './dklsKeyImport'
+import type {
+  CreatedFastVaultResult,
+  ImportedSeedFastVaultResult,
+  KeyImportResult,
+} from './dklsKeyImport'
 
 const VAULT_KEY_PREFIX = 'VAULT-'
 
@@ -39,6 +43,25 @@ export interface MigrationResult {
   wallet: MigrationWallet
   success: boolean
   error?: string
+}
+
+function getUniqueImportedChainKeyShares(
+  importedChains: ImportedSeedFastVaultResult['importedChains']
+): Array<{ publicKey: string; keyshare: string }> {
+  const seenPublicKeys = new Set<string>()
+
+  return importedChains.flatMap((chain) => {
+    if (!chain.keyshare) return []
+    if (seenPublicKeys.has(chain.publicKey)) return []
+    seenPublicKeys.add(chain.publicKey)
+
+    return [
+      {
+        publicKey: chain.publicKey,
+        keyshare: chain.keyshare,
+      },
+    ]
+  })
 }
 
 /**
@@ -97,9 +120,12 @@ export async function getStoredVault(
  */
 export async function storeFastVault(
   walletName: string,
-  result: KeyImportResult
+  result:
+    | KeyImportResult
+    | CreatedFastVaultResult
+    | ImportedSeedFastVaultResult
 ): Promise<void> {
-  if (await isVaultFastVault(walletName)) {
+  if ((await getStoredVault(walletName)) !== null) {
     // eslint-disable-next-line no-console -- important diagnostic for double-migration attempts
     console.warn(
       `[storeFastVault] ${walletName} already migrated, skipping`
@@ -107,27 +133,101 @@ export async function storeFastVault(
     return
   }
 
-  const vault = create(VaultSchema, {
-    name: walletName,
-    publicKeyEcdsa: result.publicKey,
-    publicKeyEddsa: '',
-    signers: [result.localPartyId, result.serverPartyId],
-    localPartyId: result.localPartyId,
-    hexChainCode: result.chainCode,
-    resharePrefix: '',
-    libType: LibType.DKLS,
-    keyShares: [
-      { publicKey: result.publicKey, keyshare: result.keyshare },
-    ],
-    chainPublicKeys: [
-      { chain: 'Terra', publicKey: result.publicKey, isEddsa: false },
-    ],
-    createdAt: {
-      seconds: BigInt(Math.floor(Date.now() / 1000)),
-      nanos: 0,
-    },
-    publicKeyMldsa44: '',
-  })
+  const isSeedImportVault = 'importedChains' in result
+  const isCreatedVault =
+    'publicKeyEddsa' in result && !isSeedImportVault
+  const legacyResult = result as KeyImportResult
+
+  const vault = isSeedImportVault
+    ? create(VaultSchema, {
+        name: walletName,
+        publicKeyEcdsa: result.publicKeyEcdsa,
+        publicKeyEddsa: result.publicKeyEddsa,
+        signers: [result.localPartyId, result.serverPartyId],
+        localPartyId: result.localPartyId,
+        hexChainCode: result.chainCode,
+        resharePrefix: '',
+        libType: LibType.KEYIMPORT,
+        keyShares: [
+          {
+            publicKey: result.publicKeyEcdsa,
+            keyshare: result.keyshareEcdsa,
+          },
+          {
+            publicKey: result.publicKeyEddsa,
+            keyshare: result.keyshareEddsa,
+          },
+          ...getUniqueImportedChainKeyShares(result.importedChains),
+        ],
+        chainPublicKeys: result.importedChains.map((chain) => ({
+          chain: chain.chain,
+          publicKey: chain.publicKey,
+          isEddsa: chain.isEddsa,
+        })),
+        createdAt: {
+          seconds: BigInt(Math.floor(Date.now() / 1000)),
+          nanos: 0,
+        },
+        publicKeyMldsa44: '',
+      })
+    : isCreatedVault
+    ? create(VaultSchema, {
+        name: walletName,
+        publicKeyEcdsa: result.publicKeyEcdsa,
+        publicKeyEddsa: result.publicKeyEddsa,
+        signers: [result.localPartyId, result.serverPartyId],
+        localPartyId: result.localPartyId,
+        hexChainCode: result.chainCode,
+        resharePrefix: '',
+        libType: LibType.DKLS,
+        keyShares: [
+          {
+            publicKey: result.publicKeyEcdsa,
+            keyshare: result.keyshareEcdsa,
+          },
+          {
+            publicKey: result.publicKeyEddsa,
+            keyshare: result.keyshareEddsa,
+          },
+        ],
+        chainPublicKeys: [],
+        createdAt: {
+          seconds: BigInt(Math.floor(Date.now() / 1000)),
+          nanos: 0,
+        },
+        publicKeyMldsa44: '',
+      })
+    : create(VaultSchema, {
+        name: walletName,
+        publicKeyEcdsa: legacyResult.publicKey,
+        publicKeyEddsa: '',
+        signers: [
+          legacyResult.localPartyId,
+          legacyResult.serverPartyId,
+        ],
+        localPartyId: legacyResult.localPartyId,
+        hexChainCode: '',
+        resharePrefix: '',
+        libType: LibType.KEYIMPORT,
+        keyShares: [
+          {
+            publicKey: legacyResult.publicKey,
+            keyshare: legacyResult.keyshare,
+          },
+        ],
+        chainPublicKeys: [
+          {
+            chain: 'Terra',
+            publicKey: legacyResult.publicKey,
+            isEddsa: false,
+          },
+        ],
+        createdAt: {
+          seconds: BigInt(Math.floor(Date.now() / 1000)),
+          nanos: 0,
+        },
+        publicKeyMldsa44: '',
+      })
 
   const vaultBytes = toBinary(VaultSchema, vault)
   const encoded = base64.encode(vaultBytes)
@@ -154,7 +254,7 @@ export async function storeFastVault(
           encryptedKey: '',
           password: '',
           ledger: false,
-          terraOnly: true,
+          terraOnly: !isCreatedVault && !isSeedImportVault,
         },
       },
     })
