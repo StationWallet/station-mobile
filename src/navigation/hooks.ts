@@ -13,6 +13,7 @@ export interface WalletNav {
    */
   startSeedRecoveryInput: () => void
   startImportVault: () => void
+  startImportPrivateKey: () => void
   wallets: LocalWallet[]
   refreshWallets: () => Promise<void>
 }
@@ -25,6 +26,7 @@ export const WalletNavContext = createContext<WalletNav>({
   startCreateVault: (): void => {},
   startSeedRecoveryInput: (): void => {},
   startImportVault: (): void => {},
+  startImportPrivateKey: (): void => {},
   wallets: [],
   refreshWallets: async (): Promise<void> => {},
 })
