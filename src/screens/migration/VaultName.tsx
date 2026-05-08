@@ -99,10 +99,17 @@ export default function VaultName(): React.ReactElement {
             disabled={name.trim().length === 0}
             titleFontType="brockmann-medium"
             onPress={() => {
-              navigation.navigate('VaultEmail', {
-                walletName: name.trim(),
-                mode,
-              })
+              const walletName = name.trim()
+              if (mode === 'import-private-key') {
+                navigation.navigate('ImportPrivateKey', {
+                  walletName,
+                })
+              } else {
+                navigation.navigate('VaultEmail', {
+                  walletName,
+                  mode,
+                })
+              }
             }}
             containerStyle={formStyles.ctaButton}
           />
