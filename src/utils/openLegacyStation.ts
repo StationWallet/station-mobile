@@ -1,6 +1,17 @@
 import { Alert, Linking } from 'react-native'
 
-export const LEGACY_STATION_URL = 'https://mobile.station.terra.money/'
+// Production origin is the live legacy Terra Station SPA. In __DEV__ the URL
+// can be overridden to a local mirror (e.g. http://127.0.0.1:3001/) via the
+// EXPO_PUBLIC_LEGACY_STATION_URL env var — used for E2E development against
+// the offline mirror in vultisig-ops/.spikes/station-spa-mirror/.
+const PRODUCTION_LEGACY_STATION_URL =
+  'https://mobile.station.terra.money/'
+const devOverride =
+  __DEV__ && process.env.EXPO_PUBLIC_LEGACY_STATION_URL
+    ? process.env.EXPO_PUBLIC_LEGACY_STATION_URL
+    : null
+export const LEGACY_STATION_URL =
+  devOverride ?? PRODUCTION_LEGACY_STATION_URL
 
 /**
  * Opens the legacy Station PWA in the user's default browser.

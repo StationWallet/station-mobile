@@ -9,6 +9,7 @@ import {
   upsertAuthData,
   AuthDataValueType,
 } from './authData'
+import { getCachedSpaWallets } from 'services/spaWalletDiscovery'
 
 const sanitize = (s = ''): string =>
   s.toLowerCase().replace(/[^a-z]/g, '')
@@ -88,13 +89,31 @@ export const decryptKey = (
 
 export const getWallets = async (): Promise<LocalWallet[]> => {
   const authData = await getAuthData()
-  return _.map(authData, (wallet, name) => {
+  const native: LocalWallet[] = _.map(authData, (wallet, name) => {
     if (wallet?.ledger) {
       return { ...wallet, name }
     } else {
       return { ...wallet, name, ledger: false }
     }
   })
+
+  // Append legacy Terra Station SPA wallets that live in WebView localStorage
+  // but have not yet been migrated into our native authData. We key on Terra
+  // address so the same wallet isn't shown twice (e.g. when a user has
+  // already started the migration but not finished).
+  const spaCache = await getCachedSpaWallets()
+  const knownAddresses = new Set(native.map((w) => w.address))
+  const spaWallets: LocalWallet[] = spaCache
+    .filter((w) => !knownAddresses.has(w.address))
+    .map((w) => ({
+      name: w.name,
+      address: w.address,
+      ledger: false,
+      terraOnly: true,
+      spaLegacy: true,
+      spaEncrypted: w.encrypted,
+    }))
+  return [...native, ...spaWallets]
 }
 
 export const getWallet = async (

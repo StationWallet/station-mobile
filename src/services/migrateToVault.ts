@@ -10,6 +10,7 @@ import {
   AuthDataValueType,
   LedgerDataValueType,
 } from 'utils/authData'
+import { getCachedSpaWallets } from './spaWalletDiscovery'
 import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
@@ -37,6 +38,13 @@ export interface MigrationWallet {
   address: string
   ledger: boolean
   path?: number
+  /**
+   * True when this wallet was discovered in the legacy Terra Station SPA's
+   * WebView localStorage. Recovery requires the user's legacy Station
+   * password (passed to spaLegacyDecrypt#decryptLegacyWallet).
+   */
+  spaLegacy?: boolean
+  spaEncrypted?: string
 }
 
 export interface MigrationResult {
@@ -83,22 +91,40 @@ export async function discoverLegacyWallets(): Promise<
   MigrationWallet[]
 > {
   const authData = await getAuthData()
-  if (!authData) return []
+  const native: MigrationWallet[] = authData
+    ? Object.entries(authData)
+        .filter(([, data]) => {
+          if (data.ledger === true) return true
+          return (data as AuthDataValueType).encryptedKey?.length > 0
+        })
+        .map(([name, data]) => ({
+          name,
+          address: data.address,
+          ledger: data.ledger === true,
+          path:
+            data.ledger === true
+              ? (data as LedgerDataValueType).path
+              : undefined,
+        }))
+    : []
 
-  return Object.entries(authData)
-    .filter(([, data]) => {
-      if (data.ledger === true) return true
-      return (data as AuthDataValueType).encryptedKey?.length > 0
-    })
-    .map(([name, data]) => ({
-      name,
-      address: data.address,
-      ledger: data.ledger === true,
-      path:
-        data.ledger === true
-          ? (data as LedgerDataValueType).path
-          : undefined,
+  // Merge wallets discovered in the legacy Terra Station SPA's WebView
+  // localStorage. Key on address so we don't double-count wallets that the
+  // user has already started migrating (they'd exist in both stores until
+  // the migration completes).
+  const spaCache = await getCachedSpaWallets()
+  const knownAddresses = new Set(native.map((w) => w.address))
+  const spa: MigrationWallet[] = spaCache
+    .filter((w) => !knownAddresses.has(w.address))
+    .map((w) => ({
+      name: w.name,
+      address: w.address,
+      ledger: false,
+      spaLegacy: true,
+      spaEncrypted: w.encrypted,
     }))
+
+  return [...native, ...spa]
 }
 
 /**

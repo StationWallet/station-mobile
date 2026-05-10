@@ -126,7 +126,31 @@ export default function WalletList(): React.ReactElement {
           params: { migratedWalletName: wallet.name },
         })
       }
-    } else if (inMigrationNav) {
+      return
+    }
+
+    // Wallets discovered in the legacy Terra Station SPA's WebView localStorage
+    // require the user's legacy Station password to decrypt; route to the
+    // password prompt screen, which then continues into the import-private-key
+    // Fast Vault flow with the decrypted key pre-filled.
+    if (wallet.spaLegacy && wallet.spaEncrypted) {
+      const params = {
+        walletName: wallet.name,
+        address: wallet.address,
+        encrypted: wallet.spaEncrypted,
+      }
+      if (inMigrationNav) {
+        migrationNav.navigate('LegacyMigrate', params)
+      } else {
+        mainNav.navigate('Migration', {
+          screen: 'LegacyMigrate',
+          params,
+        })
+      }
+      return
+    }
+
+    if (inMigrationNav) {
       migrationNav.navigate('VaultEmail', {
         walletName: wallet.name,
         wallets: walletSummaries,

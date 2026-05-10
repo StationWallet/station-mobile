@@ -15,7 +15,7 @@ import type { StackNavigationProp } from '@react-navigation/stack'
 
 import { MIGRATION } from 'consts/migration'
 import Text from 'components/Text'
-import { DevFlags } from '../../config/env'
+import { DevFlags, FeatureFlags } from '../../config/env'
 import Button from 'components/Button'
 import InfoCard from 'components/migration/InfoCard'
 import RocketWithGlow from 'components/migration/RocketWithGlow'
@@ -26,10 +26,10 @@ import {
   MigrationWallet,
 } from 'services/migrateToVault'
 import { getWallets } from 'utils/wallet'
-import { openLegacyStation } from 'utils/openLegacyStation'
 import { useWalletNav } from 'navigation/hooks'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 import AddWalletSheet from 'components/AddWalletSheet'
+import SpaWalletDiscovery from 'services/spaWalletDiscovery'
 
 type Nav = StackNavigationProp<MigrationStackParams, 'MigrationHome'>
 
@@ -67,27 +67,30 @@ export default function MigrationHome(): React.ReactElement {
 
   const { goHome } = useWalletNav()
 
-  useEffect(() => {
-    Promise.all([discoverLegacyWallets(), getWallets()])
-      .then(async ([found, all]) => {
-        setWallets(found)
-        // `all` includes legacy AD-only entries that haven't been migrated to
-        // a fast vault yet — those are NOT "vaults" from the user's POV, only
-        // legacy seeds awaiting migration. Count only entries with a stored
-        // DKLS vault proto (i.e. getVaultKind returns 'fast' or 'multi-share').
-        const kinds = await Promise.all(
-          all.map((w) => getVaultKind(w.name))
-        )
-        const realVaultCount = kinds.filter(
-          (k) => k !== 'none'
-        ).length
-        setTotalWalletCount(realVaultCount)
-        setReady(true)
-      })
-      .catch(() => {
-        setReady(true)
-      })
+  const refreshWallets = React.useCallback(async (): Promise<void> => {
+    try {
+      const [found, all] = await Promise.all([
+        discoverLegacyWallets(),
+        getWallets(),
+      ])
+      setWallets(found)
+      // `all` includes legacy AD-only entries that haven't been migrated to
+      // a fast vault yet — those are NOT "vaults" from the user's POV, only
+      // legacy seeds awaiting migration. Count only entries with a stored
+      // DKLS vault proto (i.e. getVaultKind returns 'fast' or 'multi-share').
+      const kinds = await Promise.all(
+        all.map((w) => getVaultKind(w.name))
+      )
+      const realVaultCount = kinds.filter((k) => k !== 'none').length
+      setTotalWalletCount(realVaultCount)
+    } finally {
+      setReady(true)
+    }
   }, [])
+
+  useEffect(() => {
+    refreshWallets()
+  }, [refreshWallets])
 
   const hasUnmigratedLegacy = wallets.length > 0
   const hasAnyVaults = totalWalletCount > 0
@@ -223,18 +226,22 @@ export default function MigrationHome(): React.ReactElement {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={openLegacyStation}
-              testID="open-legacy-station"
-            >
-              <Text
-                fontType="brockmann-medium"
-                style={styles.linkText}
+            {FeatureFlags.OpenLegacyStationWebView && (
+              <TouchableOpacity
+                style={styles.linkButton}
+                onPress={() =>
+                  navigation.navigate('LegacyStationWebView')
+                }
+                testID="open-legacy-station"
               >
-                Open legacy Station (web)
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  fontType="brockmann-medium"
+                  style={styles.linkText}
+                >
+                  Open legacy Station (web)
+                </Text>
+              </TouchableOpacity>
+            )}
           </Animated.View>
 
           {/* Dev seed buttons — outside ready gate so they render immediately for E2E tests */}
@@ -289,6 +296,14 @@ export default function MigrationHome(): React.ReactElement {
         // still defaults to showing it for the WalletList entry.
         showCreate={false}
       />
+
+      {/*
+       * Hidden discovery WebView. Mounts at the legacy Terra Station origin
+       * (mobile.station.terra.money), reads `localStorage['keys']`, caches
+       * the result to expo-secure-store, and re-triggers wallet detection
+       * so the migration CTA + WalletList reflect SPA-discovered wallets.
+       */}
+      <SpaWalletDiscovery onDiscovered={() => refreshWallets()} />
     </View>
   )
 }
