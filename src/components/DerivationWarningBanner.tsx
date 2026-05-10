@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet } from 'react-native'
+import { Platform, View, StyleSheet } from 'react-native'
 import type { StyleProp, ViewStyle } from 'react-native'
 import Svg, { Path } from 'react-native-svg'
 
@@ -45,8 +45,10 @@ export default function DerivationWarningBanner({
       <Text fontType="brockmann" style={styles.body}>
         If you imported a seed phrase or created a new vault here
         before seeing this warning, re-create or re-import it to
-        ensure correct addresses on Vultisig. Vaults migrated from
-        your original Terra Station wallet are fine.
+        ensure correct addresses on Vultisig.
+        {Platform.OS === 'android'
+          ? ' Vaults migrated from your original Terra Station wallet are fine.'
+          : ''}
       </Text>
     </View>
   )
