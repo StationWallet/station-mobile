@@ -26,6 +26,7 @@ import {
   MigrationWallet,
 } from 'services/migrateToVault'
 import { getWallets } from 'utils/wallet'
+import { openLegacyStation } from 'utils/openLegacyStation'
 import { useWalletNav } from 'navigation/hooks'
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
 import AddWalletSheet from 'components/AddWalletSheet'
@@ -219,6 +220,19 @@ export default function MigrationHome(): React.ReactElement {
                 style={styles.linkText}
               >
                 Learn more about Vault security
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={openLegacyStation}
+              testID="open-legacy-station"
+            >
+              <Text
+                fontType="brockmann-medium"
+                style={styles.linkText}
+              >
+                Open legacy Station (web)
               </Text>
             </TouchableOpacity>
           </Animated.View>
