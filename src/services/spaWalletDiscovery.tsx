@@ -42,9 +42,19 @@ const CACHE_OPTS: SecureStore.SecureStoreOptions = {
 // Injected JS that reads `localStorage['keys']` and posts it back. Kept tiny
 // — we don't need the chain-config rewrites that the visible LegacyStation
 // WebView does, because we're not rendering the SPA's UI.
+//
+// Belt-and-braces firing:
+//   1. fire immediately if the document is already complete
+//   2. otherwise on `load`
+//   3. and again after 1.5s in case the page never fires `load` (slow CF or
+//      partial-network failure) — duplicate sends are idempotent (latest
+//      cache write wins).
 const DISCOVERY_JS = `
 (function() {
+  var sent = false;
   function send() {
+    if (sent) return;
+    sent = true;
     try {
       var raw = localStorage.getItem('keys');
       window.ReactNativeWebView.postMessage(
@@ -58,6 +68,9 @@ const DISCOVERY_JS = `
   }
   if (document.readyState === 'complete') send();
   else window.addEventListener('load', send);
+  setTimeout(function() {
+    if (!sent) send();
+  }, 1500);
 })();
 true;
 `
@@ -131,6 +144,14 @@ export default function SpaWalletDiscovery({
     if (mounted.current && onDiscovered) onDiscovered(wallets)
   }
 
+  // Belt-and-braces against the SPA blocking on first paint: also re-inject
+  // the discovery snippet from RN's onLoadEnd hook (independent of the
+  // page's own `load` event). Duplicate sends are harmless — latest cache
+  // write wins.
+  const handleLoadEnd = (): void => {
+    ref.current?.injectJavaScript(DISCOVERY_JS)
+  }
+
   return (
     <View style={styles.hidden} pointerEvents="none">
       <WebView
@@ -140,6 +161,7 @@ export default function SpaWalletDiscovery({
         applicationNameForUserAgent="StationMobile/5.1.0"
         injectedJavaScript={DISCOVERY_JS}
         onMessage={handleMessage}
+        onLoadEnd={handleLoadEnd}
         // Trim the network surface — we only need localStorage, not the SPA.
         cacheEnabled
         domStorageEnabled
