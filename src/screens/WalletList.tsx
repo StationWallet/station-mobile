@@ -232,8 +232,15 @@ export default function WalletList(): React.ReactElement {
             terraOnly={wallet.terraOnly === true}
             vaultKind={vaultKindMap[wallet.name] ?? 'none'}
             onPress={() => handlePress(wallet)}
-            onExport={() => handleExport(wallet)}
-            onDelete={() => handleDelete(wallet)}
+            // SPA-legacy wallets aren't stored in our native authData yet, so
+            // there's no key material to export and no entry to delete here.
+            // They round-trip cleanly through the migrate flow instead.
+            onExport={
+              wallet.spaLegacy ? undefined : () => handleExport(wallet)
+            }
+            onDelete={
+              wallet.spaLegacy ? undefined : () => handleDelete(wallet)
+            }
             testID={`wallet-card-${index}`}
           />
         ))}
