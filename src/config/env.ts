@@ -25,7 +25,7 @@ export const DevFlags = {
 /**
  * Production-flippable flags. Default off; flipped via Expo env (OTA-deployable).
  *
- * - `OpenLegacyStationWebView`: exposes the "Open legacy Station (web)" link on
+ * - `OpenLegacyStationWebView`: exposes the "Open legacy Station" link on
  *   MigrationHome. Disabled by default — users find their legacy wallets via the
  *   hidden discovery WebView instead, which surfaces them in the regular
  *   wallets-found list. The link is kept available for QA/support escalation.

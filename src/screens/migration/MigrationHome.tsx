@@ -241,7 +241,7 @@ export default function MigrationHome(): React.ReactElement {
                   fontType="brockmann-medium"
                   style={styles.linkText}
                 >
-                  Open legacy Station (web)
+                  Open legacy Station
                 </Text>
               </TouchableOpacity>
             )}
