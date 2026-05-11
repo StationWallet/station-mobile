@@ -25,8 +25,8 @@ export function openLegacyStation(): void {
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Open',
-        onPress: () => {
-          Linking.openURL(LEGACY_STATION_URL).catch(() => {
+        onPress: (): void => {
+          Linking.openURL(LEGACY_STATION_URL).catch((): void => {
             Alert.alert(
               'Could not open URL',
               'Please visit mobile.station.terra.money manually.'

@@ -236,10 +236,16 @@ export default function WalletList(): React.ReactElement {
             // there's no key material to export and no entry to delete here.
             // They round-trip cleanly through the migrate flow instead.
             onExport={
-              wallet.spaLegacy ? undefined : () => handleExport(wallet)
+              wallet.spaLegacy
+                ? undefined
+                : (): void => handleExport(wallet)
             }
             onDelete={
-              wallet.spaLegacy ? undefined : () => handleDelete(wallet)
+              wallet.spaLegacy
+                ? undefined
+                : (): void => {
+                    void handleDelete(wallet)
+                  }
             }
             testID={`wallet-card-${index}`}
           />

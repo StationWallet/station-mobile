@@ -67,26 +67,29 @@ export default function MigrationHome(): React.ReactElement {
 
   const { goHome } = useWalletNav()
 
-  const refreshWallets = React.useCallback(async (): Promise<void> => {
-    try {
-      const [found, all] = await Promise.all([
-        discoverLegacyWallets(),
-        getWallets(),
-      ])
-      setWallets(found)
-      // `all` includes legacy AD-only entries that haven't been migrated to
-      // a fast vault yet — those are NOT "vaults" from the user's POV, only
-      // legacy seeds awaiting migration. Count only entries with a stored
-      // DKLS vault proto (i.e. getVaultKind returns 'fast' or 'multi-share').
-      const kinds = await Promise.all(
-        all.map((w) => getVaultKind(w.name))
-      )
-      const realVaultCount = kinds.filter((k) => k !== 'none').length
-      setTotalWalletCount(realVaultCount)
-    } finally {
-      setReady(true)
-    }
-  }, [])
+  const refreshWallets =
+    React.useCallback(async (): Promise<void> => {
+      try {
+        const [found, all] = await Promise.all([
+          discoverLegacyWallets(),
+          getWallets(),
+        ])
+        setWallets(found)
+        // `all` includes legacy AD-only entries that haven't been migrated to
+        // a fast vault yet — those are NOT "vaults" from the user's POV, only
+        // legacy seeds awaiting migration. Count only entries with a stored
+        // DKLS vault proto (i.e. getVaultKind returns 'fast' or 'multi-share').
+        const kinds = await Promise.all(
+          all.map((w) => getVaultKind(w.name))
+        )
+        const realVaultCount = kinds.filter(
+          (k) => k !== 'none'
+        ).length
+        setTotalWalletCount(realVaultCount)
+      } finally {
+        setReady(true)
+      }
+    }, [])
 
   useEffect(() => {
     refreshWallets()
