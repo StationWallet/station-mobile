@@ -102,6 +102,31 @@ export type SeedMasterKeys = {
   eddsaPrivateKey: string
 }
 
+// chainPublicKeys[] in the exported .vult is treated by vultisig-ios as the
+// authoritative chain list for KeyImport vaults (see iOS VaultDefaultCoinService
+// getDefaultChains: returns vault.chainPublicKeys.map(\.chain) for .KeyImport,
+// AND VaultDetailViewModel.canShowChainSelection returns false for KeyImport
+// vaults — meaning users cannot add chains in-app after import). Any chain
+// omitted here is permanently absent from the resulting vault on iOS.
+//
+// Every chain listed here derives via TrustWalletCore in a way that matches
+// vultisig-ios's own KeyImport flow:
+//  - ECDSA (secp256k1) chains use BIP44 default coin-type paths.
+//  - EdDSA (ed25519) chains use BIP44 default except Solana, which uses the
+//    `solanaSolana` (Phantom) derivation (=6) — the only chain with an
+//    alternativeDerivations entry in iOS KeyImportChainsSetupViewModel.
+//  - Polkadot and Bittensor both derive from CoinType.polkadot at
+//    m/44'/354'/0'/0'/0'; iOS SS58-encodes the resulting pubkey with prefix 0
+//    for DOT and prefix 42 for TAO at display time (CoinFactory.swift). This
+//    intentionally matches Trust Wallet's "BIP44 ed25519 over coin type 354"
+//    approach and intentionally does NOT match Polkadot.js/Subwallet/btcli,
+//    which use SR25519 + native Substrate derivation (a different ecosystem).
+//
+// Excluded:
+//  - Cardano: needs ed25519Cardano extended key (chain code material), not a
+//    plain 32-byte ed25519 pubkey. iOS itself excludes it from
+//    Chain.keyImportEnabledChains.
+//  - MLDSA chains (qbtc): use a separate publicKeyMldsa44 key entirely.
 export const SEED_IMPORT_DERIVATION_GROUPS: SeedImportDerivationGroup[] =
   (
     [
@@ -222,6 +247,13 @@ const ECDSA_DERIVATION_PATHS: Partial<
   Ripple: "m/44'/144'/0'/0/0",
   Tron: "m/44'/195'/0'/0/0",
 }
+
+// WalletCore Derivation enum: solanaSolana = 6 (the "Phantom" Solana derivation).
+// vultisig-ios uses this for the user-facing Solana address on KeyImport vaults
+// (see KeyImportChainsSetupViewModel: DerivationOption(derivation: .solanaSolana)).
+// Without this override, station-mobile would write the BIP44-default pubkey into
+// chainPublicKeys[], which produces a different address than vultisig-ios shows.
+const SOLANA_SOLANA_DERIVATION = 6
 
 const WALLET_CORE_COIN_TYPE_NAMES: Record<SeedImportChain, string> = {
   Bitcoin: 'bitcoin',
@@ -384,7 +416,13 @@ export async function deriveChainKeyForImport(
       ''
     )
     try {
-      const key = wallet.getKeyForCoin(coinType)
+      const key =
+        chain === 'Solana'
+          ? wallet.getKeyDerivation(
+              coinType,
+              SOLANA_SOLANA_DERIVATION
+            )
+          : wallet.getKeyForCoin(coinType)
       try {
         const keyData = new Uint8Array(key.data())
         return {
@@ -428,7 +466,13 @@ export async function deriveChainPublicKeyForImport(
       ''
     )
     try {
-      const key = wallet.getKeyForCoin(coinType)
+      const key =
+        chain === 'Solana'
+          ? wallet.getKeyDerivation(
+              coinType,
+              SOLANA_SOLANA_DERIVATION
+            )
+          : wallet.getKeyForCoin(coinType)
       try {
         const publicKey = isSeedImportEddsaChain(chain)
           ? key.getPublicKeyEd25519()

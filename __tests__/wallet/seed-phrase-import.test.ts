@@ -11,9 +11,9 @@ const TREZOR_12 =
 describe('seed phrase import derivation', () => {
   it('validates BIP39 mnemonics', () => {
     expect(validateSeedPhrase(TREZOR_12)).toBe(true)
-    expect(validateSeedPhrase(TREZOR_12.replace(/about$/, 'abandon'))).toBe(
-      false
-    )
+    expect(
+      validateSeedPhrase(TREZOR_12.replace(/about$/, 'abandon'))
+    ).toBe(false)
   })
 
   it('derives Vultisig-compatible root keys from the Trezor vector', () => {
@@ -72,9 +72,9 @@ describe('seed phrase import derivation', () => {
       ])
     )
     expect(
-      SEED_IMPORT_DERIVATION_GROUPS.filter((group) => group.isEddsa).map(
-        (group) => group.representativeChain
-      )
+      SEED_IMPORT_DERIVATION_GROUPS.filter(
+        (group) => group.isEddsa
+      ).map((group) => group.representativeChain)
     ).toEqual(['Solana', 'Sui', 'Ton', 'Polkadot', 'Bittensor'])
   })
 })
