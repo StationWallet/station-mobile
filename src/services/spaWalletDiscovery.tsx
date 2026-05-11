@@ -90,13 +90,18 @@ export default function SpaWalletDiscovery({
   const handleMessage = async (
     event: WebViewMessageEvent
   ): Promise<void> => {
-    let parsed: { __spaDiscovery?: boolean; keys?: string }
+    let parsed: {
+      __spaDiscovery?: boolean
+      keys?: string
+      error?: string
+    }
     try {
       parsed = JSON.parse(event.nativeEvent.data)
     } catch {
       return
     }
     if (!parsed.__spaDiscovery) return
+    if (parsed.error) return
     const wallets = parsed.keys
       ? parseSpaWalletsJson(parsed.keys)
       : []

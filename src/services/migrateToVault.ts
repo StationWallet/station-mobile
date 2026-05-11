@@ -10,7 +10,10 @@ import {
   AuthDataValueType,
   LedgerDataValueType,
 } from 'utils/authData'
-import { getCachedSpaWallets } from './spaWalletCache'
+import {
+  getCachedSpaWallets,
+  getUniqueSpaWalletName,
+} from './spaWalletCache'
 import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
@@ -114,10 +117,11 @@ export async function discoverLegacyWallets(): Promise<
   // the migration completes).
   const spaCache = await getCachedSpaWallets()
   const knownAddresses = new Set(native.map((w) => w.address))
+  const knownNames = new Set(native.map((w) => w.name))
   const spa: MigrationWallet[] = spaCache
     .filter((w) => !knownAddresses.has(w.address))
     .map((w) => ({
-      name: w.name,
+      name: getUniqueSpaWalletName(w.name, knownNames),
       address: w.address,
       ledger: false,
       spaLegacy: true,

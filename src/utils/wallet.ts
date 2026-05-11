@@ -9,7 +9,10 @@ import {
   upsertAuthData,
   AuthDataValueType,
 } from './authData'
-import { getCachedSpaWallets } from 'services/spaWalletCache'
+import {
+  getCachedSpaWallets,
+  getUniqueSpaWalletName,
+} from 'services/spaWalletCache'
 
 const sanitize = (s = ''): string =>
   s.toLowerCase().replace(/[^a-z]/g, '')
@@ -103,10 +106,11 @@ export const getWallets = async (): Promise<LocalWallet[]> => {
   // already started the migration but not finished).
   const spaCache = await getCachedSpaWallets()
   const knownAddresses = new Set(native.map((w) => w.address))
+  const knownNames = new Set(native.map((w) => w.name))
   const spaWallets: LocalWallet[] = spaCache
     .filter((w) => !knownAddresses.has(w.address))
     .map((w) => ({
-      name: w.name,
+      name: getUniqueSpaWalletName(w.name, knownNames),
       address: w.address,
       ledger: false,
       terraOnly: true,

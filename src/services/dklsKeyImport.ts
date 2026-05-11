@@ -911,6 +911,12 @@ export async function importKeyToFastVault(options: {
     })
 
     const result = await ExpoDkls.finishKeygen(sessionHandle)
+    if (
+      result.publicKey.toLowerCase() !==
+      validatedPrivateKey.publicKeyHex.toLowerCase()
+    ) {
+      throw new Error('Imported key public key mismatch')
+    }
 
     // Signal completion — server also signals via its defer block
     await signalComplete(sessionId, localPartyId)

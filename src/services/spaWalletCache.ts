@@ -41,3 +41,28 @@ export async function clearCachedSpaWallets(): Promise<void> {
     // Ignore.
   }
 }
+
+export function getUniqueSpaWalletName(
+  name: string,
+  usedNames: Set<string>
+): string {
+  if (!usedNames.has(name)) {
+    usedNames.add(name)
+    return name
+  }
+
+  const base = `${name} (Legacy)`
+  if (!usedNames.has(base)) {
+    usedNames.add(base)
+    return base
+  }
+
+  let suffix = 2
+  let candidate = `${base} ${suffix}`
+  while (usedNames.has(candidate)) {
+    suffix += 1
+    candidate = `${base} ${suffix}`
+  }
+  usedNames.add(candidate)
+  return candidate
+}
