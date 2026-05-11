@@ -9,7 +9,7 @@ import {
   upsertAuthData,
   AuthDataValueType,
 } from './authData'
-import { getCachedSpaWallets } from 'services/spaWalletDiscovery'
+import { getCachedSpaWallets } from 'services/spaWalletCache'
 
 const sanitize = (s = ''): string =>
   s.toLowerCase().replace(/[^a-z]/g, '')

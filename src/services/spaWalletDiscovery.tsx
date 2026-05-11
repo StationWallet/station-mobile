@@ -5,13 +5,13 @@ import type {
   WebView as WebViewType,
   WebViewMessageEvent,
 } from 'react-native-webview'
-import * as SecureStore from 'expo-secure-store'
 
 import { LEGACY_STATION_URL } from 'utils/openLegacyStation'
 import {
   parseSpaWalletsJson,
   type SpaLegacyWalletEntry,
 } from './spaLegacyDecrypt'
+import { setCachedSpaWallets } from './spaWalletCache'
 
 /**
  * Discovery of legacy Terra Station SPA wallets that live in the WebView's
@@ -33,11 +33,6 @@ import {
  * Mount this once near the top of the migration UI (e.g. `MigrationHome`).
  * It is invisible and fire-and-forget.
  */
-
-const CACHE_KEY = 'spa-legacy-wallets'
-const CACHE_OPTS: SecureStore.SecureStoreOptions = {
-  keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
-}
 
 // Injected JS that reads `localStorage['keys']` and posts it back. Kept tiny
 // — we don't need the chain-config rewrites that the visible LegacyStation
@@ -74,41 +69,6 @@ const DISCOVERY_JS = `
 })();
 true;
 `
-
-export async function getCachedSpaWallets(): Promise<
-  SpaLegacyWalletEntry[]
-> {
-  try {
-    const raw = await SecureStore.getItemAsync(CACHE_KEY, CACHE_OPTS)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
-
-async function setCachedSpaWallets(
-  wallets: SpaLegacyWalletEntry[]
-): Promise<void> {
-  try {
-    await SecureStore.setItemAsync(
-      CACHE_KEY,
-      JSON.stringify(wallets),
-      CACHE_OPTS
-    )
-  } catch {
-    // Cache write failure is non-fatal — the next mount will retry.
-  }
-}
-
-export async function clearCachedSpaWallets(): Promise<void> {
-  try {
-    await SecureStore.deleteItemAsync(CACHE_KEY, CACHE_OPTS)
-  } catch {
-    // Ignore.
-  }
-}
 
 interface Props {
   onDiscovered?: (wallets: SpaLegacyWalletEntry[]) => void

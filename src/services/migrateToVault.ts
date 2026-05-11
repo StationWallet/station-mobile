@@ -10,7 +10,7 @@ import {
   AuthDataValueType,
   LedgerDataValueType,
 } from 'utils/authData'
-import { getCachedSpaWallets } from './spaWalletDiscovery'
+import { getCachedSpaWallets } from './spaWalletCache'
 import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
