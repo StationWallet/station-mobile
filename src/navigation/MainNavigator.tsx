@@ -44,6 +44,7 @@ export type MainStackParams = {
       | 'VaultSetup'
       | 'VaultEmail'
       | 'MigrationSuccess'
+      | 'LegacyMigrate'
     params?: {
       walletName?: string
       walletIndex?: number
@@ -53,6 +54,8 @@ export type MainStackParams = {
       mode?: MigrationMode
       migratedWalletName?: string
       importedVaultName?: string
+      address?: string
+      encrypted?: string
     }
   }
 }

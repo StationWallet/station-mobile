@@ -1,6 +1,7 @@
 import { __reset as resetSecure } from '../__mocks__/expo-secure-store'
 import { upsertAuthData } from 'utils/authData'
 import { discoverLegacyWallets } from 'services/migrateToVault'
+import { setCachedSpaWallets } from 'services/spaWalletCache'
 
 beforeEach(() => {
   resetSecure()
@@ -105,5 +106,37 @@ describe('discoverLegacyWallets filter', () => {
     })
     const found = await discoverLegacyWallets()
     expect(found).toHaveLength(0)
+  })
+
+  it('keeps SPA wallet names unique when native wallets share the same name', async () => {
+    await upsertAuthData({
+      authData: {
+        Wallet: {
+          ledger: false,
+          address: 'terra1native',
+          encryptedKey: 'encryptedKeyMaterial',
+          password: 'pwd',
+        },
+      },
+    })
+    await setCachedSpaWallets([
+      {
+        name: 'Wallet',
+        address: 'terra1spa',
+        encrypted: `${'a'.repeat(32)}${'b'.repeat(32)}ciphertext`,
+      },
+    ])
+
+    const found = await discoverLegacyWallets()
+    expect(found.map((w) => w.name)).toEqual([
+      'Wallet',
+      'Wallet (Legacy)',
+    ])
+    expect(found.find((w) => w.name === 'Wallet (Legacy)')).toMatchObject(
+      {
+        address: 'terra1spa',
+        spaLegacy: true,
+      }
+    )
   })
 })

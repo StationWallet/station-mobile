@@ -126,7 +126,31 @@ export default function WalletList(): React.ReactElement {
           params: { migratedWalletName: wallet.name },
         })
       }
-    } else if (inMigrationNav) {
+      return
+    }
+
+    // Wallets discovered in the legacy Terra Station SPA's WebView localStorage
+    // require the user's legacy Station password to decrypt; route to the
+    // password prompt screen, which then continues into the import-private-key
+    // Fast Vault flow with the decrypted key pre-filled.
+    if (wallet.spaLegacy && wallet.spaEncrypted) {
+      const params = {
+        walletName: wallet.name,
+        address: wallet.address,
+        encrypted: wallet.spaEncrypted,
+      }
+      if (inMigrationNav) {
+        migrationNav.navigate('LegacyMigrate', params)
+      } else {
+        mainNav.navigate('Migration', {
+          screen: 'LegacyMigrate',
+          params,
+        })
+      }
+      return
+    }
+
+    if (inMigrationNav) {
       migrationNav.navigate('VaultEmail', {
         walletName: wallet.name,
         wallets: walletSummaries,
@@ -208,8 +232,21 @@ export default function WalletList(): React.ReactElement {
             terraOnly={wallet.terraOnly === true}
             vaultKind={vaultKindMap[wallet.name] ?? 'none'}
             onPress={() => handlePress(wallet)}
-            onExport={() => handleExport(wallet)}
-            onDelete={() => handleDelete(wallet)}
+            // SPA-legacy wallets aren't stored in our native authData yet, so
+            // there's no key material to export and no entry to delete here.
+            // They round-trip cleanly through the migrate flow instead.
+            onExport={
+              wallet.spaLegacy
+                ? undefined
+                : (): void => handleExport(wallet)
+            }
+            onDelete={
+              wallet.spaLegacy
+                ? undefined
+                : (): void => {
+                    void handleDelete(wallet)
+                  }
+            }
             testID={`wallet-card-${index}`}
           />
         ))}
