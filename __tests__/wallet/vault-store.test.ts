@@ -71,6 +71,7 @@ describe('storeFastVault', () => {
       chainCode: '0'.repeat(64),
       localPartyId: 'Device',
       serverPartyId: 'Server',
+      terraAddress: 'terra1legacy',
     })
 
     const stored = await getStoredVault('TerraOnly')
@@ -101,6 +102,7 @@ describe('storeFastVault', () => {
 
     const authData = await getAuthData()
     expect(authData?.TerraOnly).toMatchObject({
+      address: 'terra1legacy',
       ledger: false,
       terraOnly: true,
     })

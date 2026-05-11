@@ -89,6 +89,7 @@ describe('vault share export — .vult round-trip', () => {
       chainCode: '0'.repeat(64),
       localPartyId: 'Device',
       serverPartyId: 'Server',
+      terraAddress: 'terra1legacy',
     })
 
     const fileUri = await exportVaultShare('MigratedTerra', null)

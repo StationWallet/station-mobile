@@ -5,6 +5,7 @@ import type {
   KeyImportProgress,
 } from './dklsKeyImport'
 import { derivePublicKeyHex } from './vaultProto'
+import { validatePrivateKey } from './privateKeyImport'
 import {
   deriveChainKeyForImport,
   deriveMasterKeys,
@@ -66,6 +67,7 @@ export async function importKeyToFastVault(options: {
   signal?: AbortSignal
 }): Promise<KeyImportResult> {
   const { privateKeyHex, onProgress, signal } = options
+  const validatedPrivateKey = validatePrivateKey(privateKeyHex)
 
   const steps: KeyImportProgress[] = [
     { step: 'setup', message: 'Generating session...', progress: 10 },
@@ -90,12 +92,13 @@ export async function importKeyToFastVault(options: {
   }
 
   return {
-    publicKey: derivePublicKeyHex(privateKeyHex),
+    publicKey: validatedPrivateKey.publicKeyHex,
     // Opaque base64 — any non-empty string passes downstream validation.
     keyshare: 'c3R1YmJlZC1rZXlzaGFyZS1ieXRlcw==',
     chainCode: '0'.repeat(64),
     localPartyId: 'sdk-stub0',
     serverPartyId: 'Server-stub',
+    terraAddress: validatedPrivateKey.terraAddress,
   }
 }
 

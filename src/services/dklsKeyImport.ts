@@ -34,6 +34,7 @@ import {
   SEED_IMPORT_DERIVATION_GROUPS,
   SeedImportChain,
 } from './seedPhraseImport'
+import { validatePrivateKey } from './privateKeyImport'
 
 export type KeyImportStep =
   | 'setup'
@@ -56,6 +57,7 @@ export type KeyImportResult = {
   chainCode: string // hex
   localPartyId: string
   serverPartyId: string
+  terraAddress: string
 }
 
 export type CreatedFastVaultResult = {
@@ -775,6 +777,7 @@ export async function importKeyToFastVault(options: {
 }): Promise<KeyImportResult> {
   const { name, email, password, privateKeyHex, onProgress, signal } =
     options
+  const validatedPrivateKey = validatePrivateKey(privateKeyHex)
 
   if (STUB_VULTISERVER) return stubDkls.importKeyToFastVault(options)
 
@@ -858,7 +861,7 @@ export async function importKeyToFastVault(options: {
   report({ step: 'ecdsa', message: 'Importing key...', progress: 35 })
 
   const importResult = ExpoDkls.createDklsKeyImportInitiator(
-    privateKeyHex,
+    validatedPrivateKey.privateKeyHex,
     hexChainCode,
     2,
     [localPartyId, serverPartyId]
@@ -921,6 +924,7 @@ export async function importKeyToFastVault(options: {
       chainCode: result.chainCode,
       localPartyId,
       serverPartyId,
+      terraAddress: validatedPrivateKey.terraAddress,
     }
   } finally {
     // Always free the native session handle to prevent memory leaks

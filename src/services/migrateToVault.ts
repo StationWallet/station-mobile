@@ -292,7 +292,10 @@ export async function storeFastVault(
     await upsertAuthData({
       authData: {
         [walletName]: {
-          address: '',
+          address:
+            !isCreatedVault && !isSeedImportVault
+              ? legacyResult.terraAddress
+              : '',
           encryptedKey: '',
           password: '',
           ledger: false,
