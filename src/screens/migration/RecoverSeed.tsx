@@ -614,7 +614,6 @@ export default function RecoverSeed(): React.ReactElement {
               multiline
               autoCapitalize="none"
               autoCorrect={false}
-              secureTextEntry
               textAlignVertical="top"
               onFocus={scrollToPrivateKeyInput}
             />
