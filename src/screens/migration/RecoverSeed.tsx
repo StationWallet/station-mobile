@@ -13,7 +13,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
-import Svg, { Circle, Path } from 'react-native-svg'
+import Svg, {
+  Circle,
+  Defs,
+  Path,
+  RadialGradient,
+  Stop,
+} from 'react-native-svg'
 import * as Clipboard from 'expo-clipboard'
 import { useSetRecoilState } from 'recoil'
 
@@ -49,26 +55,52 @@ type ScreenState =
   | 'customize'
 
 const PRIVATE_KEY_SCROLL_Y = 380
+const IMPORT_ICON_BLUE = '#59bdff'
 
 function ImportIcon({
-  color = MIGRATION.textLink,
+  color = IMPORT_ICON_BLUE,
 }: {
   color?: string
 }): React.ReactElement {
   return (
-    <View style={[styles.iconCircle, { borderColor: `${color}55` }]}>
-      <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
+    <View style={[styles.iconCircle, styles.importIconCircle]}>
+      <Svg
+        width={49}
+        height={49}
+        viewBox="0 0 49 49"
+        style={styles.importIconGlow}
+      >
+        <Defs>
+          <RadialGradient
+            id="importIconGlow"
+            cx="50%"
+            cy="50%"
+            r="50%"
+          >
+            <Stop offset="0%" stopColor={color} stopOpacity={0.26} />
+            <Stop offset="58%" stopColor={color} stopOpacity={0.1} />
+            <Stop offset="100%" stopColor={color} stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Circle
+          cx={24.5}
+          cy={24.5}
+          r={23}
+          fill="url(#importIconGlow)"
+        />
+      </Svg>
+      <Svg width={25} height={25} viewBox="0 0 20 20" fill="none">
         <Path
           d="M15.5 11.8 12 15.3l-3.5-3.5M12 14.8V8"
           stroke={color}
-          strokeWidth={1.5}
+          strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <Path
           d="M3 5h7M3 10h4M3 15h3"
           stroke={color}
-          strokeWidth={1.5}
+          strokeWidth={2}
           strokeLinecap="round"
         />
       </Svg>
@@ -659,11 +691,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
-    shadowColor: MIGRATION.textLink,
+  },
+  importIconCircle: {
+    borderColor: '#203456',
+    borderWidth: 3,
+    backgroundColor: '#03132c',
+    shadowColor: IMPORT_ICON_BLUE,
     shadowOpacity: 0.45,
-    shadowRadius: 18,
+    shadowRadius: 20,
     shadowOffset: { width: 0, height: 0 },
     elevation: 8,
+  },
+  importIconGlow: {
+    ...StyleSheet.absoluteFillObject,
   },
   title: {
     fontSize: 22,
