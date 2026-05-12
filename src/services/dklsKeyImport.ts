@@ -595,6 +595,17 @@ export async function importSeedPhraseToFastVault(options: {
   const localPartyId = `sdk-${randomHex(4)}`
   let serverPartyId = serverPartyIdFromSession(sessionId)
 
+  // `setupKeyImport.chains` declares the per-chain MPC ceremonies the
+  // server should expect on top of the two root (ECDSA + EdDSA) imports.
+  // The client below only runs ONE per-chain ceremony — Terra — so the
+  // server registration must be exactly ['Terra']. Listing additional
+  // chains here causes the server to wait for per-chain setup messages
+  // the client never sends, which hangs/fails the MPC ceremony.
+  //
+  // chainPublicKeys[] embedded in the exported .vult is a separate concern
+  // (built locally from getSeedImportDerivationGroups below); it carries
+  // pubkeys for every chain the user wants without needing a per-chain
+  // MPC ceremony.
   await Promise.all([
     setupKeyImport({
       name,

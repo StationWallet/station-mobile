@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Keyboard,
@@ -399,6 +399,7 @@ export default function RecoverSeed(): React.ReactElement {
   const setSeed = useSetRecoilState(RecoverWalletStore.seed)
   const inputScrollRef = useRef<ScrollView>(null)
   const scanRunIdRef = useRef(0)
+  const scanAbortControllerRef = useRef<AbortController | null>(null)
   const latestScanResultsRef = useRef<ImportWalletDiscoveryResult[]>(
     []
   )
@@ -435,9 +436,19 @@ export default function RecoverSeed(): React.ReactElement {
   const showPrivateKeyError =
     privateKeyText.trim().length > 0 && !privateKey
 
+  // Cancel any in-flight scan if the screen unmounts (back nav, app sleep, etc.).
+  useEffect(() => {
+    return (): void => {
+      scanAbortControllerRef.current?.abort()
+    }
+  }, [])
+
   const handleBack = (): void => {
     if (screenState !== 'input') {
-      if (screenState === 'scanning') scanRunIdRef.current += 1
+      if (screenState === 'scanning') {
+        scanRunIdRef.current += 1
+        scanAbortControllerRef.current?.abort()
+      }
       setScreenState('input')
       return
     }
@@ -465,6 +476,13 @@ export default function RecoverSeed(): React.ReactElement {
 
     const scanRunId = scanRunIdRef.current + 1
     scanRunIdRef.current = scanRunId
+    // Abort any in-flight scan and start fresh. Without a real
+    // AbortSignal threaded into fetchWithTimeout the previous run would
+    // keep its RPC calls in flight after the user navigates away — wasted
+    // bandwidth and a race against setState-after-unmount.
+    scanAbortControllerRef.current?.abort()
+    const controller = new AbortController()
+    scanAbortControllerRef.current = controller
     latestScanResultsRef.current = []
     Keyboard.dismiss()
     setActiveChains([])
@@ -485,7 +503,8 @@ export default function RecoverSeed(): React.ReactElement {
           result
         )
         setActiveChains(latestScanResultsRef.current)
-      }
+      },
+      controller.signal
     )
     if (scanRunIdRef.current !== scanRunId) return
 
@@ -497,8 +516,13 @@ export default function RecoverSeed(): React.ReactElement {
   }
 
   const selectChainsManually = (): void => {
-    scanRunIdRef.current += 1
+    // Capture results detected so far, then abort the scan and reset the
+    // results ref so a subsequent rescan doesn't accidentally inherit
+    // entries written by a still-in-flight batch from this run.
     const detectedResults = latestScanResultsRef.current
+    scanRunIdRef.current += 1
+    scanAbortControllerRef.current?.abort()
+    latestScanResultsRef.current = []
     setActiveChains(detectedResults)
     setSelectedChains(discoveryChains(detectedResults))
     setScreenState('customize')

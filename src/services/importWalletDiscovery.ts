@@ -156,13 +156,22 @@ export const STATION_DISCOVERY_CHAINS: DiscoveryChainConfig[] = [
 
 async function fetchWithTimeout(
   input: string,
-  init?: RequestInit
+  init?: RequestInit,
+  externalSignal?: AbortSignal
 ): Promise<Response> {
   const controller = new AbortController()
   const timeoutId = setTimeout(
     () => controller.abort(),
     DISCOVERY_TIMEOUT_MS
   )
+
+  // Cancel the request immediately if the caller aborts (e.g. user backs
+  // out of the scan screen). Abort propagates from external → internal.
+  const onExternalAbort = (): void => controller.abort()
+  if (externalSignal) {
+    if (externalSignal.aborted) controller.abort()
+    else externalSignal.addEventListener('abort', onExternalAbort)
+  }
 
   try {
     return await fetch(input, {
@@ -171,6 +180,9 @@ async function fetchWithTimeout(
     })
   } finally {
     clearTimeout(timeoutId)
+    if (externalSignal) {
+      externalSignal.removeEventListener('abort', onExternalAbort)
+    }
   }
 }
 
@@ -235,9 +247,10 @@ async function deriveDiscoveryAddress(
 
 async function fetchJson(
   input: string,
-  init?: RequestInit
+  init?: RequestInit,
+  signal?: AbortSignal
 ): Promise<unknown> {
-  const res = await fetchWithTimeout(input, init)
+  const res = await fetchWithTimeout(input, init, signal)
   return res.json()
 }
 
@@ -249,18 +262,23 @@ function hasPositiveAmount(value: unknown): boolean {
 
 async function hasEvmBalance(
   config: DiscoveryChainConfig,
-  address: string
+  address: string,
+  signal?: AbortSignal
 ): Promise<boolean> {
-  const json = await fetchJson(config.rpcUrl!, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'eth_getBalance',
-      params: [address, 'latest'],
-    }),
-  })
+  const json = await fetchJson(
+    config.rpcUrl!,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'eth_getBalance',
+        params: [address, 'latest'],
+      }),
+    },
+    signal
+  )
 
   const result = (json as { result?: unknown }).result
 
@@ -269,18 +287,23 @@ async function hasEvmBalance(
 
 async function hasSolanaBalance(
   config: DiscoveryChainConfig,
-  address: string
+  address: string,
+  signal?: AbortSignal
 ): Promise<boolean> {
-  const json = await fetchJson(config.rpcUrl!, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'getBalance',
-      params: [address],
-    }),
-  })
+  const json = await fetchJson(
+    config.rpcUrl!,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'getBalance',
+        params: [address],
+      }),
+    },
+    signal
+  )
 
   return hasPositiveAmount(
     (json as { result?: { value?: unknown } }).result?.value
@@ -289,18 +312,23 @@ async function hasSolanaBalance(
 
 async function hasSuiBalance(
   config: DiscoveryChainConfig,
-  address: string
+  address: string,
+  signal?: AbortSignal
 ): Promise<boolean> {
-  const json = await fetchJson(config.rpcUrl!, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'suix_getBalance',
-      params: [address],
-    }),
-  })
+  const json = await fetchJson(
+    config.rpcUrl!,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'suix_getBalance',
+        params: [address],
+      }),
+    },
+    signal
+  )
 
   return hasPositiveAmount(
     (json as { result?: { totalBalance?: unknown } }).result
@@ -310,10 +338,13 @@ async function hasSuiBalance(
 
 async function hasCosmosBalance(
   config: DiscoveryChainConfig,
-  address: string
+  address: string,
+  signal?: AbortSignal
 ): Promise<boolean> {
   const json = await fetchJson(
-    `${config.rpcUrl}/cosmos/bank/v1beta1/balances/${address}`
+    `${config.rpcUrl}/cosmos/bank/v1beta1/balances/${address}`,
+    undefined,
+    signal
   )
   const balances =
     (json as { balances?: { denom?: string; amount?: unknown }[] })
@@ -325,10 +356,15 @@ async function hasCosmosBalance(
   return hasPositiveAmount(coin?.amount)
 }
 
-async function hasTonBalance(address: string): Promise<boolean> {
+async function hasTonBalance(
+  address: string,
+  signal?: AbortSignal
+): Promise<boolean> {
   const { env } = require('../config/env')
   const json = await fetchJson(
-    `${env.vultisigApiUrl}/ton/v3/wallet?address=${address}`
+    `${env.vultisigApiUrl}/ton/v3/wallet?address=${address}`,
+    undefined,
+    signal
   )
   const response = json as {
     balance?: unknown
@@ -345,35 +381,41 @@ async function hasTonBalance(address: string): Promise<boolean> {
 
 async function hasTronBalance(
   config: DiscoveryChainConfig,
-  address: string
+  address: string,
+  signal?: AbortSignal
 ): Promise<boolean> {
-  const json = await fetchJson(config.rpcUrl!, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ address, visible: true }),
-  })
+  const json = await fetchJson(
+    config.rpcUrl!,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address, visible: true }),
+    },
+    signal
+  )
 
   return hasPositiveAmount((json as { balance?: unknown }).balance)
 }
 
 async function hasNativeBalance(
   config: DiscoveryChainConfig,
-  address: string
+  address: string,
+  signal?: AbortSignal
 ): Promise<boolean> {
   try {
     switch (config.kind) {
       case 'evm':
-        return await hasEvmBalance(config, address)
+        return await hasEvmBalance(config, address, signal)
       case 'solana':
-        return await hasSolanaBalance(config, address)
+        return await hasSolanaBalance(config, address, signal)
       case 'sui':
-        return await hasSuiBalance(config, address)
+        return await hasSuiBalance(config, address, signal)
       case 'cosmos':
-        return await hasCosmosBalance(config, address)
+        return await hasCosmosBalance(config, address, signal)
       case 'ton':
-        return await hasTonBalance(address)
+        return await hasTonBalance(address, signal)
       case 'tron':
-        return await hasTronBalance(config, address)
+        return await hasTronBalance(config, address, signal)
       default:
         return false
     }
@@ -384,10 +426,13 @@ async function hasNativeBalance(
 
 async function discoverChain(
   mnemonic: string,
-  config: DiscoveryChainConfig
+  config: DiscoveryChainConfig,
+  signal?: AbortSignal
 ): Promise<ImportWalletDiscoveryResult | null> {
+  if (signal?.aborted) return null
   const address = await deriveDiscoveryAddress(mnemonic, config)
-  const hasBalance = await hasNativeBalance(config, address)
+  if (signal?.aborted) return null
+  const hasBalance = await hasNativeBalance(config, address, signal)
 
   return hasBalance
     ? {
@@ -401,7 +446,8 @@ async function discoverChain(
 export async function discoverImportWalletChains(
   mnemonic: string,
   onProgress?: (progress: number) => void,
-  onDiscovered?: (result: ImportWalletDiscoveryResult) => void
+  onDiscovered?: (result: ImportWalletDiscoveryResult) => void,
+  signal?: AbortSignal
 ): Promise<ImportWalletDiscoveryResult[]> {
   const results: ImportWalletDiscoveryResult[] = []
   let completed = 0
@@ -411,6 +457,7 @@ export async function discoverImportWalletChains(
     index < STATION_DISCOVERY_CHAINS.length;
     index += DISCOVERY_BATCH_SIZE
   ) {
+    if (signal?.aborted) break
     const batch = STATION_DISCOVERY_CHAINS.slice(
       index,
       index + DISCOVERY_BATCH_SIZE
@@ -418,14 +465,16 @@ export async function discoverImportWalletChains(
     const batchResults = await Promise.all(
       batch.map(async (config) => {
         try {
-          const result = await discoverChain(mnemonic, config)
-          if (result) onDiscovered?.(result)
+          const result = await discoverChain(mnemonic, config, signal)
+          if (result && !signal?.aborted) onDiscovered?.(result)
           return result
         } catch {
           return null
         } finally {
           completed += 1
-          onProgress?.(completed / STATION_DISCOVERY_CHAINS.length)
+          if (!signal?.aborted) {
+            onProgress?.(completed / STATION_DISCOVERY_CHAINS.length)
+          }
         }
       })
     )
