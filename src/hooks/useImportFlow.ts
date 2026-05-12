@@ -10,6 +10,7 @@ import {
   persistImportedVault,
   type ImportVaultBackupResult,
 } from 'services/importVaultBackup'
+import { WrongPasswordError } from 'services/vaultCrypto'
 import { getErrorMessage } from 'utils/getErrorMessage'
 
 import type { MigrationStackParams } from 'navigation/MigrationNavigator'
@@ -203,9 +204,17 @@ export function useImportFlow() {
       await persistAndNavigate(success.vaultBytes, success.vaultName)
       setDecrypting(false)
       setShowPasswordSheet(false)
-    } catch {
+    } catch (err) {
       setDecrypting(false)
-      setPasswordError('Incorrect password, try again')
+      if (err instanceof WrongPasswordError) {
+        setPasswordError('Incorrect password, try again')
+        return
+      }
+      // Surface non-password failures (unsupported vault type, malformed
+      // backup, missing keyshare, etc.) verbatim instead of misattributing
+      // them to a wrong password.
+      setShowPasswordSheet(false)
+      Alert.alert('Import failed', getErrorMessage(err))
     }
   }
 
