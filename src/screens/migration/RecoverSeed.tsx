@@ -119,16 +119,16 @@ function CubeIcon({
     <View style={[styles.iconCircle, { borderColor: color }]}>
       <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
         <Path
-          d="m11 3.8 5.2 3v5.9l-5.2 3-5.2-3V6.8l5.2-3Z"
-          stroke={color}
-          strokeWidth={1.5}
-          strokeLinejoin="round"
+          d="M11 3.6 17 7v7l-6 3.4L5 14V7l6-3.4Z"
+          fill={color}
+          opacity={0.95}
         />
         <Path
-          d="M6 7.2 11 10l5-2.8M11 10v5.4"
-          stroke={color}
-          strokeWidth={1.5}
+          d="M5.6 7.3 11 10.4l5.4-3.1M11 10.4v6.1"
+          stroke={MIGRATION.bg}
+          strokeWidth={1.35}
           strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <Circle cx={5} cy={4.6} r={1} fill={color} />
         <Circle cx={17} cy={4.6} r={1} fill={color} />
