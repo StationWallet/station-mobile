@@ -138,7 +138,32 @@ function CubeIcon({
   )
 }
 
-function ChainMark(): React.ReactElement {
+function chainInitials(chain: SeedImportChain): string {
+  if (chain === 'TerraClassic') return 'TC'
+  if (chain === 'THORChain') return 'TH'
+  if (chain === 'MayaChain') return 'MY'
+  if (chain === 'Dydx') return 'DY'
+  return chain.slice(0, 2).toUpperCase()
+}
+
+function ChainMark({
+  chain = 'Terra',
+}: {
+  chain?: SeedImportChain
+}): React.ReactElement {
+  if (chain !== 'Terra' && chain !== 'TerraClassic') {
+    return (
+      <View style={[styles.chainIcon, styles.genericChainIcon]}>
+        <Text
+          fontType="brockmann-medium"
+          style={styles.genericChainIconText}
+        >
+          {chainInitials(chain)}
+        </Text>
+      </View>
+    )
+  }
+
   return (
     <View style={styles.chainIcon}>
       <TerraIcon width={24} height={24} />
@@ -180,6 +205,7 @@ function chainLabel(chain: SeedImportChain): string {
   if (chain === 'Bitcoin-Cash') return 'Bitcoin Cash'
   if (chain === 'CronosChain') return 'Cronos'
   if (chain === 'MayaChain') return 'MayaChain'
+  if (chain === 'Dydx') return 'dYdX'
   return chain
 }
 
@@ -362,7 +388,7 @@ export default function RecoverSeed(): React.ReactElement {
           <View style={styles.chainList}>
             {activeChains.map((item) => (
               <View key={item.chain} style={styles.chainRow}>
-                <ChainMark />
+                <ChainMark chain={item.chain} />
                 <Text
                   fontType="brockmann-medium"
                   style={styles.chainText}
@@ -473,7 +499,7 @@ export default function RecoverSeed(): React.ReactElement {
                   selected && styles.chainRowSelected,
                 ]}
               >
-                <ChainMark />
+                <ChainMark chain={item.chain} />
                 <Text
                   fontType="brockmann-medium"
                   style={styles.chainText}
@@ -905,7 +931,17 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
     overflow: 'hidden',
+  },
+  genericChainIcon: {
+    backgroundColor: MIGRATION.buttonSecondary,
+  },
+  genericChainIconText: {
+    color: IMPORT_ICON_BLUE,
+    fontSize: 9,
+    lineHeight: 12,
   },
   textButton: {
     paddingVertical: 18,
