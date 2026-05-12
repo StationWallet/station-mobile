@@ -52,9 +52,16 @@ function assertImportableFastVault(vault: {
   localPartyId: string
   signers: string[]
 }): void {
-  if (vault.libType !== LibType.DKLS) {
+  // Accept both DKLS (Fast Vault from random keygen) and KEYIMPORT
+  // (Fast Vault built by importing a seed-derived key). Both produce a
+  // 2-of-2 device+server vault with identical MPC keyshare semantics —
+  // "Fast Vault" describes the topology, not the protocol that built it.
+  // The remaining checks below enforce the Fast Vault topology (device
+  // share + server signer), which is what we actually need to import.
+  // GG20 is rejected (legacy, different signing math).
+  if (vault.libType === LibType.GG20) {
     throw new Error(
-      'Only Fast Vault backups can be imported. Use seed phrase import for seed wallets.'
+      'GG20 vault backups are not supported. Only DKLS-based vaults can be imported.'
     )
   }
 

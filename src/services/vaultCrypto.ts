@@ -23,6 +23,18 @@ export function encryptWithPassword(
   return result
 }
 
+/**
+ * Thrown when AES-GCM auth-tag verification fails — i.e. wrong password
+ * (or tampered ciphertext). Callers can `instanceof` this to surface a
+ * password-specific error instead of a generic decrypt failure.
+ */
+export class WrongPasswordError extends Error {
+  constructor() {
+    super('Incorrect password')
+    this.name = 'WrongPasswordError'
+  }
+}
+
 /** Inverse of `encryptWithPassword`. */
 export function decryptVaultBytes(
   encrypted: Uint8Array,
@@ -32,5 +44,16 @@ export function decryptVaultBytes(
   const ciphertextWithTag = encrypted.slice(12)
   const key = sha256(new TextEncoder().encode(password))
 
-  return gcm(key, nonce).decrypt(ciphertextWithTag)
+  try {
+    return gcm(key, nonce).decrypt(ciphertextWithTag)
+  } catch (err) {
+    // @noble/ciphers throws "aes/gcm: invalid ghash tag" on auth failure,
+    // which is what happens when the password is wrong. Other failures
+    // (e.g. truncated ciphertext, malformed nonce) bubble up as-is.
+    const msg = err instanceof Error ? err.message : String(err)
+    if (msg.toLowerCase().includes('ghash tag')) {
+      throw new WrongPasswordError()
+    }
+    throw err
+  }
 }
