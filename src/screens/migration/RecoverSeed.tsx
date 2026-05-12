@@ -1,7 +1,9 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -45,6 +47,8 @@ type ScreenState =
   | 'found'
   | 'none'
   | 'customize'
+
+const PRIVATE_KEY_SCROLL_Y = 380
 
 function ImportIcon({
   color = MIGRATION.textLink,
@@ -151,6 +155,7 @@ export default function RecoverSeed(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const { goHome } = useWalletNav()
   const setSeed = useSetRecoilState(RecoverWalletStore.seed)
+  const inputScrollRef = useRef<ScrollView>(null)
 
   const [tab, setTab] = useState<ImportTab>('seed')
   const [screenState, setScreenState] = useState<ScreenState>('input')
@@ -239,6 +244,15 @@ export default function RecoverSeed(): React.ReactElement {
 
   const pastePrivateKey = async (): Promise<void> => {
     setPrivateKeyText(await Clipboard.getStringAsync())
+  }
+
+  const scrollToPrivateKeyInput = (): void => {
+    setTimeout(() => {
+      inputScrollRef.current?.scrollTo({
+        y: PRIVATE_KEY_SCROLL_Y,
+        animated: true,
+      })
+    }, 100)
   }
 
   const toggleChain = (chain: SeedImportChain): void => {
@@ -464,11 +478,16 @@ export default function RecoverSeed(): React.ReactElement {
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <View style={{ paddingTop: insets.top }}>
         <MigrationToolbar onBack={handleBack} />
       </View>
       <ScrollView
+        ref={inputScrollRef}
+        style={styles.inputScroll}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -564,6 +583,7 @@ export default function RecoverSeed(): React.ReactElement {
               autoCorrect={false}
               secureTextEntry
               textAlignVertical="top"
+              onFocus={scrollToPrivateKeyInput}
             />
             {showPrivateKeyError ? (
               <Text fontType="brockmann" style={styles.errorText}>
@@ -612,7 +632,7 @@ export default function RecoverSeed(): React.ReactElement {
           </Text>
         ) : null}
       </View>
-    </View>
+    </KeyboardAvoidingView>
   )
 }
 
@@ -624,8 +644,11 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 78,
-    paddingBottom: 24,
+    paddingTop: 32,
+    paddingBottom: 96,
+  },
+  inputScroll: {
+    flex: 1,
   },
   iconCircle: {
     width: 49,
@@ -636,6 +659,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
+    shadowColor: MIGRATION.textLink,
+    shadowOpacity: 0.45,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 8,
   },
   title: {
     fontSize: 22,
