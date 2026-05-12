@@ -132,14 +132,18 @@ describe('import wallet chain discovery', () => {
     globalThis.fetch = fetchMock as unknown as typeof fetch
 
     const progress: number[] = []
-    const results = await discoverImportWalletChains(TREZOR_12, (p) =>
-      progress.push(p)
+    const discovered: string[] = []
+    const results = await discoverImportWalletChains(
+      TREZOR_12,
+      (p) => progress.push(p),
+      (result) => discovered.push(result.chain)
     )
 
     expect(results.map((result) => result.chain)).toEqual([
       'Ethereum',
       'Terra',
     ])
+    expect(discovered).toEqual(['Ethereum', 'Terra'])
     expect(progress).toHaveLength(STATION_DISCOVERY_CHAINS.length)
     expect(progress[progress.length - 1]).toBe(1)
   })

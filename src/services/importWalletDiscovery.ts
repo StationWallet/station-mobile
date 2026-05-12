@@ -400,7 +400,8 @@ async function discoverChain(
 
 export async function discoverImportWalletChains(
   mnemonic: string,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
+  onDiscovered?: (result: ImportWalletDiscoveryResult) => void
 ): Promise<ImportWalletDiscoveryResult[]> {
   const results: ImportWalletDiscoveryResult[] = []
   let completed = 0
@@ -417,7 +418,9 @@ export async function discoverImportWalletChains(
     const batchResults = await Promise.all(
       batch.map(async (config) => {
         try {
-          return await discoverChain(mnemonic, config)
+          const result = await discoverChain(mnemonic, config)
+          if (result) onDiscovered?.(result)
+          return result
         } catch {
           return null
         } finally {

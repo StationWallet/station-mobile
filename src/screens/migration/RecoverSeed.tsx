@@ -356,12 +356,52 @@ function chainLabel(chain: SeedImportChain): string {
   return chain
 }
 
+const DISCOVERY_CHAIN_ORDER = new Map(
+  STATION_DISCOVERY_CHAINS.map((config, index) => [
+    config.chain,
+    index,
+  ])
+)
+
+function sortDiscoveryResults(
+  results: ImportWalletDiscoveryResult[]
+): ImportWalletDiscoveryResult[] {
+  return [...results].sort(
+    (a, b) =>
+      (DISCOVERY_CHAIN_ORDER.get(a.chain) ??
+        Number.MAX_SAFE_INTEGER) -
+      (DISCOVERY_CHAIN_ORDER.get(b.chain) ?? Number.MAX_SAFE_INTEGER)
+  )
+}
+
+function mergeDiscoveryResult(
+  results: ImportWalletDiscoveryResult[],
+  result: ImportWalletDiscoveryResult
+): ImportWalletDiscoveryResult[] {
+  return sortDiscoveryResults([
+    ...results.filter((item) => item.chain !== result.chain),
+    result,
+  ])
+}
+
+function discoveryChains(
+  results: ImportWalletDiscoveryResult[]
+): SeedImportChain[] {
+  return results.length
+    ? results.map((result) => result.chain)
+    : DEFAULT_IMPORT_CHAINS
+}
+
 export default function RecoverSeed(): React.ReactElement {
   const insets = useSafeAreaInsets()
   const navigation = useNavigation<Nav>()
   const { goHome } = useWalletNav()
   const setSeed = useSetRecoilState(RecoverWalletStore.seed)
   const inputScrollRef = useRef<ScrollView>(null)
+  const scanRunIdRef = useRef(0)
+  const latestScanResultsRef = useRef<ImportWalletDiscoveryResult[]>(
+    []
+  )
 
   const [tab, setTab] = useState<ImportTab>('seed')
   const [screenState, setScreenState] = useState<ScreenState>('input')
@@ -397,6 +437,7 @@ export default function RecoverSeed(): React.ReactElement {
 
   const handleBack = (): void => {
     if (screenState !== 'input') {
+      if (screenState === 'scanning') scanRunIdRef.current += 1
       setScreenState('input')
       return
     }
@@ -422,22 +463,45 @@ export default function RecoverSeed(): React.ReactElement {
   const scanSeed = async (): Promise<void> => {
     if (!isValidSeed) return
 
+    const scanRunId = scanRunIdRef.current + 1
+    scanRunIdRef.current = scanRunId
+    latestScanResultsRef.current = []
     Keyboard.dismiss()
+    setActiveChains([])
+    setSelectedChains(DEFAULT_IMPORT_CHAINS)
     setScreenState('scanning')
     setScanProgress(0)
     const results = await discoverImportWalletChains(
       seedText,
-      setScanProgress
+      (progress) => {
+        if (scanRunIdRef.current === scanRunId) {
+          setScanProgress(progress)
+        }
+      },
+      (result) => {
+        if (scanRunIdRef.current !== scanRunId) return
+        latestScanResultsRef.current = mergeDiscoveryResult(
+          latestScanResultsRef.current,
+          result
+        )
+        setActiveChains(latestScanResultsRef.current)
+      }
     )
-    const discoveredChains = results.map((result) => result.chain)
+    if (scanRunIdRef.current !== scanRunId) return
 
-    setActiveChains(results)
-    setSelectedChains(
-      discoveredChains.length
-        ? discoveredChains
-        : DEFAULT_IMPORT_CHAINS
-    )
-    setScreenState(results.length ? 'found' : 'none')
+    const sortedResults = sortDiscoveryResults(results)
+    latestScanResultsRef.current = sortedResults
+    setActiveChains(sortedResults)
+    setSelectedChains(discoveryChains(sortedResults))
+    setScreenState(sortedResults.length ? 'found' : 'none')
+  }
+
+  const selectChainsManually = (): void => {
+    scanRunIdRef.current += 1
+    const detectedResults = latestScanResultsRef.current
+    setActiveChains(detectedResults)
+    setSelectedChains(discoveryChains(detectedResults))
+    setScreenState('customize')
   }
 
   const continuePrivateKey = (): void => {
@@ -501,7 +565,7 @@ export default function RecoverSeed(): React.ReactElement {
             title="Select chains manually"
             theme="secondaryDark"
             titleFontType="brockmann-medium"
-            onPress={() => setScreenState('customize')}
+            onPress={selectChainsManually}
             containerStyle={styles.ctaButton}
             testID="import-wallet-select-manually"
           />
