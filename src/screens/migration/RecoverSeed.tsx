@@ -138,7 +138,8 @@ function CubeIcon({
   )
 }
 
-function chainInitials(chain: SeedImportChain): string {
+function chainInitials(chain?: SeedImportChain): string {
+  if (!chain) return ''
   if (chain === 'TerraClassic') return 'TC'
   if (chain === 'THORChain') return 'TH'
   if (chain === 'MayaChain') return 'MY'
@@ -151,7 +152,7 @@ function ChainMark({
 }: {
   chain?: SeedImportChain
 }): React.ReactElement {
-  if (chain !== 'Terra' && chain !== 'TerraClassic') {
+  if (chain && chain !== 'Terra' && chain !== 'TerraClassic') {
     return (
       <View style={[styles.chainIcon, styles.genericChainIcon]}>
         <Text
