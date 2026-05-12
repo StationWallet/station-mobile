@@ -31,8 +31,8 @@ import {
   deriveChainKey,
   deriveChainKeyForImport,
   deriveMasterKeys,
-  SEED_IMPORT_DERIVATION_GROUPS,
-  SeedImportChain,
+  getSeedImportDerivationGroups,
+  type SeedImportChain,
 } from './seedPhraseImport'
 import { validatePrivateKey } from './privateKeyImport'
 
@@ -722,26 +722,15 @@ export async function importSeedPhraseToFastVault(options: {
     },
   })
 
-  const chainsToImport = chains?.length
-    ? new Set<SeedImportChain>(chains)
-    : null
-
   const chainPublicKeys = (
     await Promise.all(
-      SEED_IMPORT_DERIVATION_GROUPS.filter(
-        (group) =>
-          !chainsToImport ||
-          group.chains.some((chain) => chainsToImport.has(chain))
-      ).map(async (group): Promise<ImportedSeedChainResult[]> => {
-        const publicKey = await deriveChainPublicKeyForImport(
-          mnemonic,
-          group.representativeChain
-        )
-        return group.chains
-          .filter(
-            (chain) => !chainsToImport || chainsToImport.has(chain)
+      getSeedImportDerivationGroups(chains).map(
+        async (group): Promise<ImportedSeedChainResult[]> => {
+          const publicKey = await deriveChainPublicKeyForImport(
+            mnemonic,
+            group.representativeChain
           )
-          .map((chain) => ({
+          return group.chains.map((chain) => ({
             chain,
             publicKey,
             keyshare:
@@ -750,7 +739,8 @@ export async function importSeedPhraseToFastVault(options: {
                 : '',
             isEddsa: group.isEddsa,
           }))
-      })
+        }
+      )
     )
   ).flat()
 

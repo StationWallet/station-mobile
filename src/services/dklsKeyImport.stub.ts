@@ -9,7 +9,8 @@ import { validatePrivateKey } from './privateKeyImport'
 import {
   deriveChainKeyForImport,
   deriveMasterKeys,
-  SEED_IMPORT_DERIVATION_GROUPS,
+  getSeedImportDerivationGroups,
+  type SeedImportChain,
 } from './seedPhraseImport'
 
 export async function createFastVault(options: {
@@ -107,7 +108,7 @@ export async function importSeedPhraseToFastVault(options: {
   email: string
   password: string
   mnemonic: string
-  chains?: import('./seedPhraseImport').SeedImportChain[]
+  chains?: SeedImportChain[]
   onProgress?: (p: KeyImportProgress) => void
   signal?: AbortSignal
 }): Promise<ImportedSeedFastVaultResult> {
@@ -133,15 +134,8 @@ export async function importSeedPhraseToFastVault(options: {
   }
 
   const master = deriveMasterKeys(mnemonic)
-  const chainsToImport = chains?.length
-    ? new Set<import('./seedPhraseImport').SeedImportChain>(chains)
-    : null
   const importedChains = await Promise.all(
-    SEED_IMPORT_DERIVATION_GROUPS.filter(
-      (group) =>
-        !chainsToImport ||
-        group.chains.some((chain) => chainsToImport.has(chain))
-    ).map(async (group) => {
+    getSeedImportDerivationGroups(chains).map(async (group) => {
       const chainKey = await deriveChainKeyForImport(
         mnemonic,
         group.representativeChain
@@ -150,16 +144,12 @@ export async function importSeedPhraseToFastVault(options: {
         ? `ed-${group.representativeChain}`
         : derivePublicKeyHex(chainKey.privateKey)
 
-      return group.chains
-        .filter(
-          (chain) => !chainsToImport || chainsToImport.has(chain)
-        )
-        .map((chain) => ({
-          chain,
-          publicKey,
-          keyshare: `stub-${chain}-share`,
-          isEddsa: chainKey.isEddsa,
-        }))
+      return group.chains.map((chain) => ({
+        chain,
+        publicKey,
+        keyshare: `stub-${chain}-share`,
+        isEddsa: chainKey.isEddsa,
+      }))
     })
   ).then((results) => results.flat())
 

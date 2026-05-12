@@ -14,7 +14,6 @@ export type ImportWalletDiscoveryResult = {
   chain: SeedImportChain
   address: string
   ticker: string
-  hasBalance: boolean
 }
 
 const DISCOVERY_TIMEOUT_MS = 8000
@@ -110,7 +109,6 @@ export async function discoverImportWalletChains(
         chain: config.chain,
         address,
         ticker: config.ticker,
-        hasBalance,
       })
     }
 

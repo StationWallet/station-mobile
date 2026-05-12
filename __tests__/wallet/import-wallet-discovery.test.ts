@@ -43,7 +43,6 @@ describe('import wallet chain discovery', () => {
         chain: 'Terra',
         ticker: 'LUNA',
         address: 'terra1amdttz2937a3dytmxmkany53pp6ma6dy4vsllv',
-        hasBalance: true,
       },
     ])
     expect(progress).toEqual([0.5, 1])

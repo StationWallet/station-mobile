@@ -173,6 +173,19 @@ export const SEED_IMPORT_DERIVATION_GROUPS: SeedImportDerivationGroup[] =
     isEddsa: isSeedImportEddsaChain(chain),
   }))
 
+export function getSeedImportDerivationGroups(
+  chains?: SeedImportChain[]
+): SeedImportDerivationGroup[] {
+  if (!chains?.length) return SEED_IMPORT_DERIVATION_GROUPS
+
+  const chainsToImport = new Set<SeedImportChain>(chains)
+
+  return SEED_IMPORT_DERIVATION_GROUPS.map((group) => ({
+    ...group,
+    chains: group.chains.filter((chain) => chainsToImport.has(chain)),
+  })).filter((group) => group.chains.length > 0)
+}
+
 const COIN_TYPES: Record<SeedImportChain, number> = {
   Bitcoin: 0,
   Litecoin: 2,
