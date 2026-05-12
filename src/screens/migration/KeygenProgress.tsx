@@ -63,6 +63,7 @@ export default function KeygenProgress(): React.ReactElement {
     password,
     mode,
     privateKeyHex,
+    seedImportChains,
   } = route.params
 
   const [progress, setProgress] = useState(0)
@@ -204,6 +205,7 @@ export default function KeygenProgress(): React.ReactElement {
           email,
           password,
           mnemonic: recoverSeed.join(' '),
+          chains: seedImportChains,
           onProgress: updateProgress,
           signal: controller.signal,
         })

@@ -53,13 +53,10 @@ export default function MigrationHome(): React.ReactElement {
   // re-mount the navigator, and `initialRouteName` is only read once at
   // mount). Push the right screen directly via the local stack nav.
   const startSeedRecoveryFromHere = (): void => {
-    navigation.navigate('RecoverSeed')
+    navigation.navigate('ImportWallet')
   }
   const startImportVaultFromHere = (): void => {
     navigation.navigate('ImportVault')
-  }
-  const startImportPrivateKeyFromHere = (): void => {
-    navigation.navigate('VaultName', { mode: 'import-private-key' })
   }
   const startCreateVaultFromHere = (): void => {
     navigation.navigate('VaultName', { mode: 'create' })
@@ -293,7 +290,6 @@ export default function MigrationHome(): React.ReactElement {
         onCreate={startCreateVaultFromHere}
         onRecover={startSeedRecoveryFromHere}
         onImport={startImportVaultFromHere}
-        onImportPrivateKey={startImportPrivateKeyFromHere}
         // MigrationHome's "Import wallet" entry is for users who already
         // have a wallet — Create would just be a misroute. The shared sheet
         // still defaults to showing it for the WalletList entry.

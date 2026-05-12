@@ -45,6 +45,7 @@ import type {
   ImportedSeedFastVaultResult,
   KeyImportResult,
 } from 'services/dklsKeyImport'
+import type { SeedImportChain } from 'services/seedPhraseImport'
 
 export type MigrationMode =
   | 'migrate'
@@ -71,7 +72,14 @@ export type MigrationStackParams = {
   MigrationHome: undefined
   VaultSetup: undefined
   WalletsFound: undefined
-  VaultName: { mode?: MigrationMode } | undefined
+  VaultName:
+    | {
+        mode?: MigrationMode
+        privateKeyHex?: string
+        seedImportChains?: SeedImportChain[]
+      }
+    | undefined
+  ImportWallet: undefined
   ImportPrivateKey: {
     walletName: string
   }
@@ -81,6 +89,7 @@ export type MigrationStackParams = {
     mode: MigrationMode
     email?: string
     privateKeyHex?: string
+    seedImportChains?: SeedImportChain[]
   }
   VaultPassword: {
     walletName: string
@@ -88,6 +97,7 @@ export type MigrationStackParams = {
     mode: MigrationMode
     email: string
     privateKeyHex?: string
+    seedImportChains?: SeedImportChain[]
   }
   KeygenProgress: {
     walletName: string
@@ -98,6 +108,7 @@ export type MigrationStackParams = {
     email: string
     password: string
     privateKeyHex?: string
+    seedImportChains?: SeedImportChain[]
   }
   VerifyEmail: {
     walletName: string
@@ -158,9 +169,9 @@ export default function MigrationNavigator({
       : initialEntry === 'import-vault'
       ? 'ImportVault'
       : initialEntry === 'import-private-key'
-      ? 'VaultName'
+      ? 'ImportWallet'
       : initialEntry === 'recover-seed-input'
-      ? 'RecoverSeed'
+      ? 'ImportWallet'
       : 'RiveIntro'
   const vaultNameInitialParams =
     initialEntry === 'create-vault'
@@ -209,6 +220,7 @@ export default function MigrationNavigator({
         name="MigrationSuccess"
         component={MigrationSuccess}
       />
+      <Stack.Screen name="ImportWallet" component={RecoverSeed} />
       <Stack.Screen name="RecoverSeed" component={RecoverSeed} />
       <Stack.Screen
         name="LegacyStationWebView"

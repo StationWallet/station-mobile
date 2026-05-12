@@ -31,6 +31,8 @@ export default function VaultName(): React.ReactElement {
   const route = useRoute<Route>()
   const { goHome } = useWalletNav()
   const mode = route.params?.mode ?? 'create'
+  const privateKeyHex = route.params?.privateKeyHex
+  const seedImportChains = route.params?.seedImportChains
   const insets = useSafeAreaInsets()
   const [name, setName] = useState('')
 
@@ -100,7 +102,7 @@ export default function VaultName(): React.ReactElement {
             titleFontType="brockmann-medium"
             onPress={() => {
               const walletName = name.trim()
-              if (mode === 'import-private-key') {
+              if (mode === 'import-private-key' && !privateKeyHex) {
                 navigation.navigate('ImportPrivateKey', {
                   walletName,
                 })
@@ -108,6 +110,8 @@ export default function VaultName(): React.ReactElement {
                 navigation.navigate('VaultEmail', {
                   walletName,
                   mode,
+                  privateKeyHex,
+                  seedImportChains,
                 })
               }
             }}

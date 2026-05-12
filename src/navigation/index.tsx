@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react'
+import { StyleSheet, View } from 'react-native'
 import {
   NavigationContainer,
   DefaultTheme,
@@ -20,6 +21,7 @@ import preferences, {
   PreferencesEnum,
 } from 'nativeModules/preferences'
 import { BYPASS_AUTH_FOR_TESTING } from 'config/env'
+import { MandatoryUpdateBlocker } from 'features/updates'
 
 export { useWalletDisconnected, useWalletNav } from './hooks'
 
@@ -217,6 +219,18 @@ export default function AppNavigator(): React.ReactElement | null {
             <AuthNavigator />
           )}
         </NavigationContainer>
+        {/*
+         * Mandatory-update blocker sits OUTSIDE the NavigationContainer
+         * so it overlays every route, modal, and sheet without depending
+         * on any navigator's stack. Renders null when no OTA is pending;
+         * paints edge-to-edge with its own backgroundColor when active.
+         */}
+        <View
+          style={StyleSheet.absoluteFill}
+          pointerEvents="box-none"
+        >
+          <MandatoryUpdateBlocker />
+        </View>
       </MigrationContext.Provider>
     </WalletNavContext.Provider>
   )

@@ -173,6 +173,33 @@ export const SEED_IMPORT_DERIVATION_GROUPS: SeedImportDerivationGroup[] =
     isEddsa: isSeedImportEddsaChain(chain),
   }))
 
+export function getSeedImportDerivationGroups(
+  chains?: SeedImportChain[]
+): SeedImportDerivationGroup[] {
+  if (!chains?.length) return SEED_IMPORT_DERIVATION_GROUPS
+
+  // Reject unknown chain names rather than silently dropping them. An empty
+  // result from a typo / bad route-params input would produce a fast vault
+  // with no chains — iOS treats chainPublicKeys[] as authoritative for
+  // KeyImport and cannot recover from that without a full re-import.
+  const knownChains = new Set<SeedImportChain>(
+    SEED_IMPORT_DERIVATION_GROUPS.flatMap((g) => g.chains)
+  )
+  const unknown = chains.filter((c) => !knownChains.has(c))
+  if (unknown.length > 0) {
+    throw new Error(
+      `Unknown seed import chains: ${unknown.join(', ')}`
+    )
+  }
+
+  const chainsToImport = new Set<SeedImportChain>(chains)
+
+  return SEED_IMPORT_DERIVATION_GROUPS.map((group) => ({
+    ...group,
+    chains: group.chains.filter((chain) => chainsToImport.has(chain)),
+  })).filter((group) => group.chains.length > 0)
+}
+
 const COIN_TYPES: Record<SeedImportChain, number> = {
   Bitcoin: 0,
   Litecoin: 2,
