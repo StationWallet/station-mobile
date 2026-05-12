@@ -1,5 +1,4 @@
 import { bech32 } from 'bech32'
-import RIPEMD160 from 'ripemd160'
 
 import {
   deriveChainPublicKeyForImport,
@@ -213,12 +212,11 @@ async function deriveCosmosAddress(
   config: DiscoveryChainConfig
 ): Promise<string> {
   const { sha256 } = require('@noble/hashes/sha2.js')
+  const { ripemd160 } = require('@noble/hashes/legacy.js')
   const publicKey = hexToBytes(
     await deriveChainPublicKeyForImport(mnemonic, config.chain)
   )
-  const addressHash = new RIPEMD160()
-    .update(Buffer.from(sha256(publicKey)))
-    .digest()
+  const addressHash = ripemd160(sha256(publicKey))
 
   return bech32.encode(
     config.bech32Prefix!,
