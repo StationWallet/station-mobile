@@ -56,6 +56,7 @@ type ScreenState =
 
 const PRIVATE_KEY_SCROLL_Y = 380
 const IMPORT_ICON_BLUE = '#59bdff'
+const IMPORT_ICON_STROKE_WIDTH = 1.65
 
 function ImportIcon({
   color = IMPORT_ICON_BLUE,
@@ -93,14 +94,14 @@ function ImportIcon({
         <Path
           d="M15.5 11.8 12 15.3l-3.5-3.5M12 14.8V8"
           stroke={color}
-          strokeWidth={2}
+          strokeWidth={IMPORT_ICON_STROKE_WIDTH}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
         <Path
           d="M3 5h7M3 10h4M3 15h3"
           stroke={color}
-          strokeWidth={2}
+          strokeWidth={IMPORT_ICON_STROKE_WIDTH}
           strokeLinecap="round"
         />
       </Svg>
