@@ -16,6 +16,7 @@ import type { StackNavigationProp } from '@react-navigation/stack'
 import Svg, {
   Circle,
   Defs,
+  G,
   Path,
   RadialGradient,
   Stop,
@@ -152,28 +153,169 @@ function ChainMark({
 }: {
   chain?: SeedImportChain
 }): React.ReactElement {
-  if (
-    typeof chain === 'string' &&
-    chain !== 'Terra' &&
-    chain !== 'TerraClassic'
-  ) {
+  if (chain === 'Terra' || chain === 'TerraClassic') {
     return (
-      <View style={[styles.chainIcon, styles.genericChainIcon]}>
-        <Text
-          fontType="brockmann-medium"
-          style={styles.genericChainIconText}
-        >
-          {chainInitials(chain)}
-        </Text>
+      <View style={styles.chainIcon}>
+        <TerraIcon width={24} height={24} />
       </View>
     )
   }
 
+  const mark = renderChainLogo(chain)
+  if (mark) return <View style={styles.chainIcon}>{mark}</View>
+
   return (
-    <View style={styles.chainIcon}>
-      <TerraIcon width={24} height={24} />
+    <View style={[styles.chainIcon, styles.genericChainIcon]}>
+      <Text
+        fontType="brockmann-medium"
+        style={styles.genericChainIconText}
+      >
+        {chainInitials(chain)}
+      </Text>
     </View>
   )
+}
+
+function renderChainLogo(
+  chain?: SeedImportChain
+): React.ReactElement | null {
+  switch (chain) {
+    case 'Ethereum':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Path d="M12 2 6 12l6-3 6 3-6-10Z" fill="#8C8C8C" />
+          <Path d="M12 9 6 12l6 3 6-3-6-3Z" fill="#3C3C3D" />
+          <Path d="M6 13.2 12 22l6-8.8-6 3-6-3Z" fill="#8C8C8C" />
+        </Svg>
+      )
+    case 'Solana':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Path d="M6 6h12l-3 3H3l3-3Z" fill="#14F195" />
+          <Path d="M3 10.5h12l3 3H6l-3-3Z" fill="#9945FF" />
+          <Path d="M6 15h12l-3 3H3l3-3Z" fill="#14F195" />
+        </Svg>
+      )
+    case 'Sui':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Path
+            d="M12 3c2.7 3.4 6 7.2 6 11.1A6 6 0 0 1 6 14.1C6 10.2 9.3 6.4 12 3Z"
+            fill="#6FBCF0"
+          />
+          <Path
+            d="M8.4 14.2c1.8 2.2 4.6 2.5 7.2.5"
+            stroke="#FFFFFF"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            fill="none"
+          />
+        </Svg>
+      )
+    case 'THORChain':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Path d="M15 2 5 13h5l-1 9 10-12h-5l1-8Z" fill="#00E6D0" />
+        </Svg>
+      )
+    case 'MayaChain':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Circle cx={12} cy={12} r={10} fill="#050B1F" />
+          <Path
+            d="M5 16 8 7l4 6 4-6 3 9h-3l-1-4-3 4-3-4-1 4H5Z"
+            fill="#10D4D4"
+          />
+        </Svg>
+      )
+    case 'Cosmos':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Circle cx={12} cy={12} r={3} fill="#FFFFFF" />
+          <G stroke="#6F74DD" strokeWidth={1.4} fill="none">
+            <Path d="M4 12c2.8-4.8 13.2-4.8 16 0-2.8 4.8-13.2 4.8-16 0Z" />
+            <Path d="M8 4c5.5.1 10.7 9.1 8 16-5.5-.1-10.7-9.1-8-16Z" />
+            <Path d="M16 4C10.5 4.1 5.3 13.1 8 20c5.5-.1 10.7-9.1 8-16Z" />
+          </G>
+        </Svg>
+      )
+    case 'Kujira':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Circle cx={12} cy={12} r={10} fill="#111827" />
+          <Path
+            d="M4 13c3-4.8 10.5-6.2 16-3-1.8.1-3 .6-4 1.6 1.7.4 3 1.3 4 2.9-5.6 2.1-11.2 1.8-16-1.5Z"
+            fill="#E53935"
+          />
+        </Svg>
+      )
+    case 'Dydx':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Circle cx={12} cy={12} r={10} fill="#6966FF" />
+          <Path
+            d="M8 17 16 7M7 8l4 4M13 12l4 4"
+            stroke="#FFFFFF"
+            strokeWidth={2}
+            strokeLinecap="round"
+          />
+        </Svg>
+      )
+    case 'Osmosis':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Circle cx={12} cy={12} r={10} fill="#2D0B59" />
+          <Path
+            d="M12 5c3.3 0 6 2.7 6 6 0 4-3.3 7-6 8-2.7-1-6-4-6-8 0-3.3 2.7-6 6-6Z"
+            fill="#B14CFF"
+          />
+          <Circle
+            cx={12}
+            cy={11}
+            r={3}
+            fill="#FFFFFF"
+            opacity={0.9}
+          />
+        </Svg>
+      )
+    case 'Noble':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Circle cx={12} cy={12} r={10} fill="#E8EAED" />
+          <Path
+            d="M7 17V7h3l4 5.6V7h3v10h-3l-4-5.6V17H7Z"
+            fill="#111827"
+          />
+        </Svg>
+      )
+    case 'Akash':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Circle cx={12} cy={12} r={10} fill="#FF414C" />
+          <Path d="M12 5 19 18h-4l-3-6-3 6H5l7-13Z" fill="#FFFFFF" />
+        </Svg>
+      )
+    case 'Ton':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Circle cx={12} cy={12} r={10} fill="#0098EA" />
+          <Path d="M5 8h14l-7 10L5 8Z" fill="#FFFFFF" />
+          <Path d="M8 9h8l-4 6-4-6Z" fill="#0098EA" />
+        </Svg>
+      )
+    case 'Tron':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24">
+          <Circle cx={12} cy={12} r={10} fill="#EB0029" />
+          <Path
+            d="M6 5 19 8.2 11 19 6 5Zm2.3 2.2 3 8.2 1.3-5.6-4.3-2.6Zm5.5 3.1-1.2 5.2 4-5.6-2.8.4ZM9.6 7.4l4.2 2.4 2.5-.4-6.7-2Z"
+            fill="#FFFFFF"
+          />
+        </Svg>
+      )
+    default:
+      return null
+  }
 }
 
 function CopyIcon(): React.ReactElement {
