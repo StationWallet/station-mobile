@@ -555,11 +555,19 @@ export async function importSeedPhraseToFastVault(options: {
   email: string
   password: string
   mnemonic: string
+  chains?: SeedImportChain[]
   onProgress?: (p: KeyImportProgress) => void
   signal?: AbortSignal
 }): Promise<ImportedSeedFastVaultResult> {
-  const { name, email, password, mnemonic, onProgress, signal } =
-    options
+  const {
+    name,
+    email,
+    password,
+    mnemonic,
+    chains,
+    onProgress,
+    signal,
+  } = options
 
   if (STUB_VULTISERVER)
     return stubDkls.importSeedPhraseToFastVault(options)
@@ -714,15 +722,26 @@ export async function importSeedPhraseToFastVault(options: {
     },
   })
 
+  const chainsToImport = chains?.length
+    ? new Set<SeedImportChain>(chains)
+    : null
+
   const chainPublicKeys = (
     await Promise.all(
-      SEED_IMPORT_DERIVATION_GROUPS.map(
-        async (group): Promise<ImportedSeedChainResult[]> => {
-          const publicKey = await deriveChainPublicKeyForImport(
-            mnemonic,
-            group.representativeChain
+      SEED_IMPORT_DERIVATION_GROUPS.filter(
+        (group) =>
+          !chainsToImport ||
+          group.chains.some((chain) => chainsToImport.has(chain))
+      ).map(async (group): Promise<ImportedSeedChainResult[]> => {
+        const publicKey = await deriveChainPublicKeyForImport(
+          mnemonic,
+          group.representativeChain
+        )
+        return group.chains
+          .filter(
+            (chain) => !chainsToImport || chainsToImport.has(chain)
           )
-          return group.chains.map((chain) => ({
+          .map((chain) => ({
             chain,
             publicKey,
             keyshare:
@@ -731,8 +750,7 @@ export async function importSeedPhraseToFastVault(options: {
                 : '',
             isEddsa: group.isEddsa,
           }))
-        }
-      )
+      })
     )
   ).flat()
 

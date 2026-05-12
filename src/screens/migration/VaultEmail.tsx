@@ -30,6 +30,7 @@ export default function VaultEmail(): React.ReactElement {
     wallets,
     email: prefillEmail,
     privateKeyHex,
+    seedImportChains,
   } = route.params
 
   const [email, setEmail] = useState(prefillEmail ?? '')
@@ -103,6 +104,7 @@ export default function VaultEmail(): React.ReactElement {
                 wallets,
                 email,
                 privateKeyHex,
+                seedImportChains,
               })
             }}
             containerStyle={formStyles.ctaButton}

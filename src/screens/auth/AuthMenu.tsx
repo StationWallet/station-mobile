@@ -71,7 +71,7 @@ const AuthMenu = ({
             onPress={startSeedRecoveryInput}
           >
             <Text style={styles.secondaryButtonText}>
-              Recover Wallet
+              Import Wallet
             </Text>
           </TouchableOpacity>
 

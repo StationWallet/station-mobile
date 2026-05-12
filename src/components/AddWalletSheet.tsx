@@ -43,11 +43,18 @@ function PlusCircleIcon(): React.ReactElement {
   )
 }
 
-function SeedPhraseIcon(): React.ReactElement {
+function ImportWalletIcon(): React.ReactElement {
   return (
     <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
       <Path
-        d="M3 5h14M3 10h14M3 15h10"
+        d="M15.5 11.8 12 15.3l-3.5-3.5M12 14.8V8"
+        stroke={ICON_BLUE}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M3 5h7M3 10h4M3 15h3"
         stroke={ICON_BLUE}
         strokeWidth={1.5}
         strokeLinecap="round"
@@ -74,33 +81,12 @@ function VaultShareIcon(): React.ReactElement {
   )
 }
 
-function KeyIcon(): React.ReactElement {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-      <Circle
-        cx={7}
-        cy={10}
-        r={3}
-        stroke={ICON_BLUE}
-        strokeWidth={1.5}
-      />
-      <Path
-        d="M10 10h7M14 10v3M17 10v2"
-        stroke={ICON_BLUE}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-      />
-    </Svg>
-  )
-}
-
 type Props = {
   visible: boolean
   onDismiss: () => void
   onCreate: () => void
   onRecover: () => void
   onImport: () => void
-  onImportPrivateKey: () => void
   // When false, the "Create new wallet" card is hidden. Used by the
   // import-wallet entry on MigrationHome where the user already declared
   // they have an existing wallet — Create would just be a misroute.
@@ -113,7 +99,6 @@ export default function AddWalletSheet({
   onCreate,
   onRecover,
   onImport,
-  onImportPrivateKey,
   showCreate = true,
 }: Props): React.ReactElement {
   const insets = useSafeAreaInsets()
@@ -219,54 +204,29 @@ export default function AddWalletSheet({
             </Pressable>
           )}
 
-          {/* Recover / convert seedphrase card */}
+          {/* Import seed phrase / private key card */}
           <Pressable
             testID="add-wallet-recover"
             accessibilityRole="button"
-            accessibilityLabel="Recover wallet from seed phrase"
+            accessibilityLabel="Import wallet"
             style={styles.card}
             onPress={dismissAnd(onRecover)}
           >
             <View style={styles.cardTitleRow}>
-              <SeedPhraseIcon />
+              <ImportWalletIcon />
               <Text
                 fontType="brockmann-medium"
                 style={styles.cardTitle}
               >
-                Recover wallet
+                Import wallet
               </Text>
             </View>
             <Text
               fontType="brockmann-medium"
               style={styles.cardSubtitle}
             >
-              Enter your seed phrase to recover or convert a legacy
-              wallet into a vault.
-            </Text>
-          </Pressable>
-
-          {/* Import private key card */}
-          <Pressable
-            testID="add-wallet-import-private-key"
-            accessibilityRole="button"
-            accessibilityLabel="Import private key"
-            style={styles.card}
-            onPress={dismissAnd(onImportPrivateKey)}
-          >
-            <View style={styles.cardTitleRow}>
-              <KeyIcon />
-              <Text
-                fontType="brockmann-medium"
-                style={styles.cardTitle}
-              >
-                Import private key
-              </Text>
-            </View>
-            <Text
-              fontType="brockmann-medium"
-              style={styles.cardSubtitle}
-            >
-              Convert a Terra private key into a Terra-only vault.
+              Enter your seed phrase or Terra private key to migrate
+              an existing wallet into Vultisig.
             </Text>
           </Pressable>
 

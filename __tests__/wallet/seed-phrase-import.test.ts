@@ -4,6 +4,7 @@ import {
   SEED_IMPORT_DERIVATION_GROUPS,
   validateSeedPhrase,
 } from 'services/seedPhraseImport'
+import { importSeedPhraseToFastVault } from 'services/dklsKeyImport.stub'
 
 const TREZOR_12 =
   'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
@@ -76,5 +77,19 @@ describe('seed phrase import derivation', () => {
         (group) => group.isEddsa
       ).map((group) => group.representativeChain)
     ).toEqual(['Solana', 'Sui', 'Ton', 'Polkadot', 'Bittensor'])
+  })
+
+  it('can limit stubbed seed imports to selected chains', async () => {
+    const result = await importSeedPhraseToFastVault({
+      name: 'Selected Chains',
+      email: 'test@example.com',
+      password: 'password',
+      mnemonic: TREZOR_12,
+      chains: ['Terra'],
+    })
+
+    expect(result.importedChains.map((chain) => chain.chain)).toEqual(
+      ['Terra']
+    )
   })
 })
