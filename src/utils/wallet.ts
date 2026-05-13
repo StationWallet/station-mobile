@@ -1,4 +1,6 @@
 import { MnemonicKey } from '@terra-money/terra.js'
+import * as SecureStore from 'expo-secure-store'
+
 import { encrypt, decrypt } from './crypto'
 import _ from 'lodash'
 
@@ -13,6 +15,11 @@ import {
   getCachedSpaWallets,
   getUniqueSpaWalletName,
 } from 'services/spaWalletCache'
+import {
+  getStoredVaultTerraAddress,
+  VAULT_STORE_OPTS,
+  vaultStoreKey,
+} from 'services/migrateToVault'
 
 const sanitize = (s = ''): string =>
   s.toLowerCase().replace(/[^a-z]/g, '')
@@ -101,11 +108,31 @@ export const getWallets = async (): Promise<LocalWallet[]> => {
   })
 
   // Append legacy Terra Station SPA wallets that live in WebView localStorage
-  // but have not yet been migrated into our native authData. We key on Terra
-  // address so the same wallet isn't shown twice (e.g. when a user has
-  // already started the migration but not finished).
+  // but have not yet been migrated into our native authData. We dedup so
+  // the same wallet isn't shown twice (e.g. when a user has already started
+  // the migration but not finished).
+  //
+  // The authData entry's `address` field is only populated for legacy
+  // private-key migrations; seed-imported and freshly-created Fast Vaults
+  // write `address: ''` (see storeFastVault). For those, we recover the
+  // wallet's Terra address from the stored vault proto's chainPublicKeys[]
+  // (the Terra entry's compressed secp256k1 pubkey → bech32 'terra' HRP).
+  // Without this second source, getWallets returns both the migrated Fast
+  // Vault and the SPA-legacy entry pointing at the same Terra address.
   const spaCache = await getCachedSpaWallets()
-  const knownAddresses = new Set(native.map((w) => w.address))
+  const knownAddresses = new Set(
+    native
+      .map((w) => w.address)
+      .filter((a): a is string => Boolean(a))
+  )
+  const derivedAddresses = await Promise.all(
+    native.map(async (w) =>
+      w.address ? null : await getStoredVaultTerraAddress(w.name)
+    )
+  )
+  for (const addr of derivedAddresses) {
+    if (addr) knownAddresses.add(addr)
+  }
   const knownNames = new Set(native.map((w) => w.name))
   const spaWallets: LocalWallet[] = spaCache
     .filter((w) => !knownAddresses.has(w.address))
@@ -195,6 +222,16 @@ export const deleteWallet = async ({
 }: {
   walletName: string
 }): Promise<boolean> => {
+  // Remove the stored vault proto BEFORE the authData entry, so a crash
+  // between the two doesn't leave an orphan proto. An orphan proto would
+  // resurface if an SPA-legacy wallet with the same name later got
+  // surfaced by getWallets() — getVaultKind() would read the orphan and
+  // misclassify the SPA entry as a 'fast'/'multi-share' vault, showing
+  // the wrong chip and suppressing Export/Delete buttons.
+  await SecureStore.deleteItemAsync(
+    vaultStoreKey(walletName),
+    VAULT_STORE_OPTS
+  )
   return await removeAuthData({ walletName })
 }
 
