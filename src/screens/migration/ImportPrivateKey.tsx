@@ -20,6 +20,7 @@ import {
   validatePrivateKey,
   type ValidatedPrivateKey,
 } from 'services/privateKeyImport'
+import { detectRecoveryPayload } from 'utils/qrCode'
 
 type Nav = StackNavigationProp<
   MigrationStackParams,
@@ -30,20 +31,31 @@ type Route = RouteProp<MigrationStackParams, 'ImportPrivateKey'>
 export default function ImportPrivateKey(): React.ReactElement {
   const navigation = useNavigation<Nav>()
   const route = useRoute<Route>()
-  const { walletName } = route.params
+  const { walletName, recoveryDeeplink: initialDeeplink } =
+    route.params
   const insets = useSafeAreaInsets()
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState(initialDeeplink ?? '')
+
+  const trimmedValue = value.trim()
+
+  const recoveryDeeplink =
+    useMemo<RecoverWalletSchemeDataType | null>(
+      () => detectRecoveryPayload(trimmedValue),
+      [trimmedValue]
+    )
 
   const validated = useMemo<ValidatedPrivateKey | null>(() => {
-    if (!value.trim()) return null
+    if (!trimmedValue) return null
+    if (recoveryDeeplink) return null
     try {
-      return validatePrivateKey(value)
+      return validatePrivateKey(trimmedValue)
     } catch {
       return null
     }
-  }, [value])
+  }, [trimmedValue, recoveryDeeplink])
 
-  const showError = value.trim().length > 0 && !validated
+  const canContinue = validated !== null || recoveryDeeplink !== null
+  const showError = trimmedValue.length > 0 && !canContinue
 
   return (
     <View style={formStyles.container}>
@@ -63,7 +75,8 @@ export default function ImportPrivateKey(): React.ReactElement {
             Import private key
           </Text>
           <Text style={formStyles.subtitle} fontType="brockmann">
-            This imports a Terra private key only. Use seed phrase
+            Paste a Terra private key, or a Station recovery link
+            exported from the legacy Station app. Use seed phrase
             recovery for a multichain wallet.
           </Text>
 
@@ -81,7 +94,8 @@ export default function ImportPrivateKey(): React.ReactElement {
 
           {showError ? (
             <Text style={styles.errorText} fontType="brockmann">
-              Enter a valid 64-character hex private key.
+              Paste a 64-character hex private key, or a Station
+              recovery link (terrastation://wallet_recover/…).
             </Text>
           ) : null}
 
@@ -102,6 +116,31 @@ export default function ImportPrivateKey(): React.ReactElement {
               </Text>
             </View>
           ) : null}
+
+          {recoveryDeeplink ? (
+            <View style={styles.preview}>
+              <Text
+                fontType="brockmann-medium"
+                style={styles.previewLabel}
+              >
+                Station recovery link detected
+              </Text>
+              <Text
+                fontType="brockmann-medium"
+                style={styles.previewAddress}
+                numberOfLines={1}
+              >
+                {recoveryDeeplink.name}
+              </Text>
+              <Text
+                fontType="brockmann"
+                style={styles.previewAddress}
+                numberOfLines={2}
+              >
+                {recoveryDeeplink.address}
+              </Text>
+            </View>
+          ) : null}
         </Animated.View>
 
         <View
@@ -115,8 +154,16 @@ export default function ImportPrivateKey(): React.ReactElement {
             title="Continue"
             theme="ctaBlue"
             titleFontType="brockmann-medium"
-            disabled={!validated}
+            disabled={!canContinue}
             onPress={() => {
+              if (recoveryDeeplink) {
+                navigation.navigate('LegacyMigrate', {
+                  walletName,
+                  address: recoveryDeeplink.address,
+                  encrypted: recoveryDeeplink.encrypted_key,
+                })
+                return
+              }
               if (!validated) return
               navigation.navigate('VaultEmail', {
                 walletName,
