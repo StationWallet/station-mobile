@@ -2,9 +2,6 @@ import { toBinary, fromBinary, create } from '@bufbuild/protobuf'
 import { base64 } from '@scure/base'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { bech32 } from 'bech32'
-// @noble/hashes 2.x dropped ripemd160 from its surface; the standalone
-// `ripemd160` package ships an OO API (`new RIPEMD160().update(...).digest()`).
-import RIPEMD160 from 'ripemd160'
 import * as SecureStore from 'expo-secure-store'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
@@ -200,6 +197,15 @@ function terraAddressFromCompressedSecp256k1Hex(
       pubKeyBytes[i] = parseInt(cleanHex.slice(i * 2, i * 2 + 2), 16)
     }
 
+    // Lazy-require RIPEMD160 specifically — its module body pulls in
+    // `hash-base` and `buffer`, both of which touch Node-style Buffer
+    // internals at load time. With Hermes/Metro, importing this at the
+    // top of the file blows up at runtime startup with
+    // `Cannot read property 'slice' of undefined` (the Buffer polyfill
+    // isn't ready when this module is initialized). @noble/hashes/sha2
+    // and bech32 are RN-safe and stay as static imports above.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- intentional lazy load, see above
+    const RIPEMD160 = require('ripemd160')
     const sha = sha256(pubKeyBytes)
     const ripe: Uint8Array = new RIPEMD160()
       .update(Buffer.from(sha))
