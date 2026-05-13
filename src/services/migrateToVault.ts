@@ -8,6 +8,7 @@ import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
 import { LibType } from '../proto/vultisig/keygen/v1/lib_type_message_pb'
 import {
   getAuthData,
+  removeAuthData,
   upsertAuthData,
   AuthDataValueType,
   LedgerDataValueType,
@@ -218,8 +219,54 @@ function terraAddressFromCompressedSecp256k1Hex(
 }
 
 /**
+ * Thrown when storeFastVault refuses to overwrite an existing wallet
+ * because doing so would clobber an unmigrated legacy Terra-only key.
+ * Surfaced verbatim in VerifyEmail's catch block so the user sees a
+ * specific message instead of silently landing in the success flow with
+ * no wallet in their list.
+ *
+ * Other collision cases (orphan proto with no authData entry, or a name
+ * that previously held a non-Terra-only Fast Vault / seed-import) are
+ * allowed to overwrite — see the policy at the top of storeFastVault.
+ */
+export class StoreFastVaultNameTakenError extends Error {
+  constructor(walletName: string) {
+    super(
+      `A legacy wallet named "${walletName}" is still on this device. Choose a different name so the existing wallet's key isn't overwritten.`
+    )
+    this.name = 'StoreFastVaultNameTakenError'
+  }
+}
+
+/**
  * Stores a DKLS fast vault and deletes the legacy auth data entry.
  * Only deletes legacy data after verifying the vault reads back correctly.
+ *
+ * Name-collision policy (resolved against current SecureStore + authData):
+ *
+ *   | proto    | authData                       | behavior                  |
+ *   |----------|--------------------------------|---------------------------|
+ *   | absent   | absent                         | write — fresh name        |
+ *   | present  | absent                         | OVERWRITE (orphan ghost)  |
+ *   | present  | terraOnly: true (legacy)       | THROW — protect legacy    |
+ *   | present  | non-Terra-only (Fast Vault…)   | OVERWRITE (per product)   |
+ *   | absent   | present                        | write — finishing prior   |
+ *                                                  partial migration         |
+ *
+ * Rationale for the OVERWRITE rows:
+ *  - Orphan proto: a stored vault with no authData entry is inaccessible
+ *    from the UI (nothing lists it) but used to permanently block the
+ *    name. That's the worst-of-both-worlds state. Overwrite recovers it.
+ *  - Non-Terra-only re-import: per product call, a user re-importing a
+ *    name they previously used for a Fast Vault / seed-import is
+ *    intentionally replacing the old vault. The old keyshare is opaque
+ *    MPC material — if the new import succeeds, the old material is no
+ *    longer accessible from any client anyway (server share rotated).
+ *
+ * Rationale for the THROW row:
+ *  - Legacy Terra-only wallets have raw key material the user might still
+ *    need (this device's authData entry holds the encrypted Terra private
+ *    key). Silently overwriting would destroy unmigrated funds.
  */
 export async function storeFastVault(
   walletName: string,
@@ -228,12 +275,37 @@ export async function storeFastVault(
     | CreatedFastVaultResult
     | ImportedSeedFastVaultResult
 ): Promise<void> {
-  if ((await getStoredVault(walletName)) !== null) {
-    // eslint-disable-next-line no-console -- important diagnostic for double-migration attempts
+  const existingProto = await getStoredVault(walletName)
+  const existingAuthData = (await getAuthData())?.[walletName]
+  const isLegacyTerraOnly =
+    existingAuthData !== undefined &&
+    !existingAuthData.ledger &&
+    (existingAuthData as AuthDataValueType).terraOnly === true &&
+    (existingAuthData as AuthDataValueType).encryptedKey.length > 0
+
+  if (existingProto !== null && isLegacyTerraOnly) {
+    throw new StoreFastVaultNameTakenError(walletName)
+  }
+
+  if (existingProto !== null) {
+    // Either an orphan proto (no authData) or a non-Terra-only entry
+    // (Fast Vault / seed-import the user is intentionally replacing).
+    // Both overwrite paths are safe; log so we have a trail when QA
+    // hits an orphan recovery.
+    // eslint-disable-next-line no-console -- diagnostic for orphan / re-import paths
     console.warn(
-      `[storeFastVault] ${walletName} already migrated, skipping`
+      `[storeFastVault] ${walletName} has a prior stored vault (authData=${
+        existingAuthData === undefined ? 'absent' : 'present'
+      }); overwriting`
     )
-    return
+    // Clear the stale authData entry so the rest of this function takes
+    // the "fresh wallet" path below (the `!existing` branch). Otherwise
+    // we'd hit the "migration" branch which preserves the prior entry's
+    // address + terraOnly flag — incorrect for the re-import case where
+    // the address derived from the new vault is what we want.
+    if (existingAuthData !== undefined) {
+      await removeAuthData({ walletName })
+    }
   }
 
   const isSeedImportVault = 'importedChains' in result
