@@ -61,7 +61,7 @@ function assertImportableFastVault(vault: {
   // GG20 is rejected (legacy, different signing math).
   if (vault.libType === LibType.GG20) {
     throw new Error(
-      'GG20 vault backups are not supported. Only DKLS-based vaults can be imported.'
+      'Currently only Fast Vaults are supported. Please import a Fast Vault.'
     )
   }
 
@@ -72,8 +72,13 @@ function assertImportableFastVault(vault: {
   }
 
   if (!vault.signers.some(isServerPartyId)) {
+    // Triggered by Secure Vault backups (2+ device shares, no Vultisig
+    // server signer) and by any other multi-share vault topology that
+    // isn't a Fast Vault. Use Fast/Secure Vault terminology consistently
+    // with the rest of the product instead of describing the underlying
+    // signer-set internals.
     throw new Error(
-      'This vault has no server-side Vultisig share. Multi-share vaults cannot be used in Station.'
+      'Currently only Fast Vaults are supported. Please import a Fast Vault.'
     )
   }
 }
