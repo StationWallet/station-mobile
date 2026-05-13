@@ -1,5 +1,7 @@
 import { toBinary, fromBinary, create } from '@bufbuild/protobuf'
 import { base64 } from '@scure/base'
+import { sha256 } from '@noble/hashes/sha2.js'
+import { bech32 } from 'bech32'
 import * as SecureStore from 'expo-secure-store'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
@@ -142,6 +144,77 @@ export async function getStoredVault(
     vaultStoreKey(walletName),
     VAULT_STORE_OPTS
   )
+}
+
+/**
+ * Returns the Terra (terra1...) address embedded in a stored vault's
+ * chainPublicKeys, or null if the stored vault has no Terra entry / no
+ * stored vault exists / the proto fails to parse.
+ *
+ * Used by getWallets() to deduplicate SPA-legacy wallets against fully
+ * migrated vaults whose authData entry was written with an empty `address`
+ * field (the case for seed-imported and freshly-created Fast Vaults — see
+ * storeFastVault). Without this, the SPA-legacy entry surfaces as a second
+ * card pointing at the same Terra address as the seed-imported vault.
+ */
+export async function getStoredVaultTerraAddress(
+  walletName: string
+): Promise<string | null> {
+  const stored = await getStoredVault(walletName)
+  if (!stored) return null
+  try {
+    const decoded = fromBinary(VaultSchema, base64.decode(stored))
+    const terraEntry = decoded.chainPublicKeys.find(
+      (entry) =>
+        entry.chain === 'Terra' || entry.chain === 'TerraClassic'
+    )
+    if (!terraEntry?.publicKey) return null
+    return terraAddressFromCompressedSecp256k1Hex(
+      terraEntry.publicKey
+    )
+  } catch {
+    return null
+  }
+}
+
+function terraAddressFromCompressedSecp256k1Hex(
+  publicKeyHex: string
+): string | null {
+  try {
+    const cleanHex = publicKeyHex.startsWith('0x')
+      ? publicKeyHex.slice(2)
+      : publicKeyHex
+    // 33-byte (66 hex char) compressed secp256k1 pubkey starting with
+    // 0x02 or 0x03. Reject anything else explicitly so an uncompressed
+    // pubkey, garbage bytes that happen to be 66 chars, or a hex string
+    // with non-hex characters doesn't silently fall back to "null Terra
+    // address" — which would look identical to "no Terra entry" upstream
+    // and could mask data corruption.
+    if (cleanHex.length !== 66) return null
+    if (!/^0[23][0-9a-fA-F]{64}$/.test(cleanHex)) return null
+    const pubKeyBytes = new Uint8Array(cleanHex.length / 2)
+    for (let i = 0; i < pubKeyBytes.length; i++) {
+      pubKeyBytes[i] = parseInt(cleanHex.slice(i * 2, i * 2 + 2), 16)
+    }
+
+    // Lazy-require RIPEMD160 specifically — its module body pulls in
+    // `hash-base` and `buffer`, both of which touch Node-style Buffer
+    // internals at load time. With Hermes/Metro, importing this at the
+    // top of the file blows up at runtime startup with
+    // `Cannot read property 'slice' of undefined` (the Buffer polyfill
+    // isn't ready when this module is initialized). @noble/hashes/sha2
+    // and bech32 are RN-safe and stay as static imports above.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- intentional lazy load, see above
+    const RIPEMD160 = require('ripemd160')
+    const sha = sha256(pubKeyBytes)
+    const ripe: Uint8Array = new RIPEMD160()
+      .update(Buffer.from(sha))
+      .digest()
+    const words = bech32.toWords(ripe)
+    return bech32.encode('terra', words)
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -293,13 +366,29 @@ export async function storeFastVault(
   } else if (!existing) {
     // New vault creation/import: register in authData so getWallets() can find it.
     // Single-key imports are Terra-only, matching migrated legacy private-key vaults.
+    //
+    // For seed-imported Fast Vaults we populate the Terra address derived
+    // from the result.importedChains Terra entry's compressed secp256k1
+    // pubkey. This lets getWallets() dedup the SPA-legacy entry against
+    // this wallet by address; without it the SPA cache surfaces a duplicate
+    // "Terra only" card pointing at the same Terra address as the Fast
+    // Vault. Falls back to '' if the Terra entry is missing or address
+    // derivation fails (defensive — the SPA dedup still has the proto-side
+    // fallback in getWallets via getStoredVaultTerraAddress).
+    const seedImportTerraAddress = isSeedImportVault
+      ? deriveSeedImportTerraAddress(
+          result as ImportedSeedFastVaultResult
+        )
+      : ''
+
     await upsertAuthData({
       authData: {
         [walletName]: {
-          address:
-            !isCreatedVault && !isSeedImportVault
-              ? legacyResult.terraAddress
-              : '',
+          address: isSeedImportVault
+            ? seedImportTerraAddress
+            : !isCreatedVault
+            ? legacyResult.terraAddress
+            : '',
           encryptedKey: '',
           password: '',
           ledger: false,
@@ -310,6 +399,19 @@ export async function storeFastVault(
       },
     })
   }
+}
+
+function deriveSeedImportTerraAddress(
+  result: ImportedSeedFastVaultResult
+): string {
+  const terraEntry = result.importedChains.find(
+    (chain) =>
+      chain.chain === 'Terra' || chain.chain === 'TerraClassic'
+  )
+  if (!terraEntry?.publicKey) return ''
+  return (
+    terraAddressFromCompressedSecp256k1Hex(terraEntry.publicKey) ?? ''
+  )
 }
 
 /**

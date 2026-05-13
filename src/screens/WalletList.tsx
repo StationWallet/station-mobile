@@ -8,7 +8,7 @@ import {
 import type { NavigationProp } from '@react-navigation/native'
 import type { StackNavigationProp } from '@react-navigation/stack'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useQueries } from 'react-query'
+import { useQueries, useQueryClient } from 'react-query'
 
 import { useWalletNav } from 'navigation/hooks'
 import { settings } from 'utils/storage'
@@ -47,6 +47,7 @@ export default function WalletList(): React.ReactElement {
     startSeedRecoveryInput,
     startImportVault,
   } = useWalletNav()
+  const queryClient = useQueryClient()
 
   // Refresh the list of wallets on focus so returning from the
   // migration flow (e.g. "Migrate another wallet" on MigrationSuccess)
@@ -175,6 +176,16 @@ export default function WalletList(): React.ReactElement {
 
   const handleDelete = async (wallet: LocalWallet): Promise<void> => {
     await deleteWallet({ walletName: wallet.name })
+    // Drop the cached vault-kind for this wallet before reloading. Without
+    // this, react-query keeps the pre-delete 'fast' value (staleTime is 30s)
+    // and if an SPA-legacy entry with the same name resurfaces immediately
+    // afterwards, the WalletCard renders the "Fast Vault" chip for it
+    // until the cache goes stale — instead of correctly showing the
+    // "Migrate to a vault" CTA from a fresh getVaultKind() that would
+    // return 'none' (deleteWallet just removed the stored proto).
+    // Same goes for the broken-derivation banner.
+    queryClient.removeQueries(['vaultKind', wallet.name])
+    queryClient.removeQueries(['brokenDerivation', wallet.name])
     await onWalletDisconnected()
   }
 
