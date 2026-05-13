@@ -207,7 +207,7 @@ describe('importVaultBackup — eligibility', () => {
         content,
         fileName: 'multi-share.vult',
       })
-    ).toThrow(/no server-side Vultisig share/i)
+    ).toThrow(/only Fast Vaults are supported/i)
   })
 
   it('rejects server-side vault shares', () => {
@@ -260,6 +260,6 @@ describe('importVaultBackup — eligibility', () => {
         content,
         fileName: 'gg20.vult',
       })
-    ).toThrow(/GG20 vault backups are not supported/i)
+    ).toThrow(/only Fast Vaults are supported/i)
   })
 })
