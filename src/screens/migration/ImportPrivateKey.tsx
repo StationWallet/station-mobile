@@ -38,10 +38,11 @@ export default function ImportPrivateKey(): React.ReactElement {
 
   const trimmedValue = value.trim()
 
-  const recoveryDeeplink = useMemo<RecoverWalletSchemeDataType | null>(
-    () => detectRecoveryPayload(trimmedValue),
-    [trimmedValue]
-  )
+  const recoveryDeeplink =
+    useMemo<RecoverWalletSchemeDataType | null>(
+      () => detectRecoveryPayload(trimmedValue),
+      [trimmedValue]
+    )
 
   const validated = useMemo<ValidatedPrivateKey | null>(() => {
     if (!trimmedValue) return null
