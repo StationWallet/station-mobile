@@ -218,6 +218,26 @@ function terraAddressFromCompressedSecp256k1Hex(
 }
 
 /**
+ * Thrown when storeFastVault refuses to write because another vault is
+ * already stored under the same wallet name. Surfaced verbatim in
+ * VerifyEmail so the user sees "this name is taken" instead of getting
+ * silently dropped into the success flow with no vault in their list.
+ *
+ * Prior behavior silently returned (only logging via console.warn), which
+ * routed the user to BackupVault/MigrationSuccess as if everything worked
+ * — but the freshly-generated MPC keyshare was thrown away and the wallet
+ * never appeared in WalletList.
+ */
+export class StoreFastVaultNameTakenError extends Error {
+  constructor(walletName: string) {
+    super(
+      `A vault named "${walletName}" already exists on this device. Choose a different name and try again.`
+    )
+    this.name = 'StoreFastVaultNameTakenError'
+  }
+}
+
+/**
  * Stores a DKLS fast vault and deletes the legacy auth data entry.
  * Only deletes legacy data after verifying the vault reads back correctly.
  */
@@ -229,11 +249,14 @@ export async function storeFastVault(
     | ImportedSeedFastVaultResult
 ): Promise<void> {
   if ((await getStoredVault(walletName)) !== null) {
-    // eslint-disable-next-line no-console -- important diagnostic for double-migration attempts
-    console.warn(
-      `[storeFastVault] ${walletName} already migrated, skipping`
-    )
-    return
+    // Surface the collision instead of silently dropping the keyshare —
+    // a silent skip routes the user through the success flow with no
+    // wallet to show for it (which is exactly the "I imported but
+    // nothing appears" bug). VerifyEmail's catch block surfaces the
+    // error verbatim via Alert.alert; the user can pick a different
+    // name and retry without losing access (the legacy on-device key
+    // is still intact because authData wasn't touched).
+    throw new StoreFastVaultNameTakenError(walletName)
   }
 
   const isSeedImportVault = 'importedChains' in result

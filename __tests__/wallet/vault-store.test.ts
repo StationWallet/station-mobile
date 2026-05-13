@@ -3,7 +3,11 @@ import { base64 } from '@scure/base'
 
 import { __reset as resetSecure } from '../__mocks__/expo-secure-store'
 import { persistImportedVault } from 'services/importVaultBackup'
-import { getStoredVault, storeFastVault } from 'services/migrateToVault'
+import {
+  getStoredVault,
+  storeFastVault,
+  StoreFastVaultNameTakenError,
+} from 'services/migrateToVault'
 import { getAuthData } from 'utils/authData'
 import { VaultSchema } from '../../src/proto/vultisig/vault/v1/vault_pb'
 import { LibType } from '../../src/proto/vultisig/keygen/v1/lib_type_message_pb'
@@ -91,11 +95,13 @@ describe('storeFastVault', () => {
       { publicKey: '02terra', keyshare: 'opaque-terra-share' },
     ])
     expect(
-      restored.chainPublicKeys.map(({ chain, publicKey, isEddsa }) => ({
-        chain,
-        publicKey,
-        isEddsa,
-      }))
+      restored.chainPublicKeys.map(
+        ({ chain, publicKey, isEddsa }) => ({
+          chain,
+          publicKey,
+          isEddsa,
+        })
+      )
     ).toEqual([
       { chain: 'Terra', publicKey: '02terra', isEddsa: false },
     ])
@@ -181,11 +187,13 @@ describe('storeFastVault', () => {
     expect(restored.publicKeyEddsa).toBe('edroot')
     expect(restored.hexChainCode).toBe('2'.repeat(64))
     expect(
-      restored.chainPublicKeys.map(({ chain, publicKey, isEddsa }) => ({
-        chain,
-        publicKey,
-        isEddsa,
-      }))
+      restored.chainPublicKeys.map(
+        ({ chain, publicKey, isEddsa }) => ({
+          chain,
+          publicKey,
+          isEddsa,
+        })
+      )
     ).toEqual([
       { chain: 'Ethereum', publicKey: '02eth', isEddsa: false },
       { chain: 'Terra', publicKey: '02terra', isEddsa: false },
@@ -206,5 +214,45 @@ describe('storeFastVault', () => {
       { publicKey: '02eth', keyshare: 'eth-share' },
       { publicKey: '02terra', keyshare: 'terra-share' },
     ])
+  })
+
+  it('throws StoreFastVaultNameTakenError when a vault with the same name already exists', async () => {
+    // Simulate the bug we hit in production: a vault proto for "Mm" was
+    // left in SecureStore by a prior import attempt. A new seed-import
+    // with the same name used to silently no-op here, routing the user
+    // through the success flow with no wallet to show for it. Now we
+    // throw a typed error so VerifyEmail can surface it via Alert.
+    await storeFastVault('Mm', {
+      publicKey: '02root',
+      publicKeyEcdsa: '02root',
+      publicKeyEddsa: 'edroot',
+      keyshareEcdsa: 'first-ecdsa',
+      keyshareEddsa: 'first-eddsa',
+      chainCode: '2'.repeat(64),
+      localPartyId: 'Device',
+      serverPartyId: 'Server',
+    })
+
+    // Confirm first write landed so the precondition for the bug is real.
+    expect(await getStoredVault('Mm')).toBeTruthy()
+
+    await expect(
+      storeFastVault('Mm', {
+        publicKey: '03other',
+        publicKeyEcdsa: '03other',
+        publicKeyEddsa: 'edother',
+        keyshareEcdsa: 'second-ecdsa',
+        keyshareEddsa: 'second-eddsa',
+        chainCode: '3'.repeat(64),
+        localPartyId: 'Device',
+        serverPartyId: 'Server',
+      })
+    ).rejects.toBeInstanceOf(StoreFastVaultNameTakenError)
+
+    // First vault must remain intact — the failed second call shouldn't
+    // overwrite or corrupt the keyshare of the original.
+    const stored = await getStoredVault('Mm')
+    const restored = fromBinary(VaultSchema, base64.decode(stored!))
+    expect(restored.publicKeyEcdsa).toBe('02root')
   })
 })
