@@ -22,12 +22,12 @@ type SuccessResult = Extract<
   { needsPassword: false }
 >
 
-const DETOX_STAGED_FILES = ['detox-import.vult', 'detox-import.bak']
+const DETOX_STAGED_FILES = ['detox-import.vult']
 
 export type FileState = 'empty' | 'error' | 'success'
 
 const isVaultBackupFile = (name: string): boolean =>
-  /\.(vult|bak)$/i.test(name)
+  /\.vult$/i.test(name)
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- return type is inferred from complex hook state
 export function useImportFlow() {

@@ -67,20 +67,14 @@ describe('importVaultBackup — .vult', () => {
   })
 })
 
-describe('importVaultBackup — .bak', () => {
-  it('decrypts and parses .bak files the same as .vult', () => {
-    const content = buildVaultContainer({
-      password: FIXTURE_PASSWORD,
-    })
-    const result = assertDecrypted(
+describe('importVaultBackup — unsupported extensions', () => {
+  it('rejects .bak files', () => {
+    expect(() =>
       importVaultBackup({
-        content,
+        content: '',
         fileName: 'test-vault.bak',
-        password: FIXTURE_PASSWORD,
       })
-    )
-    expect(result.vaultName).toBeTruthy()
-    expect(result.publicKeyEcdsa).toBeTruthy()
+    ).toThrow('Unsupported file type')
   })
 })
 
