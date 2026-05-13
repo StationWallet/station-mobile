@@ -70,6 +70,21 @@ describe('getStoredVaultTerraAddress', () => {
     expect(address).toBeNull()
   })
 
+  it('returns null when the stored vault has an uncompressed-looking Terra pubkey', async () => {
+    // 04-prefixed: uncompressed secp256k1. Even at the right length our
+    // derivation refuses it explicitly so corrupted/wrong-format data
+    // doesn't silently fall back to a phantom "no Terra entry" miss.
+    const uncompressed = '04' + 'a'.repeat(64) // 66 chars total, but invalid prefix
+    await persistVaultWithChainPublicKeys('Bad', uncompressed)
+    expect(await getStoredVaultTerraAddress('Bad')).toBeNull()
+  })
+
+  it('returns null when the Terra pubkey is the right length but not hex', async () => {
+    const junk = '02' + 'z'.repeat(64) // non-hex characters
+    await persistVaultWithChainPublicKeys('Junk', junk)
+    expect(await getStoredVaultTerraAddress('Junk')).toBeNull()
+  })
+
   it('returns null when the stored vault has no Terra chainPublicKey', async () => {
     const vault = create(VaultSchema, {
       name: 'NoTerra',

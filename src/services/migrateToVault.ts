@@ -1,5 +1,10 @@
 import { toBinary, fromBinary, create } from '@bufbuild/protobuf'
 import { base64 } from '@scure/base'
+import { sha256 } from '@noble/hashes/sha2.js'
+import { bech32 } from 'bech32'
+// @noble/hashes 2.x dropped ripemd160 from its surface; the standalone
+// `ripemd160` package ships an OO API (`new RIPEMD160().update(...).digest()`).
+import RIPEMD160 from 'ripemd160'
 import * as SecureStore from 'expo-secure-store'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
@@ -179,19 +184,17 @@ function terraAddressFromCompressedSecp256k1Hex(
   publicKeyHex: string
 ): string | null {
   try {
-    // Lazy-require so jest test envs that don't have these libs available
-    // at module load don't break the rest of this module's exports.
-    const { sha256 } =
-      require('@noble/hashes/sha2.js') as typeof import('@noble/hashes/sha2.js')
-    // @noble/hashes 2.x dropped ripemd160 from the surface; the standalone
-    // `ripemd160` package ships an OO API (`new RIPEMD160().update(...).digest()`).
-    const RIPEMD160 = require('ripemd160')
-    const { bech32 } = require('bech32') as typeof import('bech32')
-
     const cleanHex = publicKeyHex.startsWith('0x')
       ? publicKeyHex.slice(2)
       : publicKeyHex
+    // 33-byte (66 hex char) compressed secp256k1 pubkey starting with
+    // 0x02 or 0x03. Reject anything else explicitly so an uncompressed
+    // pubkey, garbage bytes that happen to be 66 chars, or a hex string
+    // with non-hex characters doesn't silently fall back to "null Terra
+    // address" — which would look identical to "no Terra entry" upstream
+    // and could mask data corruption.
     if (cleanHex.length !== 66) return null
+    if (!/^0[23][0-9a-fA-F]{64}$/.test(cleanHex)) return null
     const pubKeyBytes = new Uint8Array(cleanHex.length / 2)
     for (let i = 0; i < pubKeyBytes.length; i++) {
       pubKeyBytes[i] = parseInt(cleanHex.slice(i * 2, i * 2 + 2), 16)
