@@ -78,8 +78,16 @@ function assertImportableFastVault(vault: {
   }
 }
 
+function assertVultFile(fileName: string): void {
+  if (!/\.vult$/i.test(fileName)) {
+    throw new Error(
+      'Unsupported file type. Please select a .vult file.'
+    )
+  }
+}
+
 /**
- * Decodes + validates a vault backup file (.bak / .vult).
+ * Decodes + validates a vault backup file (.vult).
  *
  * If encrypted and no password provided, returns { needsPassword: true }.
  * Otherwise decrypts, validates keyshares, and returns the decoded vault
@@ -90,6 +98,8 @@ export function importVaultBackup({
   fileName,
   password,
 }: ImportVaultBackupInput): ImportVaultBackupResult {
+  assertVultFile(fileName)
+
   const containerBytes = base64.decode(content.trim())
   const container = fromBinary(VaultContainerSchema, containerBytes)
 

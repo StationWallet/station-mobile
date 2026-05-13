@@ -76,7 +76,7 @@ function ImportTooltip({
         </Text>
         <Text fontType="brockmann" style={styles.tooltipDescription}>
           Use a vault share to recover your vault. Supported file
-          types: .bak & .vult
+          type: .vult
         </Text>
       </View>
     </>
@@ -155,7 +155,7 @@ export default function ImportVault(): React.ReactElement {
           fontType="brockmann-medium"
           style={styles.supportedText}
         >
-          Supported file types: .bak & .vult
+          Supported file type: .vult
         </Text>
       </Animated.View>
 

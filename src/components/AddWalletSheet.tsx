@@ -257,7 +257,7 @@ export default function AddWalletSheet({
               fontType="brockmann-medium"
               style={styles.cardCaption}
             >
-              Supported file types: .bak & .vult
+              Supported file type: .vult
             </Text>
           </Pressable>
         </View>
