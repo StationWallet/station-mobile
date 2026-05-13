@@ -19,6 +19,7 @@ import {
   encryptAesGcm,
   decryptAesGcm,
   deriveCipherKey,
+  base64ToBytes,
   md5HashAsync,
   randomHex,
   randomUUID,
@@ -90,6 +91,37 @@ type NativeKeygenResult = {
 
 type MpcKeyType = 'ecdsa' | 'eddsa'
 
+type BatchProtocolStatus = {
+  protocol: MpcKeyType
+  status: 'done' | 'failed' | 'timeout'
+  error?: string
+}
+
+const SERVER_STATUS_ERROR = 'server-side MPC'
+
+function decodeRelayText(base64Text: string): string {
+  return new TextDecoder().decode(base64ToBytes(base64Text))
+}
+
+function isServerStatusError(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err)
+  return message.includes(SERVER_STATUS_ERROR)
+}
+
+function keyTypeLabel(keyType: MpcKeyType): string {
+  return keyType === 'ecdsa' ? 'ECDSA' : 'EdDSA'
+}
+
+function parseProtocolStatus(decrypted: string): BatchProtocolStatus {
+  try {
+    return JSON.parse(
+      decodeRelayText(decrypted)
+    ) as BatchProtocolStatus
+  } catch {
+    return JSON.parse(decrypted) as BatchProtocolStatus
+  }
+}
+
 /**
  * Run the DKLS MPC message exchange loop with a messageId for relay routing.
  * The batch endpoint uses "p-ecdsa" as the messageId for the ECDSA protocol.
@@ -110,6 +142,37 @@ async function runMpcProtocol(
   const startTime = Date.now()
   const TIMEOUT_MS = 120_000
   let lastProgressTime = startTime
+
+  const checkServerStatus = async (): Promise<void> => {
+    const messages = await getRelayMessages(
+      sessionId,
+      localPartyId,
+      'batch-status'
+    )
+
+    for (const msg of messages) {
+      try {
+        const decrypted = decryptAesGcm(msg.body, cipherKey)
+        const status = parseProtocolStatus(decrypted)
+
+        if (status.protocol !== keyType || status.status === 'done') {
+          continue
+        }
+
+        const reason =
+          status.status === 'timeout'
+            ? 'timeout'
+            : status.error || `${SERVER_STATUS_ERROR} failure`
+        throw new Error(
+          `${keyType.toUpperCase()} ${SERVER_STATUS_ERROR} ${
+            status.status
+          }: ${reason}`
+        )
+      } catch (err) {
+        if (isServerStatusError(err)) throw err
+      }
+    }
+  }
 
   const processOutbound = async (): Promise<void> => {
     while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
@@ -172,6 +235,7 @@ async function runMpcProtocol(
     while (!isComplete && Date.now() - startTime < TIMEOUT_MS) {
       if (signal?.aborted) throw new Error('Aborted')
       try {
+        await checkServerStatus()
         const messages = await getRelayMessages(
           sessionId,
           localPartyId,
@@ -221,11 +285,14 @@ async function runMpcProtocol(
         await sleep(100)
       } catch (err) {
         if (signal?.aborted) throw err
+        const message =
+          err instanceof Error ? err.message : String(err)
+        if (isServerStatusError(err)) {
+          isComplete = true
+          throw err
+        }
         // eslint-disable-next-line no-console -- MPC protocol diagnostics
-        console.warn(
-          '[MPC] Inbound error:',
-          err instanceof Error ? err.message : err
-        )
+        console.warn('[MPC] Inbound error:', message)
         await sleep(200)
       }
     }
@@ -264,6 +331,68 @@ function freeNativeKeygen(
   } else {
     ExpoDkls.freeSchnorrKeygenSession(sessionHandle)
   }
+}
+
+async function createNativeKeygenSession(
+  keyType: MpcKeyType,
+  setupMessage: string,
+  localPartyId: string
+): Promise<number> {
+  return keyType === 'ecdsa'
+    ? ExpoDkls.createKeygenSession(setupMessage, localPartyId)
+    : ExpoDkls.createSchnorrKeygenSession(setupMessage, localPartyId)
+}
+
+async function runRootKeygen(options: {
+  keyType: MpcKeyType
+  sessionId: string
+  localPartyId: string
+  cipherKey: Uint8Array
+  setupMessage: string
+  messageId: string
+  signal?: AbortSignal
+  onProgress?: (progressPercent: number) => void
+}): Promise<NativeKeygenResult> {
+  const {
+    keyType,
+    sessionId,
+    localPartyId,
+    cipherKey,
+    setupMessage,
+    messageId,
+    signal,
+    onProgress,
+  } = options
+  const sessionHandle = await createNativeKeygenSession(
+    keyType,
+    setupMessage,
+    localPartyId
+  )
+  let keygenResult: NativeKeygenResult | undefined
+
+  try {
+    await runMpcProtocol(
+      sessionHandle,
+      sessionId,
+      localPartyId,
+      cipherKey,
+      keyType,
+      messageId,
+      onProgress,
+      signal
+    )
+    keygenResult = await finishNativeKeygen(keyType, sessionHandle)
+  } finally {
+    try {
+      freeNativeKeygen(keyType, sessionHandle)
+    } catch {}
+  }
+
+  if (!keygenResult)
+    throw new Error(
+      `${keyTypeLabel(keyType)} keygen did not return a result`
+    )
+  return keygenResult
 }
 
 /**
@@ -446,100 +575,70 @@ export async function createFastVault(options: {
     progress: 35,
   })
 
-  const ecdsaHandle = await ExpoDkls.createKeygenSession(
+  // Run ECDSA and EdDSA ceremonies with only one native handle alive at a
+  // time. mpc-native keeps shared session queues internally, so pre-creating
+  // both root sessions can make the flow device/load-sensitive even when the
+  // protocols are awaited serially.
+  const ecdsaResult = await runRootKeygen({
+    keyType: 'ecdsa',
+    sessionId,
+    localPartyId,
+    cipherKey,
     setupMessage,
-    localPartyId
-  )
-  const eddsaHandle = await ExpoDkls.createSchnorrKeygenSession(
+    messageId: 'p-ecdsa',
+    onProgress: (mpcProgress) => {
+      report({
+        step: 'ecdsa',
+        message: 'Running ECDSA MPC protocol...',
+        progress: Math.round(35 + mpcProgress * 15),
+      })
+    },
+    signal,
+  })
+
+  report({
+    step: 'eddsa',
+    message: 'Running EdDSA MPC protocol...',
+    progress: 50,
+  })
+
+  const eddsaResult = await runRootKeygen({
+    keyType: 'eddsa',
+    sessionId,
+    localPartyId,
+    cipherKey,
     setupMessage,
-    localPartyId
-  )
+    messageId: 'p-eddsa',
+    onProgress: (mpcProgress) => {
+      report({
+        step: 'eddsa',
+        message: 'Running EdDSA MPC protocol...',
+        progress: Math.round(50 + mpcProgress * 30),
+      })
+    },
+    signal,
+  })
 
-  try {
-    // Run ECDSA and EdDSA ceremonies SERIALLY, not in parallel.
-    //
-    // mpc-native exposes a single global state for the ECDSA / Schnorr session
-    // queues, and running two MPC protocols concurrently overloads the JS
-    // thread (each ceremony has its own outbound/inbound polling loops + native
-    // crypto), causing ANR-class hangs and "Invalid DKLS handle" finalize
-    // errors when relay messages get reordered between sessions.
-    //
-    // Vultiagent-app's importFastVault ran into the same constraint and
-    // resolved it by running per-chain imports sequentially; we follow the
-    // same pattern here for the two root keys. Total ceremony time roughly
-    // doubles vs the parallel attempt, but each ceremony gets the full JS
-    // thread + relay attention, which is the only way to get reliable
-    // finalization on slower physical devices.
-    await runMpcProtocol(
-      ecdsaHandle,
-      sessionId,
-      localPartyId,
-      cipherKey,
-      'ecdsa',
-      'p-ecdsa',
-      (mpcProgress) => {
-        report({
-          step: 'ecdsa',
-          message: 'Running ECDSA MPC protocol...',
-          progress: Math.round(35 + mpcProgress * 15),
-        })
-      },
-      signal
-    )
-    const ecdsaResult = await finishNativeKeygen('ecdsa', ecdsaHandle)
+  report({
+    step: 'finalizing',
+    message: 'Extracting keyshares...',
+    progress: 82,
+  })
 
-    report({
-      step: 'eddsa',
-      message: 'Running EdDSA MPC protocol...',
-      progress: 50,
-    })
+  await signalComplete(sessionId, localPartyId)
+  await waitForComplete(sessionId, parties, 60, 1000, signal)
 
-    await runMpcProtocol(
-      eddsaHandle,
-      sessionId,
-      localPartyId,
-      cipherKey,
-      'eddsa',
-      'p-eddsa',
-      (mpcProgress) => {
-        report({
-          step: 'eddsa',
-          message: 'Running EdDSA MPC protocol...',
-          progress: Math.round(50 + mpcProgress * 30),
-        })
-      },
-      signal
-    )
-    const eddsaResult = await finishNativeKeygen('eddsa', eddsaHandle)
+  report({ step: 'complete', message: 'Complete!', progress: 100 })
 
-    report({
-      step: 'finalizing',
-      message: 'Extracting keyshares...',
-      progress: 82,
-    })
-
-    await signalComplete(sessionId, localPartyId)
-    await waitForComplete(sessionId, parties, 60, 1000, signal)
-
-    report({ step: 'complete', message: 'Complete!', progress: 100 })
-
-    return {
-      publicKey: ecdsaResult.publicKey,
-      publicKeyEcdsa: ecdsaResult.publicKey,
-      publicKeyEddsa: eddsaResult.publicKey,
-      keyshareEcdsa: ecdsaResult.keyshare,
-      keyshareEddsa: eddsaResult.keyshare,
-      chainCode: ecdsaResult.chainCode || hexChainCode,
-      localPartyId,
-      serverPartyId,
-    }
-  } finally {
-    try {
-      freeNativeKeygen('ecdsa', ecdsaHandle)
-    } catch {}
-    try {
-      freeNativeKeygen('eddsa', eddsaHandle)
-    } catch {}
+  return {
+    publicKey: ecdsaResult.publicKey,
+    publicKeyEcdsa: ecdsaResult.publicKey,
+    publicKeyEddsa: eddsaResult.publicKey,
+    keyshareEcdsa: ecdsaResult.keyshare,
+    keyshareEddsa: eddsaResult.keyshare,
+    chainCode: ecdsaResult.chainCode || hexChainCode,
+    localPartyId,
+    serverPartyId,
   }
 }
 
