@@ -2,6 +2,14 @@ import { toBinary, fromBinary, create } from '@bufbuild/protobuf'
 import { base64 } from '@scure/base'
 import { sha256 } from '@noble/hashes/sha2.js'
 import { bech32 } from 'bech32'
+// Pure-JS RIPEMD160 from hash.js. We previously used the `ripemd160`
+// package which pulls `hash-base` + `buffer`; both touch Node-style
+// Buffer internals that the Hermes Buffer polyfill doesn't have ready
+// at lazy-require time, crashing every call site with
+// "Cannot read property 'slice' of undefined" — observed on Android in
+// production and previously on iOS at startup. hash.js is pure-JS, no
+// Buffer dependency, and is safe to import statically.
+import hashJs from 'hash.js'
 import * as SecureStore from 'expo-secure-store'
 
 import { VaultSchema } from '../proto/vultisig/vault/v1/vault_pb'
@@ -198,19 +206,11 @@ function terraAddressFromCompressedSecp256k1Hex(
       pubKeyBytes[i] = parseInt(cleanHex.slice(i * 2, i * 2 + 2), 16)
     }
 
-    // Lazy-require RIPEMD160 specifically — its module body pulls in
-    // `hash-base` and `buffer`, both of which touch Node-style Buffer
-    // internals at load time. With Hermes/Metro, importing this at the
-    // top of the file blows up at runtime startup with
-    // `Cannot read property 'slice' of undefined` (the Buffer polyfill
-    // isn't ready when this module is initialized). @noble/hashes/sha2
-    // and bech32 are RN-safe and stay as static imports above.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports -- intentional lazy load, see above
-    const RIPEMD160 = require('ripemd160')
     const sha = sha256(pubKeyBytes)
-    const ripe: Uint8Array = new RIPEMD160()
-      .update(Buffer.from(sha))
-      .digest()
+    // hashJs.ripemd160() takes any iterable of bytes; passing Uint8Array
+    // directly works without a Buffer wrapper. `.digest()` returns a
+    // number[] under the default encoding, which bech32.toWords expects.
+    const ripe = hashJs.ripemd160().update(sha).digest()
     const words = bech32.toWords(ripe)
     return bech32.encode('terra', words)
   } catch {
