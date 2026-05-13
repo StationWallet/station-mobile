@@ -33,6 +33,7 @@ export default function VaultName(): React.ReactElement {
   const mode = route.params?.mode ?? 'create'
   const privateKeyHex = route.params?.privateKeyHex
   const seedImportChains = route.params?.seedImportChains
+  const recoveryDeeplink = route.params?.recoveryDeeplink
   const insets = useSafeAreaInsets()
   const [name, setName] = useState('')
 
@@ -105,6 +106,7 @@ export default function VaultName(): React.ReactElement {
               if (mode === 'import-private-key' && !privateKeyHex) {
                 navigation.navigate('ImportPrivateKey', {
                   walletName,
+                  recoveryDeeplink,
                 })
               } else {
                 navigation.navigate('VaultEmail', {

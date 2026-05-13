@@ -39,6 +39,7 @@ import {
   type ImportWalletDiscoveryResult,
 } from 'services/importWalletDiscovery'
 import { validatePrivateKey } from 'services/privateKeyImport'
+import { detectRecoveryPayload } from 'utils/qrCode'
 import {
   validateSeedPhrase,
   type SeedImportChain,
@@ -425,16 +426,25 @@ export default function RecoverSeed(): React.ReactElement {
     () => validateSeedPhrase(seedText),
     [seedText]
   )
+  const recoveryDeeplink = useMemo(() => {
+    const trimmed = privateKeyText.trim()
+    const data = detectRecoveryPayload(trimmed)
+    if (!data) return null
+    return { url: trimmed, data }
+  }, [privateKeyText])
   const privateKey = useMemo(() => {
     if (!privateKeyText.trim()) return null
+    if (recoveryDeeplink) return null
     try {
       return validatePrivateKey(privateKeyText)
     } catch {
       return null
     }
-  }, [privateKeyText])
+  }, [privateKeyText, recoveryDeeplink])
   const showPrivateKeyError =
-    privateKeyText.trim().length > 0 && !privateKey
+    privateKeyText.trim().length > 0 &&
+    !privateKey &&
+    !recoveryDeeplink
 
   // Cancel any in-flight scan if the screen unmounts (back nav, app sleep, etc.).
   useEffect(() => {
@@ -529,6 +539,13 @@ export default function RecoverSeed(): React.ReactElement {
   }
 
   const continuePrivateKey = (): void => {
+    if (recoveryDeeplink) {
+      navigation.navigate('VaultName', {
+        mode: 'import-private-key',
+        recoveryDeeplink: recoveryDeeplink.url,
+      })
+      return
+    }
     if (!privateKey) return
     navigation.navigate('VaultName', {
       mode: 'import-private-key',
@@ -880,7 +897,8 @@ export default function RecoverSeed(): React.ReactElement {
             />
             {showPrivateKeyError ? (
               <Text fontType="brockmann" style={styles.errorText}>
-                Enter a valid 64-character hex private key.
+                Paste a 64-character hex private key, or scan a
+                Station recovery QR code.
               </Text>
             ) : null}
             <View style={styles.utilityRow}>
@@ -914,7 +932,11 @@ export default function RecoverSeed(): React.ReactElement {
           title="Import"
           theme="ctaBlue"
           titleFontType="brockmann-medium"
-          disabled={tab === 'seed' ? !isValidSeed : !privateKey}
+          disabled={
+            tab === 'seed'
+              ? !isValidSeed
+              : !privateKey && !recoveryDeeplink
+          }
           onPress={tab === 'seed' ? scanSeed : continuePrivateKey}
           containerStyle={styles.ctaButton}
           testID="import-wallet-import"

@@ -77,11 +77,18 @@ export type MigrationStackParams = {
         mode?: MigrationMode
         privateKeyHex?: string
         seedImportChains?: SeedImportChain[]
+        /**
+         * Legacy Station SPA `terrastation://wallet_recover/?payload=...`
+         * URL captured at QR-scan / paste time. Forwarded to
+         * ImportPrivateKey so it can pre-fill and route to LegacyMigrate.
+         */
+        recoveryDeeplink?: string
       }
     | undefined
   ImportWallet: undefined
   ImportPrivateKey: {
     walletName: string
+    recoveryDeeplink?: string
   }
   VaultEmail: {
     walletName: string
