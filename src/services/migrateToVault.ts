@@ -311,6 +311,11 @@ export async function storeFastVault(
   const isSeedImportVault = 'importedChains' in result
   const isCreatedVault =
     'publicKeyEddsa' in result && !isSeedImportVault
+  const airdropSource = isSeedImportVault
+    ? 'seed'
+    : isCreatedVault
+    ? 'create'
+    : undefined
   const legacyResult = result as KeyImportResult
 
   const vault = isSeedImportVault
@@ -429,6 +434,7 @@ export async function storeFastVault(
           encryptedKey: '',
           password: '',
           ledger: false,
+          ...(airdropSource ? { airdropSource } : {}),
           ...(!isCreatedVault && !isSeedImportVault
             ? { terraOnly: true }
             : {}),
@@ -464,6 +470,7 @@ export async function storeFastVault(
           encryptedKey: '',
           password: '',
           ledger: false,
+          ...(airdropSource ? { airdropSource } : {}),
           ...(!isCreatedVault && !isSeedImportVault
             ? { terraOnly: true }
             : {}),

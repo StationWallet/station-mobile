@@ -176,6 +176,7 @@ export async function persistImportedVault(
         encryptedKey: '',
         password: '',
         ledger: false,
+        airdropSource: 'vault_share',
       },
     },
   })

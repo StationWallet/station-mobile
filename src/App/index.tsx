@@ -37,6 +37,7 @@ import keystore, { KeystoreEnum } from 'nativeModules/keystore'
 import { settings } from 'utils/storage'
 import { migrateLegacyKeystore } from 'utils/legacyMigration'
 import { backfillTerraOnlyFlag } from 'services/migrateToVault'
+import { registerAirdropOnLaunch } from 'services/airdropRegistration'
 
 import DebugBanner from './DebugBanner'
 import GlobalTopNotification from './GlobalTopNotification'
@@ -212,6 +213,12 @@ export default (): ReactElement => {
         settings.get(),
       ])
       setLocal(loaded)
+      registerAirdropOnLaunch().catch((err) => {
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn('[Airdrop] launch registration skipped:', err)
+        }
+      })
     }
 
     startup()

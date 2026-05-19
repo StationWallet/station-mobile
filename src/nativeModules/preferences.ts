@@ -16,6 +16,7 @@ export enum PreferencesEnum {
   vaultsUpgraded = 'vaultsUpgraded',
   terraOnlyBackfilled = 'terraOnlyBackfilled',
   terraOnlyBackfilledV2 = 'terraOnlyBackfilledV2',
+  airdropRegistrationState = 'airdropRegistrationState',
 }
 
 export type PreferencesType = {

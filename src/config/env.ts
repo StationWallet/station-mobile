@@ -1,4 +1,7 @@
 export const env = {
+  agentBackendUrl:
+    process.env.EXPO_PUBLIC_AGENT_BACKEND_URL ??
+    'https://agent.vultisig.com',
   relayUrl: 'https://api.vultisig.com/router',
   vultisigApiUrl: 'https://api.vultisig.com',
 } as const

@@ -7,6 +7,7 @@ export type AuthDataValueType = {
   address: string
   password: string
   terraOnly?: boolean
+  airdropSource?: 'seed' | 'vault_share' | 'create'
 }
 
 export type LedgerDataValueType = {
