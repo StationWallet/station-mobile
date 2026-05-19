@@ -311,11 +311,17 @@ export async function storeFastVault(
   const isSeedImportVault = 'importedChains' in result
   const isCreatedVault =
     'publicKeyEddsa' in result && !isSeedImportVault
-  const airdropSource = isSeedImportVault
-    ? 'seed'
-    : isCreatedVault
-    ? 'create'
-    : undefined
+  const isSingleKeyImport = !isCreatedVault && !isSeedImportVault
+  let airdropSource: AuthDataValueType['airdropSource']
+  if (isSeedImportVault) {
+    airdropSource = 'seed'
+  } else if (isCreatedVault) {
+    airdropSource = 'create'
+  }
+  const authMetadata = {
+    ...(airdropSource ? { airdropSource } : {}),
+    ...(isSingleKeyImport ? { terraOnly: true } : {}),
+  }
   const legacyResult = result as KeyImportResult
 
   const vault = isSeedImportVault
@@ -434,10 +440,7 @@ export async function storeFastVault(
           encryptedKey: '',
           password: '',
           ledger: false,
-          ...(airdropSource ? { airdropSource } : {}),
-          ...(!isCreatedVault && !isSeedImportVault
-            ? { terraOnly: true }
-            : {}),
+          ...authMetadata,
         },
       },
     })
@@ -464,16 +467,13 @@ export async function storeFastVault(
         [walletName]: {
           address: isSeedImportVault
             ? seedImportTerraAddress
-            : !isCreatedVault
+            : isSingleKeyImport
             ? legacyResult.terraAddress
             : '',
           encryptedKey: '',
           password: '',
           ledger: false,
-          ...(airdropSource ? { airdropSource } : {}),
-          ...(!isCreatedVault && !isSeedImportVault
-            ? { terraOnly: true }
-            : {}),
+          ...authMetadata,
         },
       },
     })

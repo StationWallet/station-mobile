@@ -254,11 +254,14 @@ function classifyWithSource(
   vault: Vault,
   source: AirdropRegistrationSource
 ): AirdropVaultClassification {
-  const recipient =
-    source === 'create'
-      ? deriveCreatedVaultRecipient(vault)
-      : deriveImportedEvmRecipient(vault) ||
-        deriveCreatedVaultRecipient(vault)
+  let recipient: string | null
+  if (source === 'create') {
+    recipient = deriveCreatedVaultRecipient(vault)
+  } else {
+    recipient =
+      deriveImportedEvmRecipient(vault) ||
+      deriveCreatedVaultRecipient(vault)
+  }
 
   if (!recipient) {
     return {
@@ -447,10 +450,9 @@ function parseErrorCode(body: string): string | null {
 function classifyHttpFailure(
   status: number,
   body: string
-): {
-  status: 'blocked' | 'failed'
-  reason: AirdropBlockedReason | string
-} {
+):
+  | { status: 'blocked'; reason: AirdropBlockedReason }
+  | { status: 'failed'; reason: string } {
   const code = parseErrorCode(body)
   if (status === 401) {
     return { status: 'failed', reason: 'auth_failed' }
@@ -610,19 +612,23 @@ export async function registerAirdropOnLaunch({
         response.body
       )
 
-      state.records[key] =
-        failure.status === 'blocked'
-          ? blockedRecord(
-              walletName,
-              publicKeyEcdsa,
-              failure.reason as AirdropBlockedReason,
-              currentTime,
-              candidate
-            )
-          : failedRecord(candidate, failure.reason, currentTime)
-      summary[
-        failure.status === 'blocked' ? 'blocked' : 'failed'
-      ] += 1
+      if (failure.status === 'blocked') {
+        state.records[key] = blockedRecord(
+          walletName,
+          publicKeyEcdsa,
+          failure.reason,
+          currentTime,
+          candidate
+        )
+        summary.blocked += 1
+      } else {
+        state.records[key] = failedRecord(
+          candidate,
+          failure.reason,
+          currentTime
+        )
+        summary.failed += 1
+      }
     } catch (error) {
       state.records[key] = failedRecord(
         candidate,

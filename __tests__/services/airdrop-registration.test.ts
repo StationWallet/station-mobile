@@ -70,16 +70,17 @@ describe('classifyVaultForAirdropRegistration', () => {
       keyShares: [{ publicKey: ROOT_PUBKEY, keyshare: 'share' }],
     })
 
-    expect(classifyVaultForAirdropRegistration(vault)).toMatchObject({
+    const result = classifyVaultForAirdropRegistration(vault)
+
+    expect(result).toMatchObject({
       status: 'registerable',
       source: 'seed',
       bucket: 'station_migration',
       publicKeyEcdsa: ROOT_PUBKEY,
     })
-    const result = classifyVaultForAirdropRegistration(vault)
-    expect(result.status === 'registerable' && result.recipientAddress).toMatch(
-      /^0x[0-9a-fA-F]{40}$/
-    )
+    expect(
+      result.status === 'registerable' && result.recipientAddress
+    ).toMatch(/^0x[0-9a-fA-F]{40}$/)
   })
 
   it('derives created-vault recipients from the root ECDSA key and chain code', () => {
@@ -102,9 +103,9 @@ describe('classifyVaultForAirdropRegistration', () => {
       bucket: 'campaign_new',
       publicKeyEcdsa: ROOT_PUBKEY,
     })
-    expect(result.status === 'registerable' && result.recipientAddress).toMatch(
-      /^0x[0-9a-fA-F]{40}$/
-    )
+    expect(
+      result.status === 'registerable' && result.recipientAddress
+    ).toMatch(/^0x[0-9a-fA-F]{40}$/)
   })
 
   it('requires provenance before registering non-Station vault shares', () => {
@@ -219,11 +220,15 @@ describe('registerAirdropOnLaunch', () => {
         }),
       })
     )
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({
-      source: 'seed',
-      bucket: 'station_migration',
-      recipient_address: expect.stringMatching(/^0x[0-9a-fA-F]{40}$/),
-    })
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject(
+      {
+        source: 'seed',
+        bucket: 'station_migration',
+        recipient_address: expect.stringMatching(
+          /^0x[0-9a-fA-F]{40}$/
+        ),
+      }
+    )
 
     const state = await getAirdropRegistrationState()
     expect(state.records[ROOT_PUBKEY.toLowerCase()]).toMatchObject({
@@ -262,9 +267,11 @@ describe('registerAirdropOnLaunch', () => {
       now,
     })
 
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({
-      source: 'vault_share',
-      bucket: 'campaign_new',
-    })
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject(
+      {
+        source: 'vault_share',
+        bucket: 'campaign_new',
+      }
+    )
   })
 })
